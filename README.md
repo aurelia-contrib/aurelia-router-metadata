@@ -13,20 +13,18 @@ It's still an early work in progress, only superficially tested, and not by any 
 
 Do feel free to try it out, leave feedback and/or provide suggestions :)
 
-PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
-
 ## Usage:
 
 ### To configure a component so that it can be navigated to:
   `src/pages/foo.ts`
-  
+
   This:
 
   ```
   @routable()
   export class FooPage {}
   ```
-  
+
   Will generate the following `RouteConfig`:
 
   ```
@@ -39,14 +37,14 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
     settings: {}
 }
   ```
-  
+
   This:
 
   ```
   @routable({route: ["", "foo"]}) // pass in any RouteConfig properties to override the defaults
   export class FooPage {}
   ```
-  
+
   Will generate the following `RouteConfig`:
 
   ```
@@ -59,7 +57,7 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
     settings: {}
 }
   ```
-  
+
   This:
 
   ```
@@ -68,7 +66,7 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
     public static title = "The Foo Page"; // static properties on the class that match RouteConfig property names will also override the defaults
   }
   ```
-  
+
   Will generate the following `RouteConfig`:
 
   ```
@@ -85,7 +83,7 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
 
 ### To configure a component so that its router configuration will be mapped:
   `src/app.ts`
-  
+
   This:
 
   ```
@@ -96,7 +94,7 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
   ])
   export class App {}
   ```
-  
+
   Will assign a `configureRouter` method (if none is present) or proxy the existing (if already present), to do the following:
 
   ```
@@ -121,7 +119,7 @@ PLUGIN INSTALLATION DOES NOT WORK YET - will be sorted in the coming days
     ])
 }
   ```
-  
+
 
 
 
