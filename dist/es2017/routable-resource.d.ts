@@ -1,6 +1,7 @@
 import { RouteConfig } from "aurelia-router";
 export declare class RoutableResource {
     static routableResourceMetadataKey: string;
+    private static readonly moduleClassStorage;
     routes: RouteConfig[];
     moduleId: string;
     target: Function;

@@ -1,19 +1,21 @@
 define(["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var moduleClassStorage = new Map();
-    var RoutableResource = (function () {
-        function RoutableResource() {
+    const moduleClassStorage = new Map();
+    class RoutableResource {
+        static get moduleClassStorage() {
+            return moduleClassStorage;
         }
-        RoutableResource.getTarget = function (moduleId) {
+        // tslint:disable-next-line:function-name
+        static getTarget(moduleId) {
             return moduleClassStorage.get(moduleId);
-        };
-        RoutableResource.setTarget = function (moduleId, target) {
+        }
+        // tslint:disable-next-line:function-name
+        static setTarget(moduleId, target) {
             moduleClassStorage.set(moduleId, target);
-        };
-        RoutableResource.routableResourceMetadataKey = "aurelia:routable-resource";
-        return RoutableResource;
-    }());
+        }
+    }
+    RoutableResource.routableResourceMetadataKey = "aurelia:routable-resource";
     exports.RoutableResource = RoutableResource;
 });
 //# sourceMappingURL=routable-resource.js.map

@@ -1,11 +1,10 @@
 import { PLATFORM } from "aurelia-pal";
 export function getModuleId(target) {
-    var moduleId;
-    PLATFORM.eachModule(function (key, val) {
+    let moduleId;
+    PLATFORM.eachModule((key, val) => {
         if (typeof val === "object") {
-            for (var _i = 0, _a = Object.keys(val); _i < _a.length; _i++) {
-                var name_1 = _a[_i];
-                if (val[name_1] === target || name_1 === target.name) {
+            for (const name of Object.keys(val)) {
+                if (val[name] === target || name === target.name) {
                     moduleId = key;
                     return true;
                 }
@@ -18,12 +17,12 @@ export function getModuleId(target) {
         return false;
     });
     if (moduleId === undefined) {
-        throw new Error("Module not found for " + target.name);
+        throw new Error(`Module not found for ${target.name}`);
     }
     return moduleId;
 }
 export function getHyphenatedName(target) {
-    var name = target.name;
-    return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, function (char) { return "-" + char.toLowerCase(); });
+    const name = target.name;
+    return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, (char) => "-" + char.toLowerCase());
 }
 //# sourceMappingURL=utils.js.map

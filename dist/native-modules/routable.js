@@ -1,17 +1,10 @@
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
 import { getLogger } from "aurelia-logging";
 import { metadata } from "aurelia-metadata";
 import { RoutableResource } from "./routable-resource";
 import { getHyphenatedName, getModuleId } from "./utils";
-var logger = getLogger("routable");
-var routeConfigProperies = [
+const logger = getLogger("routable");
+// we're leaving "name" out because that's a reserved property which always returns the class name
+const routeConfigProperies = [
     "route",
     "moduleId",
     "redirect",
@@ -29,15 +22,21 @@ var routeConfigProperies = [
     "layoutViewModel",
     "layoutModel"
 ];
-var functionProto = Object.getPrototypeOf(Function);
-var metadataKey = RoutableResource.routableResourceMetadataKey;
+const functionProto = Object.getPrototypeOf(Function);
+const metadataKey = RoutableResource.routableResourceMetadataKey;
+/**
+ * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself
+ * @param routes One or more RouteConfig objects whose properties will override the convention defaults
+ * @param baseRoute A RouteConfig object whose properties will override the convention defaults, but will be overridden by routes
+ */
 export function routable(routes, baseRoute) {
-    return function (target) {
-        var moduleId = getModuleId(target);
+    return (target) => {
+        const moduleId = getModuleId(target);
         RoutableResource.setTarget(moduleId, target);
-        logger.debug("loading routable for " + moduleId);
-        var hyphenated = getHyphenatedName(target);
-        var defaults = {
+        logger.debug(`loading routable for ${moduleId}`);
+        // convention defaults
+        const hyphenated = getHyphenatedName(target);
+        let defaults = {
             route: hyphenated,
             name: hyphenated,
             title: target.name,
@@ -45,40 +44,42 @@ export function routable(routes, baseRoute) {
             settings: {},
             moduleId: moduleId
         };
-        defaults = __assign({}, defaults, getDefaults(target));
+        // static property defaults
+        defaults = Object.assign({}, defaults, getDefaults(target));
+        // argument defaults
         if (baseRoute) {
-            defaults = __assign({}, defaults, baseRoute);
+            defaults = Object.assign({}, defaults, baseRoute);
         }
-        var routesToAdd = [];
+        const routesToAdd = [];
         if (target.routes) {
-            for (var _i = 0, _a = Array.isArray(target.routes) ? target.routes : [target.routes]; _i < _a.length; _i++) {
-                var route = _a[_i];
-                routesToAdd.push(__assign({}, defaults, route));
+            for (const route of Array.isArray(target.routes) ? target.routes : [target.routes]) {
+                routesToAdd.push(Object.assign({}, defaults, route));
             }
         }
         if (routes) {
-            for (var _b = 0, _c = Array.isArray(routes) ? routes : [routes]; _b < _c.length; _b++) {
-                var route = _c[_b];
-                routesToAdd.push(__assign({}, defaults, route));
+            for (const route of Array.isArray(routes) ? routes : [routes]) {
+                routesToAdd.push(Object.assign({}, defaults, route));
             }
         }
+        // if no routes defined, simply add one route with the default values
         if (routesToAdd.length === 0) {
-            routesToAdd.push(__assign({}, defaults));
+            routesToAdd.push(Object.assign({}, defaults));
         }
-        var resource = metadata.getOrCreateOwn(metadataKey, RoutableResource, target);
+        const resource = metadata.getOrCreateOwn(metadataKey, RoutableResource, target);
         resource.moduleId = moduleId;
         resource.target = target;
         resource.routes = routesToAdd;
     };
 }
 function getDefaults(target) {
+    // start with the first up in the prototype chain and override any properties we come across down the chain
     if (target === functionProto) {
         return {};
     }
-    var proto = Object.getPrototypeOf(target);
-    var defaults = getDefaults(proto);
-    for (var _i = 0, routeConfigProperies_1 = routeConfigProperies; _i < routeConfigProperies_1.length; _i++) {
-        var prop = routeConfigProperies_1[_i];
+    const proto = Object.getPrototypeOf(target);
+    let defaults = getDefaults(proto);
+    // first grab any static "RouteConfig-like" properties from the target
+    for (const prop of routeConfigProperies) {
         if (target.hasOwnProperty(prop)) {
             defaults[prop] = target[prop];
         }
@@ -86,8 +87,9 @@ function getDefaults(target) {
     if (target.hasOwnProperty("routeName")) {
         defaults.name = target.routeName;
     }
+    // then override them with any properties on the target's baseRoute property (if present)
     if (target.hasOwnProperty("baseRoute")) {
-        defaults = __assign({}, defaults, target.baseRoute);
+        defaults = Object.assign({}, defaults, target.baseRoute);
     }
     return defaults;
 }

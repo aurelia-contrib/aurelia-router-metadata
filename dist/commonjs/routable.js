@@ -1,19 +1,12 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var aurelia_logging_1 = require("aurelia-logging");
-var aurelia_metadata_1 = require("aurelia-metadata");
-var routable_resource_1 = require("./routable-resource");
-var utils_1 = require("./utils");
-var logger = aurelia_logging_1.getLogger("routable");
-var routeConfigProperies = [
+const aurelia_logging_1 = require("aurelia-logging");
+const aurelia_metadata_1 = require("aurelia-metadata");
+const routable_resource_1 = require("./routable-resource");
+const utils_1 = require("./utils");
+const logger = aurelia_logging_1.getLogger("routable");
+// we're leaving "name" out because that's a reserved property which always returns the class name
+const routeConfigProperies = [
     "route",
     "moduleId",
     "redirect",
@@ -31,15 +24,21 @@ var routeConfigProperies = [
     "layoutViewModel",
     "layoutModel"
 ];
-var functionProto = Object.getPrototypeOf(Function);
-var metadataKey = routable_resource_1.RoutableResource.routableResourceMetadataKey;
+const functionProto = Object.getPrototypeOf(Function);
+const metadataKey = routable_resource_1.RoutableResource.routableResourceMetadataKey;
+/**
+ * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself
+ * @param routes One or more RouteConfig objects whose properties will override the convention defaults
+ * @param baseRoute A RouteConfig object whose properties will override the convention defaults, but will be overridden by routes
+ */
 function routable(routes, baseRoute) {
-    return function (target) {
-        var moduleId = utils_1.getModuleId(target);
+    return (target) => {
+        const moduleId = utils_1.getModuleId(target);
         routable_resource_1.RoutableResource.setTarget(moduleId, target);
-        logger.debug("loading routable for " + moduleId);
-        var hyphenated = utils_1.getHyphenatedName(target);
-        var defaults = {
+        logger.debug(`loading routable for ${moduleId}`);
+        // convention defaults
+        const hyphenated = utils_1.getHyphenatedName(target);
+        let defaults = {
             route: hyphenated,
             name: hyphenated,
             title: target.name,
@@ -47,27 +46,28 @@ function routable(routes, baseRoute) {
             settings: {},
             moduleId: moduleId
         };
-        defaults = __assign({}, defaults, getDefaults(target));
+        // static property defaults
+        defaults = Object.assign({}, defaults, getDefaults(target));
+        // argument defaults
         if (baseRoute) {
-            defaults = __assign({}, defaults, baseRoute);
+            defaults = Object.assign({}, defaults, baseRoute);
         }
-        var routesToAdd = [];
+        const routesToAdd = [];
         if (target.routes) {
-            for (var _i = 0, _a = Array.isArray(target.routes) ? target.routes : [target.routes]; _i < _a.length; _i++) {
-                var route = _a[_i];
-                routesToAdd.push(__assign({}, defaults, route));
+            for (const route of Array.isArray(target.routes) ? target.routes : [target.routes]) {
+                routesToAdd.push(Object.assign({}, defaults, route));
             }
         }
         if (routes) {
-            for (var _b = 0, _c = Array.isArray(routes) ? routes : [routes]; _b < _c.length; _b++) {
-                var route = _c[_b];
-                routesToAdd.push(__assign({}, defaults, route));
+            for (const route of Array.isArray(routes) ? routes : [routes]) {
+                routesToAdd.push(Object.assign({}, defaults, route));
             }
         }
+        // if no routes defined, simply add one route with the default values
         if (routesToAdd.length === 0) {
-            routesToAdd.push(__assign({}, defaults));
+            routesToAdd.push(Object.assign({}, defaults));
         }
-        var resource = aurelia_metadata_1.metadata.getOrCreateOwn(metadataKey, routable_resource_1.RoutableResource, target);
+        const resource = aurelia_metadata_1.metadata.getOrCreateOwn(metadataKey, routable_resource_1.RoutableResource, target);
         resource.moduleId = moduleId;
         resource.target = target;
         resource.routes = routesToAdd;
@@ -75,13 +75,14 @@ function routable(routes, baseRoute) {
 }
 exports.routable = routable;
 function getDefaults(target) {
+    // start with the first up in the prototype chain and override any properties we come across down the chain
     if (target === functionProto) {
         return {};
     }
-    var proto = Object.getPrototypeOf(target);
-    var defaults = getDefaults(proto);
-    for (var _i = 0, routeConfigProperies_1 = routeConfigProperies; _i < routeConfigProperies_1.length; _i++) {
-        var prop = routeConfigProperies_1[_i];
+    const proto = Object.getPrototypeOf(target);
+    let defaults = getDefaults(proto);
+    // first grab any static "RouteConfig-like" properties from the target
+    for (const prop of routeConfigProperies) {
         if (target.hasOwnProperty(prop)) {
             defaults[prop] = target[prop];
         }
@@ -89,8 +90,9 @@ function getDefaults(target) {
     if (target.hasOwnProperty("routeName")) {
         defaults.name = target.routeName;
     }
+    // then override them with any properties on the target's baseRoute property (if present)
     if (target.hasOwnProperty("baseRoute")) {
-        defaults = __assign({}, defaults, target.baseRoute);
+        defaults = Object.assign({}, defaults, target.baseRoute);
     }
     return defaults;
 }

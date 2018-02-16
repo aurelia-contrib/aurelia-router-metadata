@@ -4,6 +4,9 @@ const moduleClassStorage: Map<string, Function> = new Map<string, Function>();
 
 export class RoutableResource {
   public static routableResourceMetadataKey: string = "aurelia:routable-resource";
+  private static get moduleClassStorage(): Map<string, Function> {
+    return moduleClassStorage;
+  }
 
   public routes: RouteConfig[];
   public moduleId: string;

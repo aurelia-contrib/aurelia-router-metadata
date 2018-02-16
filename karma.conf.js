@@ -1,23 +1,19 @@
 // Karma configuration
-// Generated on Fri Dec 05 2014 16:49:29 GMT-0500 (EST)
 
 module.exports = function(config) {
   config.set({
-
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+    basePath: "",
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine', 'requirejs'],
+    frameworks: ["jasmine", "requirejs"],
 
     // list of files / patterns to load in the browser
     files: [
-      './test/setup.js',
-      { pattern: './src/**/*.ts', included: false, watched: true },
-      { pattern: './src/**/*.html', included: false, watched: true },
-      { pattern: './test/unit/**/*.ts', included: false, watched: true },
-      { pattern: './node_modules/**/*.js', included: false, watched: false },
+      "dist/test/test/setup.js",
+      { pattern: "dist/test/**/*.js", included: false, watched: true },
+      { pattern: "node_modules/**/*.js", included: false, watched: false }
     ],
 
     // list of files to exclude
@@ -25,24 +21,12 @@ module.exports = function(config) {
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-      '**/*.ts': ['typescript']
-    },
-    typescriptPreprocessor: {
-      options: {
-        sourceMap: true,
-        target: 'ES5',
-        module: 'amd',
-        transformPath: function(path) {
-          return path.replace(/\.ts$/, '.js');
-        }
-      }
-    },
+    preprocessors: {},
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ["progress"],
 
     // web server port
     port: 9876,
@@ -59,7 +43,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
+    browsers: ["Chrome"],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -67,6 +51,6 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    //concurrency: Infinity
+    concurrency: Infinity
   });
 };

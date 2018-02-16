@@ -7,22 +7,23 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["es2017", "dom"],
-    "module": "commonjs",
+    "listFiles": true,
+    "module": "es2015",
     "moduleResolution": "node",
     "noEmitHelpers": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": false,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
-    "outDir": "dist/commonjs",
-    "removeComments": true,
+    "preserveConstEnums": true,
+    "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
     "strictNullChecks": true,
     "stripInternal": true,
-    "target": "es5"
+    "target": "es2015"
   },
-  "exclude": [".vscode", "dist", "doc", "node_modules", "test"]
+  "exclude": [".vscode", "node_modules", "dist", "build", "doc", "test", "karma.conf.js"]
 }

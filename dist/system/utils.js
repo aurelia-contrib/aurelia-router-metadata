@@ -2,12 +2,11 @@ System.register(["aurelia-pal"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     function getModuleId(target) {
-        var moduleId;
-        aurelia_pal_1.PLATFORM.eachModule(function (key, val) {
+        let moduleId;
+        aurelia_pal_1.PLATFORM.eachModule((key, val) => {
             if (typeof val === "object") {
-                for (var _i = 0, _a = Object.keys(val); _i < _a.length; _i++) {
-                    var name_1 = _a[_i];
-                    if (val[name_1] === target || name_1 === target.name) {
+                for (const name of Object.keys(val)) {
+                    if (val[name] === target || name === target.name) {
                         moduleId = key;
                         return true;
                     }
@@ -20,14 +19,14 @@ System.register(["aurelia-pal"], function (exports_1, context_1) {
             return false;
         });
         if (moduleId === undefined) {
-            throw new Error("Module not found for " + target.name);
+            throw new Error(`Module not found for ${target.name}`);
         }
         return moduleId;
     }
     exports_1("getModuleId", getModuleId);
     function getHyphenatedName(target) {
-        var name = target.name;
-        return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, function (char) { return "-" + char.toLowerCase(); });
+        const name = target.name;
+        return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, (char) => "-" + char.toLowerCase());
     }
     exports_1("getHyphenatedName", getHyphenatedName);
     var aurelia_pal_1;

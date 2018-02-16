@@ -6,18 +6,20 @@ System.register([], function (exports_1, context_1) {
         setters: [],
         execute: function () {
             moduleClassStorage = new Map();
-            RoutableResource = (function () {
-                function RoutableResource() {
+            RoutableResource = class RoutableResource {
+                static get moduleClassStorage() {
+                    return moduleClassStorage;
                 }
-                RoutableResource.getTarget = function (moduleId) {
+                // tslint:disable-next-line:function-name
+                static getTarget(moduleId) {
                     return moduleClassStorage.get(moduleId);
-                };
-                RoutableResource.setTarget = function (moduleId, target) {
+                }
+                // tslint:disable-next-line:function-name
+                static setTarget(moduleId, target) {
                     moduleClassStorage.set(moduleId, target);
-                };
-                RoutableResource.routableResourceMetadataKey = "aurelia:routable-resource";
-                return RoutableResource;
-            }());
+                }
+            };
+            RoutableResource.routableResourceMetadataKey = "aurelia:routable-resource";
             exports_1("RoutableResource", RoutableResource);
         }
     };

@@ -13,6 +13,12 @@ import { RoutableResource } from "./routable-resource";
 import { getModuleId } from "./utils";
 const configureRouterSymbol = Symbol("configureRouter");
 const metadataKey = RoutableResource.routableResourceMetadataKey;
+/**
+ * Decorator: Indicates that the decorated class should map RouteConfigs defined by the referenced moduleIds.
+ * @param moduleId A single or array of `PLATFORM.moduleName("")`
+ * @param eagerLoadChildRoutes Whether the routes' childRoutes should also be mapped during `configureRouter`
+ * @param filter A filter to determine which routes to map
+ */
 export function mapRoutables(moduleId, eagerLoadChildRoutes = false, filter) {
     return (target) => {
         const ownModuleId = getModuleId(target);
@@ -60,6 +66,7 @@ export function mapRoutables(moduleId, eagerLoadChildRoutes = false, filter) {
 }
 function configureRouter(config, router) {
     return __awaiter(this, void 0, void 0, function* () {
+        // tslint:disable-next-line
         const context = this;
         const target = context.constructor;
         const resource = metadata.getOwn(metadataKey, target);
