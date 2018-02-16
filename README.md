@@ -121,6 +121,102 @@ Do feel free to try it out, leave feedback and/or provide suggestions :)
   ```
 
 
+## Eagerly loading child routes:
+
+### Given the following application structure:
+
+  `src/app.ts`
+
+  ```
+  @mapRoutables([
+    PLATFORM.moduleName("pages/foo")
+    PLATFORM.moduleName("pages/bar")
+  ], true) // passing "true" as the second argument tells the decorator we want all child routes to be eagerly loaded
+  export class App {
+    configureRouter(config, router) {
+      // decorator wraps this at runtime; this function is called after the decorator's (so at this point we already have some mapped routes)
+      this.router = router;
+    }
+  }
+  ```
+
+  `src/pages/foo.ts`
+
+  ```
+  @routable()
+  export class Foo {}
+  ```
+
+  `src/pages/bar.ts`
+
+  ```
+  @mapRoutables([
+    PLATFORM.moduleName("pages/bar/bar-foo")
+    PLATFORM.moduleName("pages/bar/bar-bar")
+  ], true)
+  @routable() // both decorators can be placed on the same class, indicating it both IS a child route and HAS child routes
+  export class Bar {}
+  ```
+
+  `src/pages/bar/bar-foo.ts`
+
+  ```
+  @routable()
+  export class BarFoo {}
+  ```
+
+  `src/pages/bar/bar-bar.ts`
+
+  ```
+  @mapRoutables([
+    PLATFORM.moduleName("pages/bar/bar-bar/bar-bar-foo")
+  ], true)
+  @routable()
+  export class BarBar {}
+  ```
+
+  `src/pages/bar/bar-bar/bar-bar-foo.ts`
+
+  ```
+  @routable()
+  export class BarBarFoo {}
+  ```
+
+### You can access child routes like so:
+
+  The example below would of course be a lot cleaner with a proper recursive menu/menu-item custom element
+
+  `src/app.html`
+
+  ```
+  <template>
+    <div repeat.for="nav of router.navigation">
+      <a href.bind="nav.href">${nav.title}</a>
+
+      <template if.bind="nav.config.settings.childRoutes">
+        <div repeat.for="child of nav.config.settings.childRoutes">
+          <a href="${nav.href + '/' + child.route}">${child.title}</a>
+
+          <template if.bind="child.settings.childRoutes">
+            <div repeat.for="grandChild of child.settings.childRoutes">
+              <a href="${nav.href + '/' + child.route + '/' + grandChild.route}">${grandChild.title}</a>
+            </div>
+          </template>
+
+        </div>
+      </template>
+
+    </div>
+  </template>
+  ```
+
+  Important to note is that childRoutes (which are accessible through the RouteConfig's `.settings.childRoutes` property) are themselves RouteConfig objects rather than NavModel; therefore you need the `route` property rather than `href` on children, grandchildren etc.
+
+  The full url needs to be built up manually with information from the ancestors. Working with URLs is the only type of navigation that's currently been tested.
+
+
+
+
 
 
 ## Building The Code
