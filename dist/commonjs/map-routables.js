@@ -50,9 +50,9 @@ function mapRoutables(moduleId, eagerLoadChildRoutes, filter) {
         routable_resource_1.RoutableResource.setTarget(ownModuleId, target);
         var resource = aurelia_metadata_1.metadata.getOrCreateOwn(metadataKey, routable_resource_1.RoutableResource, target);
         var loadChildRoutes = function () { return __awaiter(_this, void 0, void 0, function () {
-            var filterRoute, moduleIds, loader, routes, _i, moduleIds_1, id, trg, res, _a, _b, route;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var filterRoute, moduleIds, loader, routes, _i, moduleIds_1, id, trg, res, _a, _b, route, childRoutes, _c, routes_1, route;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         if (Array.isArray(resource.childRoutes)) {
                             return [2, resource.childRoutes];
@@ -62,10 +62,10 @@ function mapRoutables(moduleId, eagerLoadChildRoutes, filter) {
                         loader = aurelia_dependency_injection_1.Container.instance.get(aurelia_loader_1.Loader);
                         return [4, loader.loadAllModules(moduleIds)];
                     case 1:
-                        _c.sent();
+                        _d.sent();
                         routes = [];
                         _i = 0, moduleIds_1 = moduleIds;
-                        _c.label = 2;
+                        _d.label = 2;
                     case 2:
                         if (!(_i < moduleIds_1.length)) return [3, 5];
                         id = moduleIds_1[_i];
@@ -83,8 +83,12 @@ function mapRoutables(moduleId, eagerLoadChildRoutes, filter) {
                         if (!(eagerLoadChildRoutes && res.loadChildRoutes !== undefined)) return [3, 4];
                         return [4, res.loadChildRoutes()];
                     case 3:
-                        _c.sent();
-                        _c.label = 4;
+                        childRoutes = _d.sent();
+                        for (_c = 0, routes_1 = routes; _c < routes_1.length; _c++) {
+                            route = routes_1[_c];
+                            route.settings.childRoutes = childRoutes;
+                        }
+                        _d.label = 4;
                     case 4:
                         _i++;
                         return [3, 2];

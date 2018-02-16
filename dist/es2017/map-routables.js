@@ -32,7 +32,10 @@ export function mapRoutables(moduleId, eagerLoadChildRoutes = false, filter) {
                     }
                 }
                 if (eagerLoadChildRoutes && res.loadChildRoutes !== undefined) {
-                    await res.loadChildRoutes();
+                    const childRoutes = await res.loadChildRoutes();
+                    for (const route of routes) {
+                        route.settings.childRoutes = childRoutes;
+                    }
                 }
             }
             resource.childRoutes = routes;

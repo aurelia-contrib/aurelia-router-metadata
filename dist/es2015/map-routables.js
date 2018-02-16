@@ -40,7 +40,10 @@ export function mapRoutables(moduleId, eagerLoadChildRoutes = false, filter) {
                     }
                 }
                 if (eagerLoadChildRoutes && res.loadChildRoutes !== undefined) {
-                    yield res.loadChildRoutes();
+                    const childRoutes = yield res.loadChildRoutes();
+                    for (const route of routes) {
+                        route.settings.childRoutes = childRoutes;
+                    }
                 }
             }
             resource.childRoutes = routes;
