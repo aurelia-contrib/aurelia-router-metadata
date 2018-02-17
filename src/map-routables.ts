@@ -31,7 +31,7 @@ export function mapRoutables(
         return resource.childRoutes;
       }
 
-      const filterRoute = (typeof filter === "object" ? filter : (): boolean => true) as Function;
+      const filterRoute = (typeof filter === "function" ? filter : (): boolean => true) as Function;
       const moduleIds = Array.isArray(moduleId) ? moduleId : [moduleId];
       const loader = Container.instance.get(Loader) as Loader;
 
