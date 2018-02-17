@@ -53,15 +53,15 @@ function setResource(target: Function, resource: RoutableResource): void {
 }
 
 describe("mapRoutables", () => {
-  let resource: RoutableResource;
+  let routableResource: RoutableResource;
   let moduleMap: Map<string, any>;
 
   beforeEach(() => {
-    resource = new RoutableResource();
-    resource.moduleId = "foo";
-    resource.target = Foo;
-    resource.routes = [];
-    setResource(Foo, resource);
+    routableResource = new RoutableResource();
+    routableResource.moduleId = "foo";
+    routableResource.target = Foo;
+    routableResource.routes = [];
+    setResource(Foo, routableResource);
     moduleMap = new Map<string, any>();
     moduleMap.set("foo", Foo);
     moduleMap.set("foo-bar", FooBar);
@@ -97,4 +97,31 @@ describe("mapRoutables", () => {
 
     expect(RoutableResource.setTarget).toHaveBeenCalledWith("foo-bar", FooBar);
   });
+
+  it("creates a RoutableResource with its own moduleId", () => {
+    PLATFORM.eachModule = jasmine.createSpy().and.callFake(eachModule(moduleMap));
+
+    mapRoutables("foo")(FooBar);
+    const selfResource = getResource(FooBar);
+
+    expect(selfResource.moduleId).toBe("foo-bar");
+  });
+
+  it("assigns a loadChildRoutes promise", () => {
+    PLATFORM.eachModule = jasmine.createSpy().and.callFake(eachModule(moduleMap));
+
+    mapRoutables("foo")(FooBar);
+    const selfResource = getResource(FooBar);
+
+    expect(typeof selfResource.loadChildRoutes).toBe("function");
+  });
+
+  it("assigns a configureRouter function to the target's prototype", () => {
+    PLATFORM.eachModule = jasmine.createSpy().and.callFake(eachModule(moduleMap));
+
+    delete (FooBar.prototype as any).configureRouter;
+    mapRoutables("foo")(FooBar);
+    expect((FooBar.prototype as any).configureRouter).toBeDefined();
+  });
+
 });
