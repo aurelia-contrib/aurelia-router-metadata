@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const aurelia_dependency_injection_1 = require("aurelia-dependency-injection");
 const aurelia_logging_1 = require("aurelia-logging");
 const aurelia_pal_1 = require("aurelia-pal");
 const router_metadata_1 = require("./router-metadata");
@@ -150,7 +151,8 @@ class RoutableResource {
             if (this.areChildRouteModulesLoaded) {
                 return;
             }
-            yield aurelia_pal_1.PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+            const loader = aurelia_dependency_injection_1.Container.instance.get(aurelia_pal_1.PLATFORM.Loader);
+            yield loader.loadAllModules(this.routableModuleIds);
             if (this.enableEagerLoading) {
                 for (const moduleId of this.routableModuleIds) {
                     const resource = router_metadata_1.routerMetadata.getOwn(moduleId);

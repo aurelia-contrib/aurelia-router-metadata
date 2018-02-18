@@ -1,4 +1,4 @@
-System.register(["aurelia-logging", "aurelia-pal", "./router-metadata"], function (exports_1, context_1) {
+System.register(["aurelia-dependency-injection", "aurelia-logging", "aurelia-pal", "./router-metadata"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -44,9 +44,12 @@ System.register(["aurelia-logging", "aurelia-pal", "./router-metadata"], functio
         const name = target.name;
         return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`);
     }
-    var aurelia_logging_1, aurelia_pal_1, router_metadata_1, configureRouterSymbol, logger, routeConfigProperies, RoutableResource;
+    var aurelia_dependency_injection_1, aurelia_logging_1, aurelia_pal_1, router_metadata_1, configureRouterSymbol, logger, routeConfigProperies, RoutableResource;
     return {
         setters: [
+            function (aurelia_dependency_injection_1_1) {
+                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            },
             function (aurelia_logging_1_1) {
                 aurelia_logging_1 = aurelia_logging_1_1;
             },
@@ -197,7 +200,8 @@ System.register(["aurelia-logging", "aurelia-pal", "./router-metadata"], functio
                         if (this.areChildRouteModulesLoaded) {
                             return;
                         }
-                        yield aurelia_pal_1.PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+                        const loader = aurelia_dependency_injection_1.Container.instance.get(aurelia_pal_1.PLATFORM.Loader);
+                        yield loader.loadAllModules(this.routableModuleIds);
                         if (this.enableEagerLoading) {
                             for (const moduleId of this.routableModuleIds) {
                                 const resource = router_metadata_1.routerMetadata.getOwn(moduleId);

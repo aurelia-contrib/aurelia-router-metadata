@@ -6,6 +6,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { Container } from "aurelia-dependency-injection";
 import { getLogger } from "aurelia-logging";
 import { PLATFORM } from "aurelia-pal";
 import { routerMetadata } from "./router-metadata";
@@ -148,7 +149,8 @@ export class RoutableResource {
             if (this.areChildRouteModulesLoaded) {
                 return;
             }
-            yield PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+            const loader = Container.instance.get(PLATFORM.Loader);
+            yield loader.loadAllModules(this.routableModuleIds);
             if (this.enableEagerLoading) {
                 for (const moduleId of this.routableModuleIds) {
                     const resource = routerMetadata.getOwn(moduleId);

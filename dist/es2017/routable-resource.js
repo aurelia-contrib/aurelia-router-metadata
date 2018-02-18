@@ -1,3 +1,4 @@
+import { Container } from "aurelia-dependency-injection";
 import { getLogger } from "aurelia-logging";
 import { PLATFORM } from "aurelia-pal";
 import { routerMetadata } from "./router-metadata";
@@ -137,7 +138,8 @@ export class RoutableResource {
         if (this.areChildRouteModulesLoaded) {
             return;
         }
-        await PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+        const loader = Container.instance.get(PLATFORM.Loader);
+        await loader.loadAllModules(this.routableModuleIds);
         if (this.enableEagerLoading) {
             for (const moduleId of this.routableModuleIds) {
                 const resource = routerMetadata.getOwn(moduleId);

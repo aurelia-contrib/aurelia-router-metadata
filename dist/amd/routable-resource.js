@@ -6,7 +6,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define(["require", "exports", "aurelia-logging", "aurelia-pal", "./router-metadata"], function (require, exports, aurelia_logging_1, aurelia_pal_1, router_metadata_1) {
+define(["require", "exports", "aurelia-dependency-injection", "aurelia-logging", "aurelia-pal", "./router-metadata"], function (require, exports, aurelia_dependency_injection_1, aurelia_logging_1, aurelia_pal_1, router_metadata_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const configureRouterSymbol = Symbol("configureRouter");
@@ -148,7 +148,8 @@ define(["require", "exports", "aurelia-logging", "aurelia-pal", "./router-metada
                 if (this.areChildRouteModulesLoaded) {
                     return;
                 }
-                yield aurelia_pal_1.PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+                const loader = aurelia_dependency_injection_1.Container.instance.get(aurelia_pal_1.PLATFORM.Loader);
+                yield loader.loadAllModules(this.routableModuleIds);
                 if (this.enableEagerLoading) {
                     for (const moduleId of this.routableModuleIds) {
                         const resource = router_metadata_1.routerMetadata.getOwn(moduleId);
