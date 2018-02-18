@@ -13,6 +13,10 @@ It's still an early work in progress, only superficially tested, and not by any 
 
 Do feel free to try it out, leave feedback and/or provide suggestions :)
 
+## Eager loading navigation sample:
+
+https://github.com/fkleuver/aurelia-router-metadata-sample
+
 ## Usage:
 
 ### To configure a component so that it can be navigated to:
