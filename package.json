@@ -1,6 +1,6 @@
 {
   "name": "aurelia-router-metadata",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Adds decorator configuration with conventions and eager loading capabilities to aurelia-router",
   "keywords": [
     "aurelia",
