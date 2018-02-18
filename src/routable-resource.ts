@@ -103,19 +103,25 @@ export class RoutableResource {
 
     const staticRoutes = target.routes;
     if (staticRoutes) {
-      for (const route of Array.isArray(staticRoutes) ? staticRoutes : [staticRoutes]) {
-        resource.ownRoutes.push({ ...defaults, ...route });
+      for (const config of Array.isArray(staticRoutes) ? staticRoutes : [staticRoutes]) {
+        for (const route of Array.isArray(config.route) ? config.route : [config.route]) {
+          resource.ownRoutes.push({ ...defaults, ...config, route });
+        }
       }
     }
     if (routes) {
-      for (const route of Array.isArray(routes) ? routes : [routes]) {
-        resource.ownRoutes.push({ ...defaults, ...route });
+      for (const config of Array.isArray(routes) ? routes : [routes]) {
+        for (const route of Array.isArray(config.route) ? config.route : [config.route]) {
+          resource.ownRoutes.push({ ...defaults, ...config, route });
+        }
       }
     }
 
     // if no routes defined, simply add one route with the default values
     if (resource.ownRoutes.length === 0) {
-      resource.ownRoutes.push({ ...defaults });
+      for (const route of Array.isArray(defaults.route) ? defaults.route : [defaults.route]) {
+        resource.ownRoutes.push({ ...defaults, route });
+      }
     }
 
     for (const route of resource.ownRoutes) {

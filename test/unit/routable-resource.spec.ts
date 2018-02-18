@@ -200,13 +200,15 @@ describe("RoutableResource", () => {
 
         const resource = RoutableResource.ROUTABLE(instruction);
 
-        expect(resource.ownRoutes.length).toEqual(1);
-        expect(resource.ownRoutes[0].route).toEqual(StaticProps.route);
-        expect(resource.ownRoutes[0].name).toEqual(StaticProps.routeName);
-        expect(resource.ownRoutes[0].title).toEqual(StaticProps.title);
-        expect(resource.ownRoutes[0].nav).toEqual(true);
-        expect(resource.ownRoutes[0].moduleId).toEqual("pages/static-props");
-        expect(resource.ownRoutes[0].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
+        expect(resource.ownRoutes.length).toEqual(2);
+        for (let i = 0; i < StaticProps.route.length; i++) {
+          expect(resource.ownRoutes[i].route).toEqual(StaticProps.route[i]);
+          expect(resource.ownRoutes[i].name).toEqual(StaticProps.routeName);
+          expect(resource.ownRoutes[i].title).toEqual(StaticProps.title);
+          expect(resource.ownRoutes[i].nav).toEqual(true);
+          expect(resource.ownRoutes[i].moduleId).toEqual("pages/static-props");
+          expect(resource.ownRoutes[i].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
+        }
       });
 
       it("target base static properties will override the defaults, and target static properties override those", () => {
@@ -215,13 +217,15 @@ describe("RoutableResource", () => {
 
         const resource = RoutableResource.ROUTABLE(instruction);
 
-        expect(resource.ownRoutes.length).toBe(1);
-        expect(resource.ownRoutes[0].route).toBe(StaticProps.route);
-        expect(resource.ownRoutes[0].name).toBe(StaticProps.routeName);
-        expect(resource.ownRoutes[0].title).toBe(StaticPropsChild.title);
-        expect(resource.ownRoutes[0].nav).toBe(true);
-        expect(resource.ownRoutes[0].moduleId).toBe("pages/static-props-child");
-        expect(resource.ownRoutes[0].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
+        expect(resource.ownRoutes.length).toBe(2);
+        for (let i = 0; i < StaticProps.route.length; i++) {
+          expect(resource.ownRoutes[i].route).toBe(StaticProps.route[i]);
+          expect(resource.ownRoutes[i].name).toBe(StaticProps.routeName);
+          expect(resource.ownRoutes[i].title).toBe(StaticPropsChild.title);
+          expect(resource.ownRoutes[i].nav).toBe(true);
+          expect(resource.ownRoutes[i].moduleId).toBe("pages/static-props-child");
+          expect(resource.ownRoutes[i].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
+        }
       });
     });
   });
