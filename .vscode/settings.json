@@ -6,7 +6,8 @@
   "html.suggest.ionic": false,
   "html.format.endWithNewline": true,
   "tslint.exclude": [
-    "**/node_modules/**"
+    "**/node_modules/**",
+    "**/dist/**"
   ],
   "emmet.triggerExpansionOnTab": true,
   "search.exclude": {

@@ -48,6 +48,7 @@ window.require.config({
     "aurelia-pal-browser": "/base/node_modules/aurelia-pal-browser/dist/amd/aurelia-pal-browser",
     "aurelia-path": "/base/node_modules/aurelia-path/dist/amd/aurelia-path",
     "aurelia-polyfills": "/base/node_modules/aurelia-polyfills/dist/amd/aurelia-polyfills",
-    "aurelia-route-recognizer": "/base/node_modules/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer"
+    "aurelia-route-recognizer": "/base/node_modules/aurelia-route-recognizer/dist/amd/aurelia-route-recognizer",
+    "aurelia-router": "/base/node_modules/aurelia-router/dist/amd/aurelia-router"
   }
 });
