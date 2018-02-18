@@ -1,3 +1,4 @@
+import { Container } from "aurelia-dependency-injection";
 import { getLogger, Logger } from "aurelia-logging";
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
@@ -189,7 +190,8 @@ export class RoutableResource {
       return;
     }
 
-    await PLATFORM.Loader.loadAllModules(this.routableModuleIds);
+    const loader = Container.instance.get(PLATFORM.Loader);
+    await loader.loadAllModules(this.routableModuleIds);
 
     if (this.enableEagerLoading) {
       for (const moduleId of this.routableModuleIds) {
