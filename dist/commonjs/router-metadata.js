@@ -34,7 +34,7 @@ exports.routerMetadata = {
         aurelia_pal_1.PLATFORM.eachModule((key, val) => {
             if (typeof val === "object") {
                 for (const name of Object.keys(val)) {
-                    if (val[name] === target) {
+                    if (val[name] === target || name === target.name) {
                         moduleId = key;
                         return true;
                     }
