@@ -1,3 +1,4 @@
+import { Container } from "aurelia-dependency-injection";
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
 import { IMapRoutablesInstruction, IRoutableInstruction } from "../../src/interfaces";
@@ -14,6 +15,7 @@ describe("RoutableResource", () => {
   let dummyClass: Function;
   let moduleMap: Map<string, any>;
   let routerMetadataBackup: IRouterMetadataType;
+  let loader: { loadAllModules(): Promise<any> };
 
   beforeAll(() => {
     routerMetadataBackup = {} as any;
@@ -26,9 +28,12 @@ describe("RoutableResource", () => {
     moduleMap = new Map<string, any>();
     moduleMap.set(dummyModuleId, dummyClass);
     delete (dummyClass as any).__metadata__;
-    PLATFORM.Loader = {
+    loader = {
       loadAllModules: jasmine.createSpy().and.returnValue(Promise.resolve([]))
     };
+    Container.instance = {
+      get: (): any => loader
+    } as any;
     routerMetadata.getOwn = jasmine.createSpy().and.callFake((key: any) => {
       const target = typeof key === "string" ? routerMetadata.getTarget(key) : key;
       if (target.hasOwnProperty("__metadata__")) {
@@ -309,7 +314,7 @@ describe("RoutableResource", () => {
 
       await sut.loadChildRouteModules();
 
-      expect(PLATFORM.Loader.loadAllModules).toHaveBeenCalledWith(sut.routableModuleIds);
+      expect(loader.loadAllModules).toHaveBeenCalledWith(sut.routableModuleIds);
     });
   });
 
