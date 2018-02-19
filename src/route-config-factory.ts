@@ -1,0 +1,116 @@
+import { RouteConfig } from "aurelia-router";
+import { IRoutableInstruction, IRoutableResourceTarget, IRouteConfigInstruction } from "./interfaces";
+import { RouterMetadataSettings } from "./router-metadata-settings";
+
+/**
+ * Class that creates RouteConfigs for the @routable() decorator
+ */
+export abstract class RouteConfigFactory {
+  // tslint:disable-next-line:variable-name
+  public abstract createRouteConfigs(_instruction: IRouteConfigInstruction): RouteConfig[];
+}
+
+/**
+ * The default RouteConfig factory
+ */
+export class DefaultRouteConfigFactory extends RouteConfigFactory {
+  public createRouteConfigs(instruction: IRouteConfigInstruction): RouteConfig[] {
+    const { target, routes, baseRoute, moduleId, settings } = instruction;
+    const configs: RouteConfig[] = [];
+
+    const settingsDefaults = { ...(settings.routeConfigDefaults || {}) };
+    const conventionDefaults = { ...getNameConventionDefaults(target) };
+    const prototypeDefaults = getPrototypeDefaults(target);
+    const argumentDefaults = { ...(baseRoute || {}) };
+    const defaults = { ...settingsDefaults, ...conventionDefaults, ...prototypeDefaults };
+
+    const prototypeRoutes = ensureArray(target.routes);
+    const argumentRoutes = ensureArray(routes);
+    const baseConfigs = [...prototypeRoutes, ...argumentRoutes];
+    if (baseConfigs.length === 0) {
+      baseConfigs.push(defaults);
+    }
+
+    const overrides = { ...(settings.routeConfigOverrides || {}) };
+    for (const baseConfig of baseConfigs) {
+      const config = { ...baseConfig, ...overrides };
+      config.settings = config.settings || {};
+      config.moduleId = moduleId;
+      config.route = ensureArray(config.route);
+      for (const route of config.route) {
+        configs.push({ ...config, route });
+      }
+    }
+
+    return settings.transformRouteConfigs(configs, instruction);
+  }
+}
+
+function ensureArray<T>(value: T | undefined | T[]): T[] {
+  if (value === undefined) {
+    return [];
+  }
+
+  return Array.isArray(value) ? value : [value];
+}
+
+function getNameConventionDefaults(target: IRoutableResourceTarget): RouteConfig {
+  const hyphenated = hyphenate(target.name);
+
+  return {
+    route: hyphenated,
+    name: hyphenated,
+    title: target.name
+  };
+}
+
+function getPrototypeDefaults(target: IRoutableResourceTarget): RouteConfig {
+  // start with the first up in the prototype chain and override any properties we come across down the chain
+  if (target === Function.prototype) {
+    return {} as any;
+  }
+  const proto = Object.getPrototypeOf(target);
+  let config = getPrototypeDefaults(proto);
+
+  // first grab any static "RouteConfig-like" properties from the target
+  for (const prop of routeConfigProperies) {
+    if (target.hasOwnProperty(prop)) {
+      config[prop] = target[prop];
+    }
+  }
+  if (target.hasOwnProperty("routeName")) {
+    config.name = target.routeName;
+  }
+  // then override them with any properties on the target's baseRoute property (if present)
+  if (target.hasOwnProperty("baseRoute")) {
+    config = { ...config, ...target.baseRoute };
+  }
+
+  return config;
+}
+
+function hyphenate(value: string): string {
+  return (value.charAt(0).toLowerCase() + value.slice(1)).replace(
+    /([A-Z])/g,
+    (char: string) => `-${char.toLowerCase()}`
+  );
+}
+
+const routeConfigProperies: string[] = [
+  "route",
+  "moduleId",
+  "redirect",
+  "navigationStrategy",
+  "viewPorts",
+  "nav",
+  "href",
+  "generationUsesHref",
+  "title",
+  "settings",
+  "navModel",
+  "caseSensitive",
+  "activationStrategy",
+  "layoutView",
+  "layoutViewModel",
+  "layoutModel"
+];

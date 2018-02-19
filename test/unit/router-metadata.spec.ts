@@ -146,8 +146,8 @@ describe("routerMetadata", () => {
         it("returns a newly created RoutableResource with the correct moduleId and target", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyModuleId);
 
-          expect(resource.ownModuleId).toBe(dummyModuleId);
-          expect(resource.ownTarget).toBe(dummyClass);
+          expect(resource.moduleId).toBe(dummyModuleId);
+          expect(resource.target).toBe(dummyClass);
         });
 
         it("calls metadata.define() with the newly created RoutableResource", () => {
@@ -192,8 +192,8 @@ describe("routerMetadata", () => {
         it("returns a newly created RoutableResource with the correct moduleId and target", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyClass);
 
-          expect(resource.ownModuleId).toBe(dummyModuleId);
-          expect(resource.ownTarget).toBe(dummyClass);
+          expect(resource.moduleId).toBe(dummyModuleId);
+          expect(resource.target).toBe(dummyClass);
         });
 
         it("calls metadata.define() with the newly created RoutableResource", () => {

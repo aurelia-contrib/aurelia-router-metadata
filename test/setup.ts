@@ -24,14 +24,15 @@ window.require.config({
   // Karma serves files under /base, which is the basePath from your config file
   baseUrl: "/base",
 
-  deps: ["aurelia-pal-browser", "aurelia-polyfills"],
+  deps: ["aurelia-pal-browser", "aurelia-logging", "aurelia-polyfills"],
 
   // we have to kickoff jasmine, as it is asynchronous
-  callback: (pal: any) => {
+  callback: (pal: any, Log: any) => {
     if (started) {
       return;
     }
-
+    const logger = Log.getLogger("router-metadata");
+    logger.debug = console.log;
     started = true;
     pal.initialize();
     window.require(allTestFiles, () => window.__karma__.start());
