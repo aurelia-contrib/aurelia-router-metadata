@@ -1,6 +1,9 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import { RouterMetadataSettings } from "./router-metadata-settings";
 
+/**
+ * Instruction that contains information needed to create a @routable
+ */
 export interface IRoutableInstruction {
   target: IRoutableResourceTarget;
   routes?: RouteConfig | RouteConfig[];
@@ -8,6 +11,9 @@ export interface IRoutableInstruction {
   transformRouteConfigs?(configs: RouteConfig[], configInstruction: IRouteConfigInstruction): RouteConfig[];
 }
 
+/**
+ * Instruction that contains information needed to create a @mapRoutables
+ */
 export interface IMapRoutablesInstruction {
   target: IRoutableResourceTarget;
   routableModuleIds: string | string[];
@@ -15,11 +21,17 @@ export interface IMapRoutablesInstruction {
   filterChildRoutes?(config: RouteConfig, allConfigs: RouteConfig[], mapInstruction: IMapRoutablesInstruction): boolean;
 }
 
+/**
+ * Instruction that contains information needed to create the RouteConfigs for a @routable
+ */
 export interface IRouteConfigInstruction extends IRoutableInstruction {
   moduleId: string;
   settings: RouterMetadataSettings;
 }
 
+/**
+ * Interface that describes relevant potential static properties on a ViewModel
+ */
 export interface IRoutableResourceTarget extends Function {
   prototype: IRoutableResourceTargetProto;
   route?: string | string[];
@@ -40,15 +52,40 @@ export interface IRoutableResourceTarget extends Function {
   layoutModel?: any;
   routes?: RouteConfig[];
   baseRoute?: RouteConfig;
-  [x: string]: any;
   navigationStrategy?(instruction: NavigationInstruction): Promise<void> | void;
+  [key: string]: any;
 }
 
+/**
+ * Interface that describes relevant potential properties on the prototype of a ViewModel
+ */
 export interface IRoutableResourceTargetProto extends Object {
-  [x: string]: any;
   configureRouter?(config: RouterConfiguration, router: Router): Promise<void> | PromiseLike<void> | void;
+  [key: string]: any;
 }
 
+/**
+ * Interface that describes the subset of the Loader class responsible for loading modules
+ */
 export interface IModuleLoader {
   loadAllModules(moduleIds: string[]): Promise<any[]>;
+}
+
+/**
+ * Interface that describes the properties that are set on RouteConfig.settings by
+ * router-metadata
+ */
+export interface IRouteConfigSettings {
+  [key: string]: any;
+  childRoutes: IRouteConfig[];
+  parentRoute?: IRouteConfig;
+  path: string;
+}
+
+/**
+ * Interface that extends the RouteConfig interface to provide type checking on the
+ * settings property with information relevant to router-metadata
+ */
+export interface IRouteConfig extends RouteConfig {
+  settings: IRouteConfigSettings;
 }

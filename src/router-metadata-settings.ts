@@ -26,6 +26,8 @@ export class RouterMetadataSettings {
 
   /**
    * Perform any final modifications on the routes just before they are stored in the metadata
+   * @param configs The route configs that were created by the @routable() decorator
+   * @param configInstruction The original configuration instruction that the decorator passed on to RoutableResource
    */
   public transformRouteConfigs: (configs: RouteConfig[], configInstruction: IRouteConfigInstruction) => RouteConfig[];
 

@@ -14,6 +14,12 @@ export abstract class RouteConfigFactory {
  * The default RouteConfig factory
  */
 export class DefaultRouteConfigFactory extends RouteConfigFactory {
+  /**
+   * Creates `RouteConfig` objects based on the provided instruction
+   *
+   * @param instruction Instruction containing all information based on which the `RouteConfig` objects
+   * will be created
+   */
   public createRouteConfigs(instruction: IRouteConfigInstruction): RouteConfig[] {
     const { target, routes, baseRoute, moduleId, settings } = instruction;
     const configs: RouteConfig[] = [];

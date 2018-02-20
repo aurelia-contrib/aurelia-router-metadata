@@ -25,7 +25,7 @@ export function mapRoutables(
     } else {
       instruction = {
         target,
-        routableModuleIds: routableModuleIdsOrInstruction as (string | string[]),
+        routableModuleIds: routableModuleIdsOrInstruction as string | string[],
         enableEagerLoading,
         filterChildRoutes
       };
