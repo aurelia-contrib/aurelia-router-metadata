@@ -66,7 +66,7 @@ function getNameConventionDefaults(target: IRoutableResourceTarget): RouteConfig
   return {
     route: hyphenated,
     name: hyphenated,
-    title: target.name
+    title: toTitle(target.name)
   };
 }
 
@@ -100,6 +100,10 @@ function hyphenate(value: string): string {
     /([A-Z])/g,
     (char: string) => `-${char.toLowerCase()}`
   );
+}
+
+function toTitle(value: string): string {
+  return value.replace(/([A-Z])/g, (char: string) => ` ${char}`).trimLeft();
 }
 
 const routeConfigProperies: string[] = [
