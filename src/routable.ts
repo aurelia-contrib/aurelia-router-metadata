@@ -16,7 +16,7 @@ export function routable(
 ): ClassDecorator {
   return (target: IRoutableResourceTarget): void => {
     let instruction: IRoutableInstruction;
-    if (Object.prototype.toString.call(routesOrInstruction) === "[object Object]") {
+    if (Object.prototype.toString.call(routesOrInstruction) === "[object Object]" && (routesOrInstruction as any).target) {
       instruction = routesOrInstruction as IRoutableInstruction;
     } else {
       instruction = {

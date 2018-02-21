@@ -20,7 +20,10 @@ export function mapRoutables(
 ): ClassDecorator {
   return (target: IRoutableResourceTarget): void => {
     let instruction: IMapRoutablesInstruction;
-    if (Object.prototype.toString.call(routableModuleIdsOrInstruction) === "[object Object]") {
+    if (
+      Object.prototype.toString.call(routableModuleIdsOrInstruction) === "[object Object]" &&
+      (routableModuleIdsOrInstruction as any).target
+    ) {
       instruction = routableModuleIdsOrInstruction as IMapRoutablesInstruction;
     } else {
       instruction = {
