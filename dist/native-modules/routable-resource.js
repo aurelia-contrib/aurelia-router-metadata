@@ -6,154 +6,177 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Container } from "aurelia-dependency-injection";
 import { getLogger } from "aurelia-logging";
-import { PLATFORM } from "aurelia-pal";
 import { routerMetadata } from "./router-metadata";
+import { RouterMetadataConfiguration } from "./router-metadata-configuration";
 const configureRouterSymbol = Symbol("configureRouter");
 const logger = getLogger("router-metadata");
-const routeConfigProperies = [
-    "route",
-    "moduleId",
-    "redirect",
-    "navigationStrategy",
-    "viewPorts",
-    "nav",
-    "href",
-    "generationUsesHref",
-    "title",
-    "settings",
-    "navModel",
-    "caseSensitive",
-    "activationStrategy",
-    "layoutView",
-    "layoutViewModel",
-    "layoutModel"
-];
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or
  * configures a router to navigate to other routes (maps routes)
  */
 export class RoutableResource {
+    /**
+     * Only applicable when `isMapRoutables`
+     *
+     * A convenience property which returns `router.container`, or `null` if the router is not set
+     */
+    get container() {
+        return this.router ? this.router.container : null;
+    }
+    /**
+     * Only applicable when `isMapRoutables`
+     *
+     * A convenience property which returns `router.container.viewModel`, or `null` if the router is not set
+     * This is an instance of the target class
+     */
     get instance() {
-        return this.router ? this.router.container.viewModel : null;
+        return this.container ? this.container.viewModel : null;
+    }
+    /**
+     * Returns a concatenation separated by '/' of the name of the first of `ownRoutes` of this instance,
+     * together with the parents up to the root
+     */
+    get path() {
+        const ownName = (this.ownRoutes.length > 0 ? this.ownRoutes[0].name : null);
+        const parentPath = (this.parent ? this.parent.path : null);
+        return parentPath ? `${parentPath}/${ownName}` : ownName;
     }
     constructor(moduleId, target) {
-        this.ownModuleId = moduleId;
-        this.ownTarget = target;
+        this.moduleId = moduleId;
+        this.target = target;
         this.isRoutable = false;
         this.isMapRoutables = false;
         this.routableModuleIds = [];
         this.enableEagerLoading = false;
         this.ownRoutes = [];
         this.childRoutes = [];
-        this.filterChildRoutes = () => true;
+        this.filterChildRoutes = null;
         this.areChildRoutesLoaded = false;
         this.areChildRouteModulesLoaded = false;
+        this.isConfiguringRouter = false;
         this.isRouterConfigured = false;
+        this.parent = null;
         this.router = null;
     }
-    static ROUTABLE(instruction, existing) {
-        const { target, routes, baseRoute } = instruction;
-        const resource = existing || routerMetadata.getOrCreateOwn(target);
-        const moduleId = resource.ownModuleId;
-        logger.debug(`initializing @routable for ${moduleId}`);
-        resource.isRoutable = true;
-        // convention defaults
-        const hyphenated = getHyphenatedName(target);
-        let defaults = {
-            route: hyphenated,
-            name: hyphenated,
-            title: target.name,
-            nav: true,
-            settings: {},
-            moduleId: moduleId
-        };
-        // static property defaults
-        defaults = Object.assign({}, defaults, getRouteDefaults(target));
-        // argument defaults
-        if (baseRoute) {
-            defaults = Object.assign({}, defaults, baseRoute);
-        }
-        const staticRoutes = target.routes;
-        if (staticRoutes) {
-            for (const route of Array.isArray(staticRoutes) ? staticRoutes : [staticRoutes]) {
-                resource.ownRoutes.push(Object.assign({}, defaults, route));
-            }
-        }
-        if (routes) {
-            for (const route of Array.isArray(routes) ? routes : [routes]) {
-                resource.ownRoutes.push(Object.assign({}, defaults, route));
-            }
-        }
-        // if no routes defined, simply add one route with the default values
-        if (resource.ownRoutes.length === 0) {
-            resource.ownRoutes.push(Object.assign({}, defaults));
-        }
-        for (const route of resource.ownRoutes) {
-            route.settings.routableResource = resource;
-        }
+    /**
+     * Creates a `@routable` based on the provided instruction.
+     *
+     * This method is called by the `@routable()` decorator, and can be used instead of the @routable() decorator
+     * to achieve the same effect.
+     * @param instruction Instruction containing the parameters passed to the `@routable` decorator
+     */
+    static ROUTABLE(instruction) {
+        const resource = routerMetadata.getOrCreateOwn(instruction.target);
+        resource.initialize(instruction);
         return resource;
     }
-    static MAP_ROUTABLES(instruction, existing) {
-        const { target, routableModuleIds, eagerLoadChildRoutes, filter } = instruction;
-        const resource = existing || routerMetadata.getOrCreateOwn(target);
-        const moduleId = resource.ownModuleId;
-        logger.debug(`initializing @routable for ${moduleId}`);
-        resource.isMapRoutables = true;
-        resource.routableModuleIds = Array.isArray(routableModuleIds) ? routableModuleIds : [routableModuleIds];
-        resource.filterChildRoutes = filter || resource.filterChildRoutes;
-        resource.enableEagerLoading = eagerLoadChildRoutes === true;
-        const proto = target.prototype;
-        if ("configureRouter" in proto) {
-            let configureRouterProto = proto;
-            while (!configureRouterProto.hasOwnProperty("configureRouter")) {
-                configureRouterProto = Object.getPrototypeOf(configureRouterProto);
-            }
-            const originalConfigureRouter = configureRouterProto.configureRouter;
-            proto[configureRouterSymbol] = originalConfigureRouter;
-        }
-        proto.configureRouter = configureRouter;
+    /**
+     * Creates a `@mapRoutables` based on the provided instruction.
+     *
+     * This method is called by the `@mapRoutables()` decorator, and can be used instead of the @mapRoutables() decorator
+     * to achieve the same effect.
+     * @param instruction Instruction containing the parameters passed to the `@mapRoutables` decorator
+     */
+    static MAP_ROUTABLES(instruction) {
+        const resource = routerMetadata.getOrCreateOwn(instruction.target);
+        resource.initialize(instruction);
         return resource;
     }
-    loadChildRoutes() {
+    /**
+     * Initializes this resource based on the provided instruction.
+     *
+     * This method is called by the static `ROUTABLE` and `MAP_ROUTABLES` methods, and can be used instead of those
+     * to achieve the same effect. If there is a `routableModuleIds` property present on the instruction, it will
+     * be initialized as `@mapRoutables`, otherwise as `@routable`. To initialize a class as both, you'll need to call
+     * this method twice with the appropriate instruction.
+     * @param instruction Instruction containing the parameters passed to the `@mapRoutables` decorator
+     */
+    initialize(instruction) {
+        const settings = this.getSettings(instruction);
+        const moduleId = this.moduleId;
+        const target = instruction.target;
+        if (isMapRoutablesInstruction(instruction)) {
+            logger.debug(`initializing @mapRoutables for ${moduleId}`);
+            const mapInstruction = instruction;
+            this.isMapRoutables = true;
+            this.routableModuleIds = ensureArray(mapInstruction.routableModuleIds);
+            this.filterChildRoutes = settings.filterChildRoutes;
+            this.enableEagerLoading = settings.enableEagerLoading;
+            assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
+        }
+        else {
+            logger.debug(`initializing @routable for ${this.moduleId}`);
+            this.isRoutable = true;
+            const configInstruction = Object.assign({}, instruction, { moduleId, settings });
+            const configs = this.getConfigFactory().createRouteConfigs(configInstruction);
+            for (const config of configs) {
+                config.settings.routableResource = this;
+                this.ownRoutes.push(config);
+            }
+        }
+    }
+    /**
+     * Retrieves the `RouteConfig` objects which were generated by all referenced moduleIds
+     * and assigns them to `childRoutes`
+     *
+     * Will also call this method on child resources if `enableEagerLoading` is set to true.
+     *
+     * Will simply return the previously fetched `childRoutes` on subsequent calls.
+     *
+     * This method is called by `configureRouter()`.
+     *
+     * @param router (Optional) The router that was passed to the target instance's `configureRouter()`
+     */
+    loadChildRoutes(router) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.router = router || null;
             if (this.areChildRoutesLoaded) {
                 return this.childRoutes;
             }
-            logger.debug(`loading routes from child @routables for ${this.ownModuleId}`);
+            logger.debug(`loading childRoutes for ${this.moduleId}`);
             yield this.loadChildRouteModules();
             for (const moduleId of this.routableModuleIds) {
                 const resource = routerMetadata.getOwn(moduleId);
+                resource.parent = this;
                 if (resource.isMapRoutables && this.enableEagerLoading) {
                     yield resource.loadChildRoutes();
                 }
-                for (const route of resource.ownRoutes.filter(this.filterChildRoutes)) {
-                    this.childRoutes.push(route);
-                }
-            }
-            if (this.isRoutable) {
-                for (const route of this.ownRoutes) {
-                    route.settings.childRoutes = this.childRoutes;
-                    for (const childRoute of this.childRoutes) {
-                        childRoute.settings.parentRoute = route;
+                for (const childRoute of resource.ownRoutes) {
+                    if (this.filterChildRoutes(childRoute, resource.ownRoutes, this)) {
+                        if (this.ownRoutes.length > 0) {
+                            childRoute.settings.parentRoute = this.ownRoutes[0];
+                        }
+                        this.childRoutes.push(childRoute);
                     }
                 }
+            }
+            for (const ownRoute of this.ownRoutes) {
+                ownRoute.settings.childRoutes = this.childRoutes;
             }
             this.areChildRoutesLoaded = true;
             return this.childRoutes;
         });
     }
+    /**
+     * Tells the platform loader to load the `routableModuleIds` assigned to this resource
+     *
+     * If `enableEagerLoading` is set to true, will also call this method on all child resources.
+     *
+     * Will do nothing on subsequent calls.
+     *
+     * This method is called by `loadChildRoutes()`
+     */
     loadChildRouteModules() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.areChildRouteModulesLoaded) {
                 return;
             }
-            const loader = Container.instance.get(PLATFORM.Loader);
-            yield loader.loadAllModules(this.routableModuleIds);
+            yield this.getModuleLoader().loadAllModules(this.routableModuleIds);
             if (this.enableEagerLoading) {
                 for (const moduleId of this.routableModuleIds) {
                     const resource = routerMetadata.getOwn(moduleId);
+                    resource.parent = this;
                     if (resource.isMapRoutables) {
                         yield resource.loadChildRouteModules();
                     }
@@ -162,18 +185,80 @@ export class RoutableResource {
             this.areChildRouteModulesLoaded = true;
         });
     }
+    /**
+     * Calls `loadChildRoutes()` to fetch the referenced modulesIds' `RouteConfig` objects, and maps them to the router.
+     *
+     * This method will be assigned to `target.prototype.configureRouter`, such that the routes will be configured
+     * even if there is no `configureRouter()` method present.
+     *
+     * If `target.prototype.configureRouter` already exists, a reference to that original method will be kept
+     * and called at the end of this `configureRouter()` method.
+     */
     configureRouter(config, router) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.isConfiguringRouter = true;
             const routes = yield this.loadChildRoutes();
             config.map(routes);
             this.router = router;
             this.isRouterConfigured = true;
-            const originalConfigureRouter = this.ownTarget.prototype[configureRouterSymbol];
+            this.isConfiguringRouter = false;
+            const originalConfigureRouter = this.target.prototype[configureRouterSymbol];
             if (originalConfigureRouter !== undefined) {
                 return originalConfigureRouter.call(router.container.viewModel, config, router);
             }
         });
     }
+    getSettings(instruction) {
+        const settings = RouterMetadataConfiguration.INSTANCE.getSettings(this.container);
+        if (instruction) {
+            return overrideSettings(settings, instruction);
+        }
+        return settings;
+    }
+    getConfigFactory() {
+        return RouterMetadataConfiguration.INSTANCE.getConfigFactory(this.container);
+    }
+    getModuleLoader() {
+        return RouterMetadataConfiguration.INSTANCE.getModuleLoader(this.container);
+    }
+}
+function isMapRoutablesInstruction(instruction) {
+    return !!instruction.routableModuleIds;
+}
+function overrideSettings(settings, instruction) {
+    if (isMapRoutablesInstruction(instruction)) {
+        const mapInstruction = instruction;
+        if (mapInstruction.enableEagerLoading !== undefined) {
+            settings.enableEagerLoading = mapInstruction.enableEagerLoading;
+        }
+        if (mapInstruction.filterChildRoutes !== undefined) {
+            settings.filterChildRoutes = mapInstruction.filterChildRoutes;
+        }
+    }
+    else {
+        const routeInstruction = instruction;
+        if (routeInstruction.transformRouteConfigs !== undefined) {
+            settings.transformRouteConfigs = routeInstruction.transformRouteConfigs;
+        }
+    }
+    return settings;
+}
+function ensureArray(value) {
+    if (value === undefined) {
+        return [];
+    }
+    return Array.isArray(value) ? value : [value];
+}
+function assignOrProxyPrototypeProperty(proto, name, refSymbol, value) {
+    if (name in proto) {
+        let protoOrBase = proto;
+        while (!protoOrBase.hasOwnProperty(name)) {
+            protoOrBase = Object.getPrototypeOf(protoOrBase);
+        }
+        const original = protoOrBase[name];
+        proto[refSymbol] = original;
+    }
+    proto[name] = value;
 }
 // tslint:disable:no-invalid-this
 function configureRouter(config, router) {
@@ -184,30 +269,4 @@ function configureRouter(config, router) {
     });
 }
 // tslint:enable:no-invalid-this
-function getRouteDefaults(target) {
-    // start with the first up in the prototype chain and override any properties we come across down the chain
-    if (target === Function.prototype) {
-        return {};
-    }
-    const proto = Object.getPrototypeOf(target);
-    let defaults = getRouteDefaults(proto);
-    // first grab any static "RouteConfig-like" properties from the target
-    for (const prop of routeConfigProperies) {
-        if (target.hasOwnProperty(prop)) {
-            defaults[prop] = target[prop];
-        }
-    }
-    if (target.hasOwnProperty("routeName")) {
-        defaults.name = target.routeName;
-    }
-    // then override them with any properties on the target's baseRoute property (if present)
-    if (target.hasOwnProperty("baseRoute")) {
-        defaults = Object.assign({}, defaults, target.baseRoute);
-    }
-    return defaults;
-}
-function getHyphenatedName(target) {
-    const name = target.name;
-    return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`);
-}
 //# sourceMappingURL=routable-resource.js.map

@@ -6,4 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./map-routables"));
 __export(require("./routable-resource"));
 __export(require("./routable"));
+__export(require("./route-config-factory"));
+__export(require("./router-metadata-configuration"));
+__export(require("./router-metadata-settings"));
+__export(require("./router-metadata"));
 //# sourceMappingURL=index.js.map

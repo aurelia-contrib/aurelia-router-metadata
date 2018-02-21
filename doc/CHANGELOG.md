@@ -1,3 +1,19 @@
+<a name="0.4.0"></a>
+## 0.4.0 (2018-02-21)
+
+* add & improve unit tests ([1c3875f](https://github.com/fkleuver/aurelia-router-metadata/commit/1c3875f))
+* add remaining exports to index ([b9c90f6](https://github.com/fkleuver/aurelia-router-metadata/commit/b9c90f6))
+* add sample project to readme ([550bddd](https://github.com/fkleuver/aurelia-router-metadata/commit/550bddd))
+* add spaces before capitalized letters for titles ([b2c8a89](https://github.com/fkleuver/aurelia-router-metadata/commit/b2c8a89))
+* fix instruction duck-typing ([ad1e711](https://github.com/fkleuver/aurelia-router-metadata/commit/ad1e711))
+* fix unit test loader reference ([b52821d](https://github.com/fkleuver/aurelia-router-metadata/commit/b52821d))
+* improve API documentation and type defs ([60572aa](https://github.com/fkleuver/aurelia-router-metadata/commit/60572aa))
+* refactor to make configurable, add some consistency and robustness ([33becc7](https://github.com/fkleuver/aurelia-router-metadata/commit/33becc7))
+* split out RouteConfig with route arrays into multiple RouteConfigs ([c968e5d](https://github.com/fkleuver/aurelia-router-metadata/commit/c968e5d))
+* update readme ([ac10e6f](https://github.com/fkleuver/aurelia-router-metadata/commit/ac10e6f))
+
+
+
 <a name="0.3.2"></a>
 ## <small>0.3.2 (2018-02-18)</small>
 

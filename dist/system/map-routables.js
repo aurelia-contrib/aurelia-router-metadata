@@ -3,13 +3,26 @@ System.register(["./routable-resource"], function (exports_1, context_1) {
     var __moduleName = context_1 && context_1.id;
     /**
      * Decorator: Indicates that the decorated class should map RouteConfigs defined by the referenced moduleIds.
-     * @param routableModuleIds A single or array of `PLATFORM.moduleName("")`
-     * @param eagerLoadChildRoutes Whether the routes' childRoutes should also be mapped during `configureRouter`
-     * @param filter A filter to determine which routes to map
+     * @param routableModuleIdsOrInstruction A single or array of `PLATFORM.moduleName("")`,
+     * or an instruction object containing this decorators' parameters as properties
+     * @param enableEagerLoading Whether the routes' childRoutes should also be mapped during `configureRouter`
+     * @param filterChildRoutes A filter to determine which routes to map
      */
-    function mapRoutables(routableModuleIds, eagerLoadChildRoutes = false, filter) {
+    function mapRoutables(routableModuleIdsOrInstruction, enableEagerLoading, filterChildRoutes) {
         return (target) => {
-            const instruction = { target, routableModuleIds, eagerLoadChildRoutes, filter };
+            let instruction;
+            if (Object.prototype.toString.call(routableModuleIdsOrInstruction) === "[object Object]" &&
+                routableModuleIdsOrInstruction.target) {
+                instruction = routableModuleIdsOrInstruction;
+            }
+            else {
+                instruction = {
+                    target,
+                    routableModuleIds: routableModuleIdsOrInstruction,
+                    enableEagerLoading,
+                    filterChildRoutes
+                };
+            }
             routable_resource_1.RoutableResource.MAP_ROUTABLES(instruction);
         };
     }
