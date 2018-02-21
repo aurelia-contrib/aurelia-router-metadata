@@ -1,274 +1,200 @@
-# aurelia-router-metadata
+# Motivation
 
-This plugin is an attempt to address a few difficulties with configuring `aurelia-router` in larger applications as well as during rapid prototyping:
-- `RouteConfig` mapping code can get rather verbose with lots "magic strings" (which are usually fairly similar and predictable anyway)
-- For setups (e.g. WebPack) that require `PLATFORM.moduleName("...")` for each moduleId, programmatically generating routes will break the loader
-- Lazy-loading of components makes it impossible to build up a child navigation menu structure without some hacky workarounds
+## Convention over configuration
 
-This plugin simply contains two decorators and some utility code to interface between `aurelia-router` and `aurelia-metadata`.
-Most simple types of router configuration can be moved entirely to decorators and will be more concise due to conventions.
-The configs are available earlier during the component lifecycle, making some forms of eager loading possible without losing too much on startup performance.
+The aurelia router kind of lacks the "convention over configuration goodness" that the rest of Aurelia has. This plugin aims to fill that gap with decorators that statically analyze class prototypes to create sensible defaults (which, of course, can be overridden) and stores that information in metadata in much the same way DI and Templating do.
 
-It's still an early work in progress, only superficially tested, and not by any means ready for production.
 
-Do feel free to try it out, leave feedback and/or provide suggestions :)
+## Eager loading
+
+The routing configuration is now known during framework configuration (before aurelia starts). Thus, technically you can request it at any time you want. These are just the `RouteConfigs`. The only overhead is that the modules will be loaded by the platform loader (webpack doesn't load everything by default), but no lifecycles will be invoked.
+
+
+# How it works
+
+Just apply the `@routable()` decorator to a class. This tells plugin to generate a valid `RouteConfig` object containing all information needed to navigate to that page.
+
+Then on the parent page, apply `@mapRoutables([..])` with an array of the moduleIds of the pages you want map. The decorator will add a `configureRouter()` method to the class prototype if it's not there, or proxy the existing one if it is.
+
+When called, it will find the corresponding `RouteConfigs` and `config.map()` them for you. Though you might still keep a (small) `configureRouter()` for a few basic settings like the root's title, pushState, a default redirect, fallbacks, etc.
+
+Eager loading is opt-in which you can enable during framework configuration like so:
+
+```
+export function configure() {
+  RouterMetadataConfiguration.INSTANCE.getSettings().enableEagerLoading = true;
+}
+```
+
+When enabled, the first `configureRouter()` call on the root page will recursively load moduleIds for child pages to invoke the decorators and get their `RouteConfigs`, which will then be assigned to the parent config.settings.childRoutes property.
+
+# Usage:
+
+There are many ways to provide configuration defaults, overrides and custom transform functions to control how `RouteConfig` objects are created for target classes, as well as how they are mapped and whether to eagerly load them or not.
+
+There will be more examples in the future.
+
+## The TypeScript definitions have fairly descriptive comments so make sure to check those out.
+
+## To configure a component so that it can be navigated to:
+
+Apply the `@routable()` decorator, or
+```
+@routable()
+export class FooBar {}
+```
+
+Call `RoutableResource.ROUTABLE()` in a feature (as long as it's before aurelia.start()):
+```
+import { FooBar } from "pages/foo-bar";
+
+export function configure() {
+  RoutableResource.ROUTABLE({target: FooBar});
+}
+
+```
+
+When no arguments are passed in, no static properties are present on the target, and the `RouterMetadataSettings` object is also not customized,
+`@routable()` creates a default `RouteConfig` based on the target class like so:
+
+```
+{
+  route: "foo-bar",
+  name: "foo-bar",
+  title: "Foo Bar",
+  moduleId: PLATFORM.moduleName("pages/foo-bar"),
+  nav: true
+}
+```
+
+
+## To configure a component so that it maps routes for routable components:
+
+Apply the `@mapRoutables()` decorator, or
+```
+@mapRoutables([PLATFORM.moduleName("pages/foo-bar")])
+export class App {}
+```
+
+Call `RoutableResource.MAP_ROUTABLES()` in a feature (as long as it's before aurelia.start()):
+```
+import { App } from "app";
+
+export function configure() {
+  RoutableResource.ROUTABLE({target: App, routableModuleIds: [PLATFORM.moduleName("pages/foo-bar")]});
+}
+
+```
+
+Effectively that will put the following function to App's prototype (it will proxy any existing one so nothing is lost):
+
+```
+configureRouter(config, router) {
+  config.map({
+    route: "foo-bar",
+    name: "foo-bar",
+    title: "Foo Bar",
+    moduleId: PLATFORM.moduleName("pages/foo-bar"),
+    nav: true
+  })
+}
+
+```
+
+
+## Manual loading
+
+You can also completely skip the decorators and have the configuration tucked away in a feature somewhere. That might look like this:
+
+```
+import { App } from "app";
+import { FooBar } from "pages/foo-bar";
+import { RoutableResource } from "aurelia-router-metadata";
+
+export function configure() {
+  RoutableResource.ROUTABLE({target: FooBar});
+  RoutableResource.MAP_ROUTABLES({target: App, routableModuleIds: [PLATFORM.moduleName("pages/foo-bar")]});
+
+  //
+}
+
+```
+
+And then manually kick off the route tree resolution a bit earlier:
+
+```
+import { routerMetadata } from "aurelia-router-metadata";
+
+export class App {
+  constructor() {
+    const resource = routerMetadata.getOwn(App);
+    let childRoutes;
+    resource.loadChildRoutes().then(routes => {
+      childRoutes = routes;
+    });
+  }
+}
+
+```
+
+## Building a navigation menu
+
+Conceptually:
+
+`nav-menu.html`
+
+```
+<template bindable="routes">
+  <template repeat.for="route of routes">
+    <a if.bind="!routes.settings.childRoutes" href.bind="route.settings.path">${route.title}</a>
+    <div if.bind="route.settings.childRoutes">
+      <template repeat.for="child of route.settings.childRoutes">
+        <a href.bind="child.settings.path">${child.title}</a>
+        <nav-menu routes.bind="child.settings.childRoutes"></nav-menu>
+      </template>
+    </div>
+  </template>
+</template>
+```
+
+## Feedback
+
+It's still in early development and needs more testing and feedback.
+
+Feel free to reach out with any questions/issues/suggestions :)
 
 ## Eager loading navigation sample:
 
 https://github.com/fkleuver/aurelia-router-metadata-sample
-
-## Usage:
-
-### To configure a component so that it can be navigated to:
-  `src/pages/foo.ts`
-
-  This:
-
-  ```
-  @routable()
-  export class FooPage {}
-  ```
-
-  Will generate the following `RouteConfig`:
-
-  ```
-{
-    route: "foo-page",
-    name: "foo-page",
-    title: "FooPage",
-    moduleId: PLATFORM.moduleId("pages/foo"),
-    nav: true,
-    settings: {}
-}
-  ```
-
-  This:
-
-  ```
-  @routable({route: ["", "foo"]}) // pass in any RouteConfig properties to override the defaults
-  export class FooPage {}
-  ```
-
-  Will generate the following `RouteConfig`:
-
-  ```
-{
-    route: ["", "foo"],
-    name: "foo-page",
-    title: "FooPage",
-    moduleId: PLATFORM.moduleId("pages/foo"),
-    nav: true,
-    settings: {}
-}
-  ```
-
-  This:
-
-  ```
-  @routable({route: "foo"})
-  export class FooPage {
-    public static title = "The Foo Page"; // static properties on the class that match RouteConfig property names will also override the defaults
-  }
-  ```
-
-  Will generate the following `RouteConfig`:
-
-  ```
-{
-    route: "foo",
-    name: "foo-page",
-    title: "The Foo Page",
-    moduleId: PLATFORM.moduleId("pages/foo"),
-    nav: true,
-    settings: {}
-}
-  ```
-
-
-### To configure a component so that its router configuration will be mapped:
-  `src/app.ts`
-
-  This:
-
-  ```
-  @mapRoutables([
-    PLATFORM.moduleName("pages/foo"),
-    PLATFORM.moduleName("pages/bar"),
-    PLATFORM.moduleName("pages/baz")
-  ])
-  export class App {}
-  ```
-
-  Will assign a `configureRouter` method (if none is present) or proxy the existing (if already present), to do the following:
-
-  ```
-  public configureRouter(config: RouterConfiguration, router: Router): Promise<void>
-{
-    config.map([
-      {
-        moduleId: PLATFORM.moduleId("pages/foo"),
-        route: ..., name: ..., etc
-        // all RouteConfig properties are taken from the result of the corresponding module's decorator
-      },
-      {
-        moduleId: PLATFORM.moduleId("pages/bar"),
-        route: ..., name: ..., etc
-        // all RouteConfig properties are taken from the result of the corresponding module's decorator
-      },
-      {
-        moduleId: PLATFORM.moduleId("pages/baz"),
-        route: ..., name: ..., etc
-        // all RouteConfig properties are taken from the result of the corresponding module's decorator
-      }
-    ])
-}
-  ```
-
-
-## Eagerly loading child routes:
-
-### Given the following application structure:
-
-  `src/app.ts`
-
-  ```
-  @mapRoutables([
-    PLATFORM.moduleName("pages/foo")
-    PLATFORM.moduleName("pages/bar")
-  ], true) // passing "true" as the second argument tells the decorator we want all child routes to be eagerly loaded
-  export class App {
-    configureRouter(config, router) {
-      // decorator wraps this at runtime; this function is called after the decorator's (so at this point we already have some mapped routes)
-      this.router = router;
-    }
-  }
-  ```
-
-  `src/pages/foo.ts`
-
-  ```
-  @routable()
-  export class Foo {}
-  ```
-
-  `src/pages/bar.ts`
-
-  ```
-  @mapRoutables([
-    PLATFORM.moduleName("pages/bar/bar-foo")
-    PLATFORM.moduleName("pages/bar/bar-bar")
-  ], true)
-  @routable() // both decorators can be placed on the same class, indicating it both IS a child route and HAS child routes
-  export class Bar {}
-  ```
-
-  `src/pages/bar/bar-foo.ts`
-
-  ```
-  @routable()
-  export class BarFoo {}
-  ```
-
-  `src/pages/bar/bar-bar.ts`
-
-  ```
-  @mapRoutables([
-    PLATFORM.moduleName("pages/bar/bar-bar/bar-bar-foo")
-  ], true)
-  @routable()
-  export class BarBar {}
-  ```
-
-  `src/pages/bar/bar-bar/bar-bar-foo.ts`
-
-  ```
-  @routable()
-  export class BarBarFoo {}
-  ```
-
-### You can access child routes like so:
-
-  The example below would of course be a lot cleaner with a proper recursive menu/menu-item custom element
-
-  `src/app.html`
-
-  ```
-  <template>
-    <div repeat.for="nav of router.navigation">
-      <a href.bind="nav.href">${nav.title}</a>
-
-      <template if.bind="nav.config.settings.childRoutes">
-        <div repeat.for="child of nav.config.settings.childRoutes">
-          <a href="${nav.href + '/' + child.route}">${child.title}</a>
-
-          <template if.bind="child.settings.childRoutes">
-            <div repeat.for="grandChild of child.settings.childRoutes">
-              <a href="${nav.href + '/' + child.route + '/' + grandChild.route}">${grandChild.title}</a>
-            </div>
-          </template>
-
-        </div>
-      </template>
-
-    </div>
-  </template>
-  ```
-
-  Important to note is that childRoutes (which are accessible through the RouteConfig's `.settings.childRoutes` property) are themselves RouteConfig objects rather than NavModel; therefore you need the `route` property rather than `href` on children, grandchildren etc.
-
-  The full url needs to be built up manually with information from the ancestors. Working with URLs is the only type of navigation that's currently been tested.
-
-
-
-
+(might be slightly outdated!)
 
 
 ## Building The Code
 
-To build the code, follow these steps.
 
-1. Ensure that [NodeJS](http://nodejs.org/) is installed. This provides the platform on which the build tooling runs.
-2. From the project folder, execute the following command:
+1. From the project folder, execute the following command:
 
-  ```shell
-  npm install
   ```
-3. To build the code, you can now run:
+  yarn/npm install
+  ```
+2. To build the code:
 
-  ```shell
+  ```
   npm run build
   ```
-4. You will find the compiled code in the `dist` folder, available in five module formats: AMD, CommonJS, ES2015, ES2017 and System.
 
 ## Running The Tests
 
-To run the unit tests, first ensure that you have followed the steps above in order to install all dependencies and successfully build the library. Once you have done that, proceed with these additional steps:
+1. To run the tests
 
-1. Ensure that the [Karma](http://karma-runner.github.io/) CLI is installed. If you need to install it, use the following command:
-
-  ```shell
-  npm install -g karma-cli
   ```
-2. You can now run the tests with this command:
-
-  ```shell
-  npm test
+  npm run test
   ```
 
-Alternatively, you can run the tests in watch mode with this command:
+2. To continuously run the tests
 
-```shell
+```
 npm run develop
 ```
 
-## Installing the plugin
 
-### In a CLI-based app
-
-```json
-{
-  "name": "aurelia-router-metadata",
-  "path": "../node_modules/aurelia-router-metadata/dist/amd",
-  "main": "index"
-}
-```
