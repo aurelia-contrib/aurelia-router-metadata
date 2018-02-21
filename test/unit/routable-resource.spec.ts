@@ -182,57 +182,6 @@ describe("RoutableResource", () => {
 
       expect(resource1).toBe(resource2);
     });
-
-    describe("RouteConfig", () => {
-      it("infers defaults from an unconfigured class", () => {
-        moduleMap.set("pages/foo-bar", FooBar);
-        instruction.target = FooBar;
-
-        const resource = RoutableResource.ROUTABLE(instruction);
-
-        expect(resource.ownRoutes.length).toEqual(1);
-        expect(resource.ownRoutes[0].route).toEqual("foo-bar");
-        expect(resource.ownRoutes[0].name).toEqual("foo-bar");
-        expect(resource.ownRoutes[0].title).toEqual("FooBar");
-        expect(resource.ownRoutes[0].nav).toEqual(true);
-        expect(resource.ownRoutes[0].moduleId).toEqual("pages/foo-bar");
-        expect(resource.ownRoutes[0].settings.routableResource).toBe(resource);
-      });
-
-      it("target static properties will override the defaults", () => {
-        moduleMap.set("pages/static-props", StaticProps);
-        instruction.target = StaticProps;
-
-        const resource = RoutableResource.ROUTABLE(instruction);
-
-        expect(resource.ownRoutes.length).toEqual(2);
-        for (let i = 0; i < StaticProps.route.length; i++) {
-          expect(resource.ownRoutes[i].route).toEqual(StaticProps.route[i]);
-          expect(resource.ownRoutes[i].name).toEqual(StaticProps.routeName);
-          expect(resource.ownRoutes[i].title).toEqual(StaticProps.title);
-          expect(resource.ownRoutes[i].nav).toEqual(true);
-          expect(resource.ownRoutes[i].moduleId).toEqual("pages/static-props");
-          expect(resource.ownRoutes[i].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
-        }
-      });
-
-      it("target base static properties will override the defaults, and target static properties override those", () => {
-        moduleMap.set("pages/static-props-child", StaticPropsChild);
-        instruction.target = StaticPropsChild;
-
-        const resource = RoutableResource.ROUTABLE(instruction);
-
-        expect(resource.ownRoutes.length).toBe(2);
-        for (let i = 0; i < StaticProps.route.length; i++) {
-          expect(resource.ownRoutes[i].route).toBe(StaticProps.route[i]);
-          expect(resource.ownRoutes[i].name).toBe(StaticProps.routeName);
-          expect(resource.ownRoutes[i].title).toBe(StaticPropsChild.title);
-          expect(resource.ownRoutes[i].nav).toBe(true);
-          expect(resource.ownRoutes[i].moduleId).toBe("pages/static-props-child");
-          expect(resource.ownRoutes[i].settings).toEqual({ ...StaticProps.settings, routableResource: resource });
-        }
-      });
-    });
   });
 
   describe("MAP_ROUTABLES", () => {
