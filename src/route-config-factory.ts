@@ -1,12 +1,12 @@
 import { RouteConfig } from "aurelia-router";
-import { ICreateRouteConfigInstruction, IRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
+import { ICreateRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
 
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */
 export abstract class RouteConfigFactory {
   // tslint:disable-next-line:variable-name
-  public abstract createRouteConfigs(_instruction: IRouteConfigInstruction): RouteConfig[];
+  public abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): RouteConfig[];
 }
 
 /**
@@ -37,7 +37,7 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
 
     const overrides = { ...(settings.routeConfigOverrides || {}) };
     for (const baseConfig of baseConfigs) {
-      const config = { ...baseConfig, ...overrides };
+      const config = { ...defaults, ...baseConfig, ...overrides };
       config.settings = config.settings || {};
       config.moduleId = moduleId;
       config.route = ensureArray(config.route);

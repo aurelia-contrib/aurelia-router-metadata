@@ -1,5 +1,6 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import { RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterResource } from "./router-resource";
 
 /**
  * Instruction that contains basic information common to all RouterResource types
@@ -35,7 +36,7 @@ export interface IConfigureRouterInstruction extends IRouterResourceInstruction 
  * Instruction that contains information needed to create the RouteConfigs for a @routeConfig
  */
 export interface ICreateRouteConfigInstruction extends IRouteConfigInstruction {
-  moduleId: string;
+  moduleId?: string;
   settings: RouterMetadataSettings;
 }
 
@@ -79,6 +80,10 @@ export interface IRouterResourceTargetProto extends Object {
  */
 export interface IModuleLoader {
   loadAllModules(moduleIds: string[]): Promise<any[]>;
+}
+
+export interface IResourceLoader {
+  loadRouterResource(moduleId: string, resourceTarget?: Function): Promise<RouterResource>;
 }
 
 /**

@@ -1,8 +1,9 @@
 import { Container, ContainerConfiguration } from "aurelia-dependency-injection";
-import { metadata } from "aurelia-metadata";
+import { metadata, Origin } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
 import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
+import { ResourceLoader } from "../../src/resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "../../src/route-config-factory";
 import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
 import { RouterMetadataConfiguration } from "../../src/router-metadata-configuration";
@@ -18,10 +19,12 @@ describe("RouterResource", () => {
   let dummyClass: Function;
   let moduleMap: Map<string, any>;
   let routerMetadataBackup: IRouterMetadataType;
-  let loader: { loadAllModules(): Promise<any> };
+  let originGetBackup: any;
+  let loader: { loadModule(moduleId: string): Promise<any> };
 
   beforeAll(() => {
     routerMetadataBackup = {} as any;
+    originGetBackup = Origin.get;
   });
 
   beforeEach(() => {
@@ -32,25 +35,23 @@ describe("RouterResource", () => {
     moduleMap.set(dummyModuleId, dummyClass);
     delete (dummyClass as any).__metadata__;
     loader = {
-      loadAllModules: jasmine.createSpy().and.returnValue(Promise.resolve([]))
+      loadModule: async (moduleId: string): Promise<any> => moduleMap.get(moduleId)
     };
-    PLATFORM.Loader = new Function();
+    const resourceLoader = new ResourceLoader(loader as any);
+    Origin.get = jasmine.createSpy().and.callFake((moduleId: string) => ({ moduleId }));
     Container.instance = new Container();
-    Container.instance.registerInstance(PLATFORM.Loader, loader);
+    Container.instance.registerInstance(ResourceLoader, resourceLoader);
     RouterMetadataConfiguration.INSTANCE = new RouterMetadataConfiguration(Container.instance);
-    routerMetadata.getOwn = jasmine.createSpy().and.callFake((key: any) => {
-      const target = typeof key === "string" ? routerMetadata.getTarget(key) : key;
+    routerMetadata.getOwn = jasmine.createSpy().and.callFake((target: any) => {
       if (target.hasOwnProperty("__metadata__")) {
         return target.__metadata__["aurelia:router-metadata"];
       }
     });
-    routerMetadata.getOrCreateOwn = jasmine.createSpy().and.callFake((key: any) => {
-      let result = routerMetadata.getOwn(key);
+    routerMetadata.getOrCreateOwn = jasmine.createSpy().and.callFake((target: any, moduleId?: string) => {
+      let result = routerMetadata.getOwn(target);
 
       if (result === undefined) {
-        const target = typeof key === "string" ? routerMetadata.getTarget(key) : key;
-        const moduleId = typeof key !== "string" ? routerMetadata.getModuleId(key) : key;
-        result = new RouterResource(moduleId, target);
+        result = new RouterResource(target, moduleId);
         routerMetadata.define(result, target);
       }
 
@@ -60,31 +61,16 @@ describe("RouterResource", () => {
       const container = target.hasOwnProperty("__metadata__") ? target.__metadata__ : (target.__metadata__ = {});
       container["aurelia:router-metadata"] = value;
     });
-    routerMetadata.getModuleId = jasmine.createSpy().and.callFake((target: any) => {
-      for (const [key, value] of moduleMap.entries()) {
-        if (value === target) {
-          return key;
-        }
-      }
-      throw new Error(`moduleId for target ${target} not present in moduleMap`);
-    });
-    routerMetadata.getTarget = jasmine.createSpy().and.callFake((moduleId: any) => {
-      const target = moduleMap.get(moduleId);
-      if (target === undefined) {
-        throw new Error(`target for moduleId ${moduleId} not present in moduleMap`);
-      }
-
-      return target;
-    });
   });
 
   afterEach(() => {
     Object.assign(routerMetadata, routerMetadataBackup);
+    Origin.get = originGetBackup;
   });
 
   describe("constructor", () => {
     it("sets correct defaults when called directly", () => {
-      const sut = new RouterResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyClass, dummyModuleId);
 
       expect(sut.moduleId).toBe(dummyModuleId);
       expect(sut.target).toBe(dummyClass);
@@ -105,7 +91,7 @@ describe("RouterResource", () => {
     });
 
     it("sets correct defaults when called by metadata", () => {
-      const sut = routerMetadata.getOrCreateOwn(dummyClass);
+      const sut = routerMetadata.getOrCreateOwn(dummyClass, dummyModuleId);
 
       expect(sut.moduleId).toBe(dummyModuleId);
       expect(sut.target).toBe(dummyClass);
@@ -148,16 +134,10 @@ describe("RouterResource", () => {
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
     });
 
-    it("throws an error if no moduleId can be found for the class signature", () => {
-      moduleMap.clear();
-
-      expect(() => RouterResource.ROUTE_CONFIG(instruction)).toThrow();
-    });
-
     it("correctly initializes the resource properties", () => {
       const resource = RouterResource.ROUTE_CONFIG(instruction);
 
-      expect(resource.moduleId).toBe(dummyModuleId);
+      expect(resource.moduleId).toBeUndefined();
       expect(resource.target).toBe(dummyClass);
 
       expect(resource.isRouteConfig).toEqual(true);
@@ -165,7 +145,7 @@ describe("RouterResource", () => {
 
       expect(resource.routeConfigModuleIds).toEqual([]);
       expect(resource.enableEagerLoading).toEqual(false);
-      expect(resource.ownRoutes.length).toEqual(1);
+      expect(resource.ownRoutes).toEqual([]);
       expect(resource.childRoutes).toEqual([]);
       expect(resource.filterChildRoutes).toEqual(null);
       expect(resource.areChildRoutesLoaded).toEqual(false);
@@ -207,12 +187,6 @@ describe("RouterResource", () => {
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
     });
 
-    it("throws an error if no moduleId can be found for the class signature", () => {
-      moduleMap.clear();
-
-      expect(() => RouterResource.CONFIGURE_ROUTER(instruction)).toThrow();
-    });
-
     it("correctly initializes the resource properties from the instruction", () => {
       instruction.target = new Function();
       moduleMap.set(dummyModuleId, instruction.target);
@@ -222,7 +196,7 @@ describe("RouterResource", () => {
 
       const resource = RouterResource.CONFIGURE_ROUTER(instruction);
 
-      expect(resource.moduleId).toBe(dummyModuleId);
+      expect(resource.moduleId).toBeUndefined();
       expect(resource.target).toBe(instruction.target);
 
       expect(resource.isRouteConfig).toEqual(false);
@@ -258,7 +232,7 @@ describe("RouterResource", () => {
 
   describe("loadChildRoutes", () => {
     it("returns childRoutes", async () => {
-      const sut = new RouterResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyClass, dummyModuleId);
 
       const actual = await sut.loadChildRoutes();
 
@@ -266,19 +240,9 @@ describe("RouterResource", () => {
     });
   });
 
-  describe("loadChildRouteModules", () => {
-    it("calls Loader.loadAllModules() with its own routeConfigModuleIds", async () => {
-      const sut = new RouterResource(dummyModuleId, dummyClass);
-
-      await sut.loadChildRouteModules();
-
-      expect(loader.loadAllModules).toHaveBeenCalledWith(sut.routeConfigModuleIds);
-    });
-  });
-
   describe("configureRouter", () => {
     it("calls config.map() with its own childRoutes", async () => {
-      const sut = new RouterResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyClass, dummyModuleId);
       const config: any = { map: jasmine.createSpy() };
 
       await sut.configureRouter(config, {} as any);
@@ -287,7 +251,7 @@ describe("RouterResource", () => {
     });
 
     it("sets the correct properties on the resource", async () => {
-      const sut = new RouterResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyClass, dummyModuleId);
       const router: any = { container: { viewModel: {}, get: Container.instance.get } };
 
       await sut.configureRouter({ map: PLATFORM.noop } as any, router);

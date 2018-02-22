@@ -1,7 +1,7 @@
 import { Container } from "aurelia-dependency-injection";
-import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IModuleLoader } from "./interfaces";
+import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader } from "./interfaces";
+import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 
 /**
@@ -42,7 +42,7 @@ export class RouterMetadataConfiguration {
    * Gets the RouteConfigFactory that is registered with DI, or defaults to
    * [[DefaultRouteConfigFactory]] if its not registered.
    * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
    */
   public getConfigFactory(container?: Container): RouteConfigFactory {
     const c = container || this.container;
@@ -58,7 +58,7 @@ export class RouterMetadataConfiguration {
    * Gets the RouterMetadataSettings that is registered with DI, or creates
    * a default one with noop functions if its not registered.
    * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
    */
   public getSettings(container?: Container): RouterMetadataSettings {
     const c = container || this.container;
@@ -67,16 +67,14 @@ export class RouterMetadataConfiguration {
   }
 
   /**
-   * Gets the Loader instance that is registered with the PLATFORM.Loader key
-   * Mostly intended for unit testing where module loading needs to be mocked,
-   * but can be overriden if needed.
+   * Gets the ResourceLoader that is registered with DI
    * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
    */
-  public getModuleLoader(container?: Container): IModuleLoader {
+  public getResourceLoader(container?: Container): IResourceLoader {
     const c = container || this.container;
 
-    return c.get(PLATFORM.Loader);
+    return c.get(ResourceLoader);
   }
 }
 
@@ -108,7 +106,10 @@ export class RouterMetadataSettings {
    * @param configs The route configs that were created by the @routeConfig() decorator
    * @param createInstruction The create instruction that was passed to the RouteConfigFactory
    */
-  public transformRouteConfigs: (configs: RouteConfig[], createInstruction: ICreateRouteConfigInstruction) => RouteConfig[];
+  public transformRouteConfigs: (
+    configs: RouteConfig[],
+    createInstruction: ICreateRouteConfigInstruction
+  ) => RouteConfig[];
 
   /**
    * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes

@@ -3,7 +3,8 @@ import { getLogger, Logger } from "aurelia-logging";
 import { RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import {
   IConfigureRouterInstruction,
-  IModuleLoader,
+  ICreateRouteConfigInstruction,
+  IResourceLoader,
   IRouteConfigInstruction,
   IRouterResourceTarget,
   IRouterResourceTargetProto
@@ -23,13 +24,14 @@ const logger = getLogger("router-metadata") as Logger;
  */
 export class RouterResource {
   /**
-   * The moduleId (`PLATFORM.moduleName`) of the class this resource applies to
-   */
-  public moduleId: string;
-  /**
    * The target ("constructor Function") of the class this resource applies to
    */
   public target: IRouterResourceTarget;
+
+  /**
+   * The moduleId (`PLATFORM.moduleName`) of the class this resource applies to
+   */
+  public moduleId?: string;
 
   /**
    * True if this resource is a `@routeConfig`
@@ -82,11 +84,26 @@ export class RouterResource {
   ) => boolean;
 
   /**
+   * Only applicable when `isRouteConfig`
+   *
+   * Instruction that describes how the RouteConfigs (ownRoutes) should be created when the routes
+   * are requested to be loaded.
+   */
+  public createRouteConfigInstruction: ICreateRouteConfigInstruction;
+
+  /**
    * Only applicable when `isConfigureRouter`
    *
    * True if `loadChildRoutes()` has run on this instance
    */
   public areChildRoutesLoaded: boolean;
+
+  /**
+   * Only applicable when `isRouteConfig`
+   *
+   * True if `loadOwnRoutes()` has run on this instance
+   */
+  public areOwnRoutesLoaded: boolean;
 
   /**
    * Only applicable when `isConfigureRouter`
@@ -151,17 +168,19 @@ export class RouterResource {
     return parentPath ? `${parentPath}/${ownName}` : ownName;
   }
 
-  constructor(moduleId: string, target: Function) {
-    this.moduleId = moduleId;
+  constructor(target: IRouterResourceTarget, moduleId?: string) {
     this.target = target;
+    this.moduleId = moduleId;
     this.isRouteConfig = false;
     this.isConfigureRouter = false;
     this.routeConfigModuleIds = [];
     this.enableEagerLoading = false;
+    this.createRouteConfigInstruction = null as any;
     this.ownRoutes = [];
     this.childRoutes = [];
     this.filterChildRoutes = null as any;
     this.areChildRoutesLoaded = false;
+    this.areOwnRoutesLoaded = false;
     this.areChildRouteModulesLoaded = false;
     this.isConfiguringRouter = false;
     this.isRouterConfigured = false;
@@ -202,16 +221,19 @@ export class RouterResource {
    *
    * This method is called by the static `ROUTE_CONFIG` and `CONFIGURE_ROUTER` methods, and can be used instead of those
    * to achieve the same effect. If there is a `routeConfigModuleIds` property present on the instruction, it will
-   * be initialized as `@configureRouter`, otherwise as `@routeConfig`. To initialize a class as both, you'll need to call
-   * this method twice with the appropriate instruction.
+   * be initialized as `configureRouter`, otherwise as `routeConfig`
    * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
    */
-  public initialize(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): void {
+  public initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): void {
+    if (!instruction) {
+      // We're not being called from a decorator, so just apply defaults as if we're a @routeConfig
+      // tslint:disable-next-line:no-parameter-reassignment
+      instruction = { target: this.target };
+    }
     const settings = this.getSettings(instruction);
-    const moduleId = this.moduleId;
     const target = instruction.target;
     if (isConfigureRouterInstruction(instruction)) {
-      logger.debug(`initializing @configureRouter for ${moduleId}`);
+      logger.debug(`initializing @configureRouter for ${target.name}`);
 
       this.isConfigureRouter = true;
       const configureInstruction = instruction as IConfigureRouterInstruction;
@@ -222,17 +244,39 @@ export class RouterResource {
 
       assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
     } else {
-      logger.debug(`initializing @routeConfig for ${this.moduleId}`);
+      logger.debug(`initializing @routeConfig for ${target.name}`);
 
       this.isRouteConfig = true;
+      const configInstruction = instruction as IRouteConfigInstruction;
 
-      const configInstruction = { ...instruction, moduleId, settings };
-      const configs = this.getConfigFactory().createRouteConfigs(configInstruction);
-      for (const config of configs) {
-        config.settings.routerResource = this;
-        this.ownRoutes.push(config);
-      }
+      this.createRouteConfigInstruction = { ...configInstruction, settings };
     }
+  }
+
+  public loadOwnRoutes(router?: Router): RouteConfig[] {
+    this.router = router || (null as any);
+    if (this.areOwnRoutesLoaded) {
+      return this.ownRoutes;
+    }
+
+    // If we're in this method then it can never be the root, so it's always safe to apply @routeConfig initialization
+    if (!this.isRouteConfig) {
+      this.isRouteConfig = true;
+      this.initialize(this.createRouteConfigInstruction);
+    }
+
+    const instruction = this.createRouteConfigInstruction;
+    instruction.moduleId = instruction.moduleId || this.moduleId;
+
+    const configs = this.getConfigFactory().createRouteConfigs(instruction);
+    for (const config of configs) {
+      config.settings.routerResource = this;
+      this.ownRoutes.push(config);
+    }
+
+    this.areOwnRoutesLoaded = true;
+
+    return this.ownRoutes;
   }
 
   /**
@@ -253,18 +297,19 @@ export class RouterResource {
       return this.childRoutes;
     }
 
-    logger.debug(`loading childRoutes for ${this.moduleId}`);
+    logger.debug(`loading childRoutes for ${this.target.name}`);
 
-    await this.loadChildRouteModules();
+    const loader = this.getResourceLoader();
 
     for (const moduleId of this.routeConfigModuleIds) {
-      const resource = routerMetadata.getOwn(moduleId);
+      const resource = await loader.loadRouterResource(moduleId);
+      const childRoutes = resource.loadOwnRoutes();
       resource.parent = this;
       if (resource.isConfigureRouter && this.enableEagerLoading) {
         await resource.loadChildRoutes();
       }
-      for (const childRoute of resource.ownRoutes) {
-        if (this.filterChildRoutes(childRoute, resource.ownRoutes, this)) {
+      for (const childRoute of childRoutes) {
+        if (this.filterChildRoutes(childRoute, childRoutes, this)) {
           if (this.ownRoutes.length > 0) {
             childRoute.settings.parentRoute = this.ownRoutes[0];
           }
@@ -273,41 +318,16 @@ export class RouterResource {
       }
     }
 
-    for (const ownRoute of this.ownRoutes) {
-      ownRoute.settings.childRoutes = this.childRoutes;
+    if (this.isRouteConfig) {
+      const ownRoutes = this.loadOwnRoutes();
+      for (const ownRoute of ownRoutes) {
+        ownRoute.settings.childRoutes = this.childRoutes;
+      }
     }
 
     this.areChildRoutesLoaded = true;
 
     return this.childRoutes;
-  }
-
-  /**
-   * Tells the platform loader to load the `routeConfigModuleIds` assigned to this resource
-   *
-   * If `enableEagerLoading` is set to true, will also call this method on all child resources.
-   *
-   * Will do nothing on subsequent calls.
-   *
-   * This method is called by `loadChildRoutes()`
-   */
-  public async loadChildRouteModules(): Promise<void> {
-    if (this.areChildRouteModulesLoaded) {
-      return;
-    }
-
-    await this.getModuleLoader().loadAllModules(this.routeConfigModuleIds);
-
-    if (this.enableEagerLoading) {
-      for (const moduleId of this.routeConfigModuleIds) {
-        const resource = routerMetadata.getOwn(moduleId);
-        resource.parent = this;
-        if (resource.isConfigureRouter) {
-          await resource.loadChildRouteModules();
-        }
-      }
-    }
-    this.areChildRouteModulesLoaded = true;
   }
 
   /**
@@ -347,8 +367,8 @@ export class RouterResource {
     return RouterMetadataConfiguration.INSTANCE.getConfigFactory(this.container);
   }
 
-  protected getModuleLoader(): IModuleLoader {
-    return RouterMetadataConfiguration.INSTANCE.getModuleLoader(this.container);
+  protected getResourceLoader(): IResourceLoader {
+    return RouterMetadataConfiguration.INSTANCE.getResourceLoader(this.container);
   }
 }
 
