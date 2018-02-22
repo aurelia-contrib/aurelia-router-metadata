@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "declaration": false,
+    "declaration": true,
     "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -17,7 +17,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "preserveConstEnums": true,
-    "removeComments": true,
+    "removeComments": false,
     "sourceMap": false,
     "skipLibCheck": true,
     "strict": true,
