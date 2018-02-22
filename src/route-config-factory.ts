@@ -20,14 +20,12 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * will be created
    */
   public createRouteConfigs(instruction: ICreateRouteConfigInstruction): RouteConfig[] {
-    // const { target, routes, baseRoute, moduleId, settings } = instruction;
     const { target, routes, moduleId, settings } = instruction;
     const configs: RouteConfig[] = [];
 
     const settingsDefaults = { ...(settings.routeConfigDefaults || {}) };
     const conventionDefaults = { ...getNameConventionDefaults(target) };
     const prototypeDefaults = getPrototypeDefaults(target);
-    // const argumentDefaults = { ...(baseRoute || {}) };
     const defaults = { ...settingsDefaults, ...conventionDefaults, ...prototypeDefaults };
 
     const prototypeRoutes = ensureArray(target.routes);

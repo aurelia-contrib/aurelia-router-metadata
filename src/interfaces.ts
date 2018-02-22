@@ -2,23 +2,33 @@ import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfigurati
 import { RouterMetadataSettings } from "./router-metadata-configuration";
 
 /**
+ * Instruction that contains basic information common to all RouterResource types
+ */
+export interface IRouterResourceInstruction {
+  /**
+   * The target class to be decorated
+   */
+  target: IRouterResourceTarget;
+
+  /**
+   *  (optional): settings to override the global settings for this particular resource
+   */
+  settings?: RouterMetadataSettings;
+}
+
+/**
  * Instruction that contains information needed to create a @routeConfig
  */
-export interface IRouteConfigInstruction {
+export interface IRouteConfigInstruction extends IRouterResourceInstruction {
   target: IRouterResourceTarget;
   routes?: RouteConfig | RouteConfig[];
-  baseRoute?: RouteConfig;
-  transformRouteConfigs?(configs: RouteConfig[], configInstruction: ICreateRouteConfigInstruction): RouteConfig[];
 }
 
 /**
  * Instruction that contains information needed to create a @configureRouter
  */
-export interface IConfigureRouterInstruction {
-  target: IRouterResourceTarget;
+export interface IConfigureRouterInstruction extends IRouterResourceInstruction {
   routeConfigModuleIds: string | string[];
-  enableEagerLoading?: boolean;
-  filterChildRoutes?(config: RouteConfig, allConfigs: RouteConfig[], configureInstruction: IConfigureRouterInstruction): boolean;
 }
 
 /**
@@ -86,6 +96,6 @@ export interface IRouteConfigSettings {
  * Interface that extends the RouteConfig interface to provide type checking on the
  * settings property with information relevant to router-metadata
  */
-export interface IRouteConfig extends RouteConfig {
+export interface IRouteConfig extends Partial<RouteConfig> {
   settings: IRouteConfigSettings;
 }

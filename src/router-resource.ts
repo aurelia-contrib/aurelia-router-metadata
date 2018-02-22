@@ -337,7 +337,7 @@ export class RouterResource {
   protected getSettings(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): RouterMetadataSettings {
     const settings = RouterMetadataConfiguration.INSTANCE.getSettings(this.container);
     if (instruction) {
-      return overrideSettings(settings, instruction);
+      Object.assign(settings, instruction.settings || {});
     }
 
     return settings;
@@ -354,28 +354,6 @@ export class RouterResource {
 
 function isConfigureRouterInstruction(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): boolean {
   return !!(instruction as IConfigureRouterInstruction).routeConfigModuleIds;
-}
-
-function overrideSettings(
-  settings: RouterMetadataSettings,
-  instruction: IRouteConfigInstruction | IConfigureRouterInstruction
-): RouterMetadataSettings {
-  if (isConfigureRouterInstruction(instruction)) {
-    const configureInstruction = instruction as IConfigureRouterInstruction;
-    if (configureInstruction.enableEagerLoading !== undefined) {
-      settings.enableEagerLoading = configureInstruction.enableEagerLoading;
-    }
-    if (configureInstruction.filterChildRoutes !== undefined) {
-      settings.filterChildRoutes = configureInstruction.filterChildRoutes;
-    }
-  } else {
-    const routeInstruction = instruction as IRouteConfigInstruction;
-    if (routeInstruction.transformRouteConfigs !== undefined) {
-      settings.transformRouteConfigs = routeInstruction.transformRouteConfigs;
-    }
-  }
-
-  return settings;
 }
 
 function ensureArray<T>(value: T | undefined | T[]): T[] {

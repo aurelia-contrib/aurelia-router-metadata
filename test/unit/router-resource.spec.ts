@@ -189,7 +189,8 @@ describe("RouterResource", () => {
     beforeEach(() => {
       instruction = {
         target: dummyClass,
-        routeConfigModuleIds: []
+        routeConfigModuleIds: [],
+        settings: {} as any
       };
     });
 
@@ -215,8 +216,8 @@ describe("RouterResource", () => {
     it("correctly initializes the resource properties from the instruction", () => {
       instruction.target = new Function();
       moduleMap.set(dummyModuleId, instruction.target);
-      instruction.enableEagerLoading = true;
-      instruction.filterChildRoutes = (): boolean => false;
+      instruction.settings.enableEagerLoading = true;
+      instruction.settings.filterChildRoutes = (): boolean => false;
       instruction.routeConfigModuleIds = [];
 
       const resource = RouterResource.CONFIGURE_ROUTER(instruction);
@@ -228,10 +229,10 @@ describe("RouterResource", () => {
       expect(resource.isConfigureRouter).toEqual(true);
 
       expect(resource.routeConfigModuleIds).toBe(instruction.routeConfigModuleIds);
-      expect(resource.enableEagerLoading).toBe(instruction.enableEagerLoading);
+      expect(resource.enableEagerLoading).toBe(instruction.settings.enableEagerLoading);
       expect(resource.ownRoutes).toEqual([]);
       expect(resource.childRoutes).toEqual([]);
-      expect(resource.filterChildRoutes).toBe(instruction.filterChildRoutes);
+      expect(resource.filterChildRoutes).toBe(instruction.settings.filterChildRoutes);
       expect(resource.areChildRoutesLoaded).toEqual(false);
       expect(resource.areChildRouteModulesLoaded).toEqual(false);
       expect(resource.isRouterConfigured).toEqual(false);
