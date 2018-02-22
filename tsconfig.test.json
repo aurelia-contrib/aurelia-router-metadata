@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "outDir": "dist/test",
+    "allowUnreachableCode": true,
+    "allowUnusedLabels": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "sourceMap": true,
+    "strict": false,
+    "module": "amd"
+  },
+  "exclude": [
+    ".vscode",
+    "dist",
+    "doc",
+    "node_modules"
+  ]
+}

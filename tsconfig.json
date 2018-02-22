@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "allowJs": false,
-    "alwaysStrict": true,
-    "declaration": true,
+    "declaration": false,
+    "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["es2017", "dom"],
-    "listFiles": true,
     "module": "es2015",
     "moduleResolution": "node",
     "noEmitHelpers": false,
@@ -15,15 +14,15 @@
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": false,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "preserveConstEnums": true,
     "removeComments": true,
+    "sourceMap": false,
     "skipLibCheck": true,
-    "sourceMap": true,
-    "strictNullChecks": true,
+    "strict": true,
     "stripInternal": true,
     "target": "es2015"
   },
-  "exclude": [".vscode", "node_modules", "dist", "build", "doc", "karma.conf.js"]
+  "exclude": [".vscode", "node_modules", "dist", "build", "doc", "test"]
 }
