@@ -1,8 +1,8 @@
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
 import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
-import { RouterResource } from "../../src/router-resource";
 import { IRouterMetadataType, moduleClassStorage, routerMetadata } from "../../src/router-metadata";
+import { RouterResource } from "../../src/router-resource";
 
 // tslint:disable:no-empty
 // tslint:disable:no-backbone-get-set-outside-model

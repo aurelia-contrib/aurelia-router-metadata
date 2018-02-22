@@ -1,7 +1,7 @@
 import { Container } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IModuleLoader, IRouteConfigInstruction } from "./interfaces";
+import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IModuleLoader } from "./interfaces";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 
 /**
@@ -129,5 +129,6 @@ export class RouterMetadataSettings {
     this.routeConfigOverrides = overrides as any;
     this.transformRouteConfigs = noTransform;
     this.filterChildRoutes = noFilter;
+    this.enableEagerLoading = true;
   }
 }

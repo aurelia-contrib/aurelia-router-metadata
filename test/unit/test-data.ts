@@ -1,5 +1,5 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
-import { IRouteConfigInstruction } from "../../src";
+import { IRouteConfigInstruction } from "../../src/interfaces";
 
 // tslint:disable:function-name
 // tslint:disable:no-unnecessary-class

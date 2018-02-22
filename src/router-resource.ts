@@ -1,19 +1,16 @@
 import { Container } from "aurelia-dependency-injection";
 import { getLogger, Logger } from "aurelia-logging";
-import { metadata } from "aurelia-metadata";
-import { PLATFORM } from "aurelia-pal";
-import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+import { RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import {
   IConfigureRouterInstruction,
-  ICreateRouteConfigInstruction,
   IModuleLoader,
   IRouteConfigInstruction,
   IRouterResourceTarget,
   IRouterResourceTargetProto
 } from "./interfaces";
-import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
+import { RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
-import { RouterMetadataConfiguration,RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
 
 const configureRouterSymbol = (Symbol("configureRouter") as any) as string;
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
@@ -216,9 +213,9 @@ export class RouterResource {
     if (isConfigureRouterInstruction(instruction)) {
       logger.debug(`initializing @configureRouter for ${moduleId}`);
 
+      this.isConfigureRouter = true;
       const configureInstruction = instruction as IConfigureRouterInstruction;
 
-      this.isConfigureRouter = true;
       this.routeConfigModuleIds = ensureArray(configureInstruction.routeConfigModuleIds);
       this.filterChildRoutes = settings.filterChildRoutes;
       this.enableEagerLoading = settings.enableEagerLoading;

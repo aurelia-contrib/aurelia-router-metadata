@@ -1,6 +1,5 @@
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
-import { NavigationInstruction, NavModel, Router, RouterConfiguration } from "aurelia-router";
 import { IRouterResourceTarget } from "./interfaces";
 import { RouterResource } from "./router-resource";
 
