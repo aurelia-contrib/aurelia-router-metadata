@@ -4,17 +4,16 @@ import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import {
-  IMapRoutablesInstruction,
+  IConfigureRouterInstruction,
+  ICreateRouteConfigInstruction,
   IModuleLoader,
-  IRoutableInstruction,
-  IRoutableResourceTarget,
-  IRoutableResourceTargetProto,
-  IRouteConfigInstruction
+  IRouteConfigInstruction,
+  IRouterResourceTarget,
+  IRouterResourceTargetProto
 } from "./interfaces";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
-import { RouterMetadataConfiguration } from "./router-metadata-configuration";
-import { RouterMetadataSettings } from "./router-metadata-settings";
+import { RouterMetadataConfiguration,RouterMetadataSettings } from "./router-metadata-configuration";
 
 const configureRouterSymbol = (Symbol("configureRouter") as any) as string;
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
@@ -25,7 +24,7 @@ const logger = getLogger("router-metadata") as Logger;
  * Identifies a class as a resource that can be navigated to (has routes) and/or
  * configures a router to navigate to other routes (maps routes)
  */
-export class RoutableResource {
+export class RouterResource {
   /**
    * The moduleId (`PLATFORM.moduleName`) of the class this resource applies to
    */
@@ -33,81 +32,81 @@ export class RoutableResource {
   /**
    * The target ("constructor Function") of the class this resource applies to
    */
-  public target: IRoutableResourceTarget;
+  public target: IRouterResourceTarget;
 
   /**
-   * True if this resource is a `@routable`
+   * True if this resource is a `@routeConfig`
    */
-  public isRoutable: boolean;
+  public isRouteConfig: boolean;
 
   /**
-   * True if this resource is a `@mapRoutables`
+   * True if this resource is a `@configureRouter`
    */
-  public isMapRoutables: boolean;
+  public isConfigureRouter: boolean;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * The moduleIds (`PLATFORM.moduleName`) of the routes that will be mapped on the target class' router
    */
-  public routableModuleIds: string[];
+  public routeConfigModuleIds: string[];
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * If true: when `loadChildRoutes()`is called on this instance, it will also call `loadChildRoutes()` on the resources
-   * associated with the `routableModuleIds` set on this instance (if they are also `@mapRoutables`)
+   * associated with the `routeConfigModuleIds` set on this instance (if they are also `@configureRouter`)
    */
   public enableEagerLoading: boolean;
 
   /**
-   * Only applicable when `isRoutable`
+   * Only applicable when `isRouteConfig`
    *
-   * The `RouteConfig` objects with which the target's class is mapped in parent `@mapRoutables`
+   * The `RouteConfig` objects with which the target's class is mapped in parent `@configureRouter`
    */
   public ownRoutes: RouteConfig[];
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * The `RouteConfig` objects that will be mapped on the target class' router
    */
   public childRoutes: RouteConfig[];
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * Filter function to determine which `RouteConfig` objects to exclude from mapping on the target class' router
    */
   public filterChildRoutes: (
     config: RouteConfig,
     allConfigs: RouteConfig[],
-    mapInstruction: IMapRoutablesInstruction
+    configureInstruction: IConfigureRouterInstruction
   ) => boolean;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * True if `loadChildRoutes()` has run on this instance
    */
   public areChildRoutesLoaded: boolean;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * True if `loadChildRouteModules()` has run on this instance
    */
   public areChildRouteModulesLoaded: boolean;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * True if `configureRouter()` was invoked on the target class, and we are currently still loading the child routes
    */
   public isConfiguringRouter: boolean;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * True if `configureRouter()` has run on this instance and the childRoutes are mapped to the target class' router
    */
@@ -116,17 +115,17 @@ export class RoutableResource {
   /**
    * The parent route
    */
-  public parent: RoutableResource;
+  public parent: RouterResource;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * The router that was passed to the target class' `configureRouter()` method
    */
   public router: Router;
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * A convenience property which returns `router.container`, or `null` if the router is not set
    */
@@ -135,12 +134,12 @@ export class RoutableResource {
   }
 
   /**
-   * Only applicable when `isMapRoutables`
+   * Only applicable when `isConfigureRouter`
    *
    * A convenience property which returns `router.container.viewModel`, or `null` if the router is not set
    * This is an instance of the target class
    */
-  public get instance(): IRoutableResourceTargetProto {
+  public get instance(): IRouterResourceTargetProto {
     return this.container ? (this.container as any).viewModel : null;
   }
 
@@ -158,9 +157,9 @@ export class RoutableResource {
   constructor(moduleId: string, target: Function) {
     this.moduleId = moduleId;
     this.target = target;
-    this.isRoutable = false;
-    this.isMapRoutables = false;
-    this.routableModuleIds = [];
+    this.isRouteConfig = false;
+    this.isConfigureRouter = false;
+    this.routeConfigModuleIds = [];
     this.enableEagerLoading = false;
     this.ownRoutes = [];
     this.childRoutes = [];
@@ -174,13 +173,13 @@ export class RoutableResource {
   }
 
   /**
-   * Creates a `@routable` based on the provided instruction.
+   * Creates a `@routeConfig` based on the provided instruction.
    *
-   * This method is called by the `@routable()` decorator, and can be used instead of the @routable() decorator
+   * This method is called by the `@routeConfig()` decorator, and can be used instead of the @routeConfig() decorator
    * to achieve the same effect.
-   * @param instruction Instruction containing the parameters passed to the `@routable` decorator
+   * @param instruction Instruction containing the parameters passed to the `@routeConfig` decorator
    */
-  public static ROUTABLE(instruction: IRoutableInstruction): RoutableResource {
+  public static ROUTE_CONFIG(instruction: IRouteConfigInstruction): RouterResource {
     const resource = routerMetadata.getOrCreateOwn(instruction.target);
     resource.initialize(instruction);
 
@@ -188,13 +187,13 @@ export class RoutableResource {
   }
 
   /**
-   * Creates a `@mapRoutables` based on the provided instruction.
+   * Creates a `@configureRouter` based on the provided instruction.
    *
-   * This method is called by the `@mapRoutables()` decorator, and can be used instead of the @mapRoutables() decorator
+   * This method is called by the `@configureRouter()` decorator, and can be used instead of the @configureRouter() decorator
    * to achieve the same effect.
-   * @param instruction Instruction containing the parameters passed to the `@mapRoutables` decorator
+   * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
    */
-  public static MAP_ROUTABLES(instruction: IMapRoutablesInstruction): RoutableResource {
+  public static CONFIGURE_ROUTER(instruction: IConfigureRouterInstruction): RouterResource {
     const resource = routerMetadata.getOrCreateOwn(instruction.target);
     resource.initialize(instruction);
 
@@ -204,36 +203,36 @@ export class RoutableResource {
   /**
    * Initializes this resource based on the provided instruction.
    *
-   * This method is called by the static `ROUTABLE` and `MAP_ROUTABLES` methods, and can be used instead of those
-   * to achieve the same effect. If there is a `routableModuleIds` property present on the instruction, it will
-   * be initialized as `@mapRoutables`, otherwise as `@routable`. To initialize a class as both, you'll need to call
+   * This method is called by the static `ROUTE_CONFIG` and `CONFIGURE_ROUTER` methods, and can be used instead of those
+   * to achieve the same effect. If there is a `routeConfigModuleIds` property present on the instruction, it will
+   * be initialized as `@configureRouter`, otherwise as `@routeConfig`. To initialize a class as both, you'll need to call
    * this method twice with the appropriate instruction.
-   * @param instruction Instruction containing the parameters passed to the `@mapRoutables` decorator
+   * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
    */
-  public initialize(instruction: IRoutableInstruction | IMapRoutablesInstruction): void {
+  public initialize(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): void {
     const settings = this.getSettings(instruction);
     const moduleId = this.moduleId;
     const target = instruction.target;
-    if (isMapRoutablesInstruction(instruction)) {
-      logger.debug(`initializing @mapRoutables for ${moduleId}`);
+    if (isConfigureRouterInstruction(instruction)) {
+      logger.debug(`initializing @configureRouter for ${moduleId}`);
 
-      const mapInstruction = instruction as IMapRoutablesInstruction;
+      const configureInstruction = instruction as IConfigureRouterInstruction;
 
-      this.isMapRoutables = true;
-      this.routableModuleIds = ensureArray(mapInstruction.routableModuleIds);
+      this.isConfigureRouter = true;
+      this.routeConfigModuleIds = ensureArray(configureInstruction.routeConfigModuleIds);
       this.filterChildRoutes = settings.filterChildRoutes;
       this.enableEagerLoading = settings.enableEagerLoading;
 
       assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
     } else {
-      logger.debug(`initializing @routable for ${this.moduleId}`);
+      logger.debug(`initializing @routeConfig for ${this.moduleId}`);
 
-      this.isRoutable = true;
+      this.isRouteConfig = true;
 
       const configInstruction = { ...instruction, moduleId, settings };
       const configs = this.getConfigFactory().createRouteConfigs(configInstruction);
       for (const config of configs) {
-        config.settings.routableResource = this;
+        config.settings.routerResource = this;
         this.ownRoutes.push(config);
       }
     }
@@ -261,10 +260,10 @@ export class RoutableResource {
 
     await this.loadChildRouteModules();
 
-    for (const moduleId of this.routableModuleIds) {
+    for (const moduleId of this.routeConfigModuleIds) {
       const resource = routerMetadata.getOwn(moduleId);
       resource.parent = this;
-      if (resource.isMapRoutables && this.enableEagerLoading) {
+      if (resource.isConfigureRouter && this.enableEagerLoading) {
         await resource.loadChildRoutes();
       }
       for (const childRoute of resource.ownRoutes) {
@@ -287,7 +286,7 @@ export class RoutableResource {
   }
 
   /**
-   * Tells the platform loader to load the `routableModuleIds` assigned to this resource
+   * Tells the platform loader to load the `routeConfigModuleIds` assigned to this resource
    *
    * If `enableEagerLoading` is set to true, will also call this method on all child resources.
    *
@@ -300,13 +299,13 @@ export class RoutableResource {
       return;
     }
 
-    await this.getModuleLoader().loadAllModules(this.routableModuleIds);
+    await this.getModuleLoader().loadAllModules(this.routeConfigModuleIds);
 
     if (this.enableEagerLoading) {
-      for (const moduleId of this.routableModuleIds) {
+      for (const moduleId of this.routeConfigModuleIds) {
         const resource = routerMetadata.getOwn(moduleId);
         resource.parent = this;
-        if (resource.isMapRoutables) {
+        if (resource.isConfigureRouter) {
           await resource.loadChildRouteModules();
         }
       }
@@ -338,7 +337,7 @@ export class RoutableResource {
     }
   }
 
-  protected getSettings(instruction?: IRoutableInstruction | IMapRoutablesInstruction): RouterMetadataSettings {
+  protected getSettings(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): RouterMetadataSettings {
     const settings = RouterMetadataConfiguration.INSTANCE.getSettings(this.container);
     if (instruction) {
       return overrideSettings(settings, instruction);
@@ -356,24 +355,24 @@ export class RoutableResource {
   }
 }
 
-function isMapRoutablesInstruction(instruction: IRoutableInstruction | IMapRoutablesInstruction): boolean {
-  return !!(instruction as IMapRoutablesInstruction).routableModuleIds;
+function isConfigureRouterInstruction(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): boolean {
+  return !!(instruction as IConfigureRouterInstruction).routeConfigModuleIds;
 }
 
 function overrideSettings(
   settings: RouterMetadataSettings,
-  instruction: IRoutableInstruction | IMapRoutablesInstruction
+  instruction: IRouteConfigInstruction | IConfigureRouterInstruction
 ): RouterMetadataSettings {
-  if (isMapRoutablesInstruction(instruction)) {
-    const mapInstruction = instruction as IMapRoutablesInstruction;
-    if (mapInstruction.enableEagerLoading !== undefined) {
-      settings.enableEagerLoading = mapInstruction.enableEagerLoading;
+  if (isConfigureRouterInstruction(instruction)) {
+    const configureInstruction = instruction as IConfigureRouterInstruction;
+    if (configureInstruction.enableEagerLoading !== undefined) {
+      settings.enableEagerLoading = configureInstruction.enableEagerLoading;
     }
-    if (mapInstruction.filterChildRoutes !== undefined) {
-      settings.filterChildRoutes = mapInstruction.filterChildRoutes;
+    if (configureInstruction.filterChildRoutes !== undefined) {
+      settings.filterChildRoutes = configureInstruction.filterChildRoutes;
     }
   } else {
-    const routeInstruction = instruction as IRoutableInstruction;
+    const routeInstruction = instruction as IRouteConfigInstruction;
     if (routeInstruction.transformRouteConfigs !== undefined) {
       settings.transformRouteConfigs = routeInstruction.transformRouteConfigs;
     }
@@ -391,7 +390,7 @@ function ensureArray<T>(value: T | undefined | T[]): T[] {
 }
 
 function assignOrProxyPrototypeProperty(
-  proto: IRoutableResourceTargetProto,
+  proto: IRouterResourceTargetProto,
   name: string,
   refSymbol: string,
   value: any
@@ -409,7 +408,7 @@ function assignOrProxyPrototypeProperty(
 
 // tslint:disable:no-invalid-this
 async function configureRouter(config: RouterConfiguration, router: Router): Promise<void> {
-  const target = Object.getPrototypeOf(this).constructor as IRoutableResourceTarget;
+  const target = Object.getPrototypeOf(this).constructor as IRouterResourceTarget;
   const resource = routerMetadata.getOwn(target);
   await resource.configureRouter(config, router);
 }

@@ -1,11 +1,11 @@
 import { Container } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
-import { IModuleLoader } from "./interfaces";
+import { RouteConfig } from "aurelia-router";
+import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IModuleLoader, IRouteConfigInstruction } from "./interfaces";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
-import { RouterMetadataSettings } from "./router-metadata-settings";
 
 /**
- * Class used to configure behavior of [[RoutableResource]]
+ * Class used to configure behavior of [[RouterResource]]
  */
 export class RouterMetadataConfiguration {
   protected static instance: RouterMetadataConfiguration;
@@ -77,5 +77,57 @@ export class RouterMetadataConfiguration {
     const c = container || this.container;
 
     return c.get(PLATFORM.Loader);
+  }
+}
+
+const noTransform = (configs: RouteConfig[]): RouteConfig[] => configs;
+const noFilter = (): boolean => true;
+const defaults = {
+  nav: true
+};
+const overrides = {};
+
+/**
+ * All available aurelia-router-metadata settings
+ */
+export class RouterMetadataSettings {
+  [setting: string]: any;
+
+  /**
+   * The initial settings to use for each route before class-based conventions are applied
+   */
+  public routeConfigDefaults: RouteConfig;
+
+  /**
+   * RouteConfig settings that will be applied last before transformation; these settings will override all other defaults and arguments
+   */
+  public routeConfigOverrides: RouteConfig;
+
+  /**
+   * Perform any final modifications on the routes just before they are stored in the metadata
+   * @param configs The route configs that were created by the @routeConfig() decorator
+   * @param createInstruction The create instruction that was passed to the RouteConfigFactory
+   */
+  public transformRouteConfigs: (configs: RouteConfig[], createInstruction: ICreateRouteConfigInstruction) => RouteConfig[];
+
+  /**
+   * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes
+   */
+  public filterChildRoutes: (
+    config: RouteConfig,
+    allConfigs: RouteConfig[],
+    configureInstruction: IConfigureRouterInstruction
+  ) => boolean;
+
+  /**
+   * Enable/disable eager loading by default
+   */
+  public enableEagerLoading: boolean;
+
+  constructor() {
+    this.routeConfigDefaults = defaults as any;
+    this.routeConfigOverrides = overrides as any;
+    this.transformRouteConfigs = noTransform;
+    this.filterChildRoutes = noFilter;
   }
 }

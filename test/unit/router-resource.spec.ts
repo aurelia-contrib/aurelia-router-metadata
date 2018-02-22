@@ -2,19 +2,18 @@ import { Container, ContainerConfiguration } from "aurelia-dependency-injection"
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
-import { IMapRoutablesInstruction, IRoutableInstruction } from "../../src/interfaces";
-import { RoutableResource } from "../../src/routable-resource";
+import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "../../src/route-config-factory";
 import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
 import { RouterMetadataConfiguration } from "../../src/router-metadata-configuration";
-import { RouterMetadataSettings } from "../../src/router-metadata-settings";
+import { RouterResource } from "../../src/router-resource";
 
 // tslint:disable:no-empty
 // tslint:disable:no-backbone-get-set-outside-model
 // tslint:disable:no-unnecessary-class
 // tslint:disable:max-classes-per-file
 
-describe("RoutableResource", () => {
+describe("RouterResource", () => {
   let dummyModuleId: string;
   let dummyClass: Function;
   let moduleMap: Map<string, any>;
@@ -51,7 +50,7 @@ describe("RoutableResource", () => {
       if (result === undefined) {
         const target = typeof key === "string" ? routerMetadata.getTarget(key) : key;
         const moduleId = typeof key !== "string" ? routerMetadata.getModuleId(key) : key;
-        result = new RoutableResource(moduleId, target);
+        result = new RouterResource(moduleId, target);
         routerMetadata.define(result, target);
       }
 
@@ -85,15 +84,15 @@ describe("RoutableResource", () => {
 
   describe("constructor", () => {
     it("sets correct defaults when called directly", () => {
-      const sut = new RoutableResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyModuleId, dummyClass);
 
       expect(sut.moduleId).toBe(dummyModuleId);
       expect(sut.target).toBe(dummyClass);
 
-      expect(sut.isRoutable).toEqual(false);
-      expect(sut.isMapRoutables).toEqual(false);
+      expect(sut.isRouteConfig).toEqual(false);
+      expect(sut.isConfigureRouter).toEqual(false);
 
-      expect(sut.routableModuleIds).toEqual([]);
+      expect(sut.routeConfigModuleIds).toEqual([]);
       expect(sut.enableEagerLoading).toEqual(false);
       expect(sut.ownRoutes).toEqual([]);
       expect(sut.childRoutes).toEqual([]);
@@ -111,10 +110,10 @@ describe("RoutableResource", () => {
       expect(sut.moduleId).toBe(dummyModuleId);
       expect(sut.target).toBe(dummyClass);
 
-      expect(sut.isRoutable).toEqual(false);
-      expect(sut.isMapRoutables).toEqual(false);
+      expect(sut.isRouteConfig).toEqual(false);
+      expect(sut.isConfigureRouter).toEqual(false);
 
-      expect(sut.routableModuleIds).toEqual([]);
+      expect(sut.routeConfigModuleIds).toEqual([]);
       expect(sut.enableEagerLoading).toEqual(false);
       expect(sut.ownRoutes).toEqual([]);
       expect(sut.childRoutes).toEqual([]);
@@ -127,8 +126,8 @@ describe("RoutableResource", () => {
     });
   });
 
-  describe("ROUTABLE", () => {
-    let instruction: IRoutableInstruction;
+  describe("ROUTE_CONFIG", () => {
+    let instruction: IRouteConfigInstruction;
 
     beforeEach(() => {
       instruction = {
@@ -136,14 +135,14 @@ describe("RoutableResource", () => {
       };
     });
 
-    it("returns RoutableResource", () => {
-      const resource = RoutableResource.ROUTABLE(instruction);
+    it("returns RouterResource", () => {
+      const resource = RouterResource.ROUTE_CONFIG(instruction);
 
-      expect(resource instanceof RoutableResource).toEqual(true);
+      expect(resource instanceof RouterResource).toEqual(true);
     });
 
-    it("instantiates RoutableResource through routerMetadata", () => {
-      RoutableResource.ROUTABLE(instruction);
+    it("instantiates RouterResource through routerMetadata", () => {
+      RouterResource.ROUTE_CONFIG(instruction);
 
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledWith(instruction.target);
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
@@ -152,19 +151,19 @@ describe("RoutableResource", () => {
     it("throws an error if no moduleId can be found for the class signature", () => {
       moduleMap.clear();
 
-      expect(() => RoutableResource.ROUTABLE(instruction)).toThrow();
+      expect(() => RouterResource.ROUTE_CONFIG(instruction)).toThrow();
     });
 
     it("correctly initializes the resource properties", () => {
-      const resource = RoutableResource.ROUTABLE(instruction);
+      const resource = RouterResource.ROUTE_CONFIG(instruction);
 
       expect(resource.moduleId).toBe(dummyModuleId);
       expect(resource.target).toBe(dummyClass);
 
-      expect(resource.isRoutable).toEqual(true);
-      expect(resource.isMapRoutables).toEqual(false);
+      expect(resource.isRouteConfig).toEqual(true);
+      expect(resource.isConfigureRouter).toEqual(false);
 
-      expect(resource.routableModuleIds).toEqual([]);
+      expect(resource.routeConfigModuleIds).toEqual([]);
       expect(resource.enableEagerLoading).toEqual(false);
       expect(resource.ownRoutes.length).toEqual(1);
       expect(resource.childRoutes).toEqual([]);
@@ -177,31 +176,31 @@ describe("RoutableResource", () => {
     });
 
     it("will reuse the existing resource if applied multiple times to the same target", () => {
-      const resource1 = RoutableResource.ROUTABLE(instruction);
-      const resource2 = RoutableResource.ROUTABLE(instruction);
+      const resource1 = RouterResource.ROUTE_CONFIG(instruction);
+      const resource2 = RouterResource.ROUTE_CONFIG(instruction);
 
       expect(resource1).toBe(resource2);
     });
   });
 
-  describe("MAP_ROUTABLES", () => {
-    let instruction: IMapRoutablesInstruction;
+  describe("CONFIGURE_ROUTER", () => {
+    let instruction: IConfigureRouterInstruction;
 
     beforeEach(() => {
       instruction = {
         target: dummyClass,
-        routableModuleIds: []
+        routeConfigModuleIds: []
       };
     });
 
-    it("returns RoutableResource", () => {
-      const resource = RoutableResource.MAP_ROUTABLES(instruction);
+    it("returns RouterResource", () => {
+      const resource = RouterResource.CONFIGURE_ROUTER(instruction);
 
-      expect(resource instanceof RoutableResource).toEqual(true);
+      expect(resource instanceof RouterResource).toEqual(true);
     });
 
-    it("instantiates RoutableResource through routerMetadata", () => {
-      RoutableResource.MAP_ROUTABLES(instruction);
+    it("instantiates RouterResource through routerMetadata", () => {
+      RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledWith(instruction.target);
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
@@ -210,7 +209,7 @@ describe("RoutableResource", () => {
     it("throws an error if no moduleId can be found for the class signature", () => {
       moduleMap.clear();
 
-      expect(() => RoutableResource.MAP_ROUTABLES(instruction)).toThrow();
+      expect(() => RouterResource.CONFIGURE_ROUTER(instruction)).toThrow();
     });
 
     it("correctly initializes the resource properties from the instruction", () => {
@@ -218,17 +217,17 @@ describe("RoutableResource", () => {
       moduleMap.set(dummyModuleId, instruction.target);
       instruction.enableEagerLoading = true;
       instruction.filterChildRoutes = (): boolean => false;
-      instruction.routableModuleIds = [];
+      instruction.routeConfigModuleIds = [];
 
-      const resource = RoutableResource.MAP_ROUTABLES(instruction);
+      const resource = RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(resource.moduleId).toBe(dummyModuleId);
       expect(resource.target).toBe(instruction.target);
 
-      expect(resource.isRoutable).toEqual(false);
-      expect(resource.isMapRoutables).toEqual(true);
+      expect(resource.isRouteConfig).toEqual(false);
+      expect(resource.isConfigureRouter).toEqual(true);
 
-      expect(resource.routableModuleIds).toBe(instruction.routableModuleIds);
+      expect(resource.routeConfigModuleIds).toBe(instruction.routeConfigModuleIds);
       expect(resource.enableEagerLoading).toBe(instruction.enableEagerLoading);
       expect(resource.ownRoutes).toEqual([]);
       expect(resource.childRoutes).toEqual([]);
@@ -241,8 +240,8 @@ describe("RoutableResource", () => {
     });
 
     it("will reuse the existing resource if applied multiple times to the same target", () => {
-      const resource1 = RoutableResource.MAP_ROUTABLES(instruction);
-      const resource2 = RoutableResource.MAP_ROUTABLES(instruction);
+      const resource1 = RouterResource.CONFIGURE_ROUTER(instruction);
+      const resource2 = RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(resource1).toBe(resource2);
     });
@@ -250,7 +249,7 @@ describe("RoutableResource", () => {
     it("assigns a configureRouter function to the target's prototype", () => {
       expect(dummyClass.prototype.configureRouter).not.toBeDefined();
 
-      const resource = RoutableResource.MAP_ROUTABLES(instruction);
+      const resource = RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(dummyClass.prototype.configureRouter).toBeDefined();
     });
@@ -258,7 +257,7 @@ describe("RoutableResource", () => {
 
   describe("loadChildRoutes", () => {
     it("returns childRoutes", async () => {
-      const sut = new RoutableResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyModuleId, dummyClass);
 
       const actual = await sut.loadChildRoutes();
 
@@ -267,18 +266,18 @@ describe("RoutableResource", () => {
   });
 
   describe("loadChildRouteModules", () => {
-    it("calls Loader.loadAllModules() with its own routableModuleIds", async () => {
-      const sut = new RoutableResource(dummyModuleId, dummyClass);
+    it("calls Loader.loadAllModules() with its own routeConfigModuleIds", async () => {
+      const sut = new RouterResource(dummyModuleId, dummyClass);
 
       await sut.loadChildRouteModules();
 
-      expect(loader.loadAllModules).toHaveBeenCalledWith(sut.routableModuleIds);
+      expect(loader.loadAllModules).toHaveBeenCalledWith(sut.routeConfigModuleIds);
     });
   });
 
   describe("configureRouter", () => {
     it("calls config.map() with its own childRoutes", async () => {
-      const sut = new RoutableResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyModuleId, dummyClass);
       const config: any = { map: jasmine.createSpy() };
 
       await sut.configureRouter(config, {} as any);
@@ -287,7 +286,7 @@ describe("RoutableResource", () => {
     });
 
     it("sets the correct properties on the resource", async () => {
-      const sut = new RoutableResource(dummyModuleId, dummyClass);
+      const sut = new RouterResource(dummyModuleId, dummyClass);
       const router: any = { container: { viewModel: {}, get: Container.instance.get } };
 
       await sut.configureRouter({ map: PLATFORM.noop } as any, router);
@@ -312,22 +311,22 @@ describe("RoutableResource", () => {
     class Pg1Pg1Pg2 {}
     class Pg1Pg2Pg1 {}
     class Pg1Pg2Pg2 {}
-    let empty: RoutableResource;
-    let mr0: RoutableResource;
-    let mr1: RoutableResource;
-    let mr2: RoutableResource;
-    let mr11: RoutableResource;
-    let mr12: RoutableResource;
-    let rt1: RoutableResource;
-    let rt2: RoutableResource;
-    let rt11: RoutableResource;
-    let rt12: RoutableResource;
-    let rt21: RoutableResource;
-    let rt22: RoutableResource;
-    let rt111: RoutableResource;
-    let rt112: RoutableResource;
-    let rt121: RoutableResource;
-    let rt122: RoutableResource;
+    let empty: RouterResource;
+    let mr0: RouterResource;
+    let mr1: RouterResource;
+    let mr2: RouterResource;
+    let mr11: RouterResource;
+    let mr12: RouterResource;
+    let rt1: RouterResource;
+    let rt2: RouterResource;
+    let rt11: RouterResource;
+    let rt12: RouterResource;
+    let rt21: RouterResource;
+    let rt22: RouterResource;
+    let rt111: RouterResource;
+    let rt112: RouterResource;
+    let rt121: RouterResource;
+    let rt122: RouterResource;
 
     const classes = [Empty, Pg0, Pg1, Pg2, Pg1Pg1, Pg1Pg2, Pg2Pg1, Pg2Pg2, Pg1Pg1Pg1, Pg1Pg1Pg2, Pg1Pg2Pg1, Pg1Pg2Pg2];
 
@@ -336,7 +335,7 @@ describe("RoutableResource", () => {
       RouterMetadataConfiguration.INSTANCE.getSettings().filterChildRoutes = (
         config: RouteConfig,
         _: RouteConfig[],
-        __: IMapRoutablesInstruction
+        __: IConfigureRouterInstruction
       ): boolean => {
         return config.nav !== false;
       };
@@ -359,37 +358,37 @@ describe("RoutableResource", () => {
       moduleMap.set("pg1/pg2/pg1", Pg1Pg2Pg1);
       moduleMap.set("pg1/pg2/pg2", Pg1Pg2Pg2);
 
-      mr0 = RoutableResource.MAP_ROUTABLES({
+      mr0 = RouterResource.CONFIGURE_ROUTER({
         target: Pg0,
-        routableModuleIds: ["empty", "pg1", "pg2"]
+        routeConfigModuleIds: ["empty", "pg1", "pg2"]
       });
-      mr1 = RoutableResource.MAP_ROUTABLES({
+      mr1 = RouterResource.CONFIGURE_ROUTER({
         target: Pg1,
-        routableModuleIds: ["empty", "pg1/pg1", "pg1/pg2"]
+        routeConfigModuleIds: ["empty", "pg1/pg1", "pg1/pg2"]
       });
-      mr2 = RoutableResource.MAP_ROUTABLES({
+      mr2 = RouterResource.CONFIGURE_ROUTER({
         target: Pg2,
-        routableModuleIds: ["empty", "pg2/pg1", "pg2/pg2"]
+        routeConfigModuleIds: ["empty", "pg2/pg1", "pg2/pg2"]
       });
-      mr11 = RoutableResource.MAP_ROUTABLES({
+      mr11 = RouterResource.CONFIGURE_ROUTER({
         target: Pg1Pg1,
-        routableModuleIds: ["empty", "pg1/pg1/pg1", "pg1/pg1/pg2"]
+        routeConfigModuleIds: ["empty", "pg1/pg1/pg1", "pg1/pg1/pg2"]
       });
-      mr12 = RoutableResource.MAP_ROUTABLES({
+      mr12 = RouterResource.CONFIGURE_ROUTER({
         target: Pg1Pg2,
-        routableModuleIds: ["empty", "pg1/pg2/pg1", "pg1/pg2/pg2"]
+        routeConfigModuleIds: ["empty", "pg1/pg2/pg1", "pg1/pg2/pg2"]
       });
-      empty = RoutableResource.ROUTABLE({ target: Empty, routes: { route: "", nav: false } });
-      rt1 = RoutableResource.ROUTABLE({ target: Pg1 });
-      rt2 = RoutableResource.ROUTABLE({ target: Pg2 });
-      rt11 = RoutableResource.ROUTABLE({ target: Pg1Pg1 });
-      rt12 = RoutableResource.ROUTABLE({ target: Pg1Pg2 });
-      rt21 = RoutableResource.ROUTABLE({ target: Pg2Pg1 });
-      rt22 = RoutableResource.ROUTABLE({ target: Pg2Pg2 });
-      rt111 = RoutableResource.ROUTABLE({ target: Pg1Pg1Pg1 });
-      rt112 = RoutableResource.ROUTABLE({ target: Pg1Pg1Pg2 });
-      rt121 = RoutableResource.ROUTABLE({ target: Pg1Pg2Pg1 });
-      rt122 = RoutableResource.ROUTABLE({ target: Pg1Pg2Pg2 });
+      empty = RouterResource.ROUTE_CONFIG({ target: Empty, routes: { route: "", nav: false } });
+      rt1 = RouterResource.ROUTE_CONFIG({ target: Pg1 });
+      rt2 = RouterResource.ROUTE_CONFIG({ target: Pg2 });
+      rt11 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg1 });
+      rt12 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg2 });
+      rt21 = RouterResource.ROUTE_CONFIG({ target: Pg2Pg1 });
+      rt22 = RouterResource.ROUTE_CONFIG({ target: Pg2Pg2 });
+      rt111 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg1Pg1 });
+      rt112 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg1Pg2 });
+      rt121 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg2Pg1 });
+      rt122 = RouterResource.ROUTE_CONFIG({ target: Pg1Pg2Pg2 });
     });
 
     it("loadChildRoutes() on the root correctly configures it", async () => {

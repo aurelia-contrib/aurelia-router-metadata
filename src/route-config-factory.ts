@@ -1,9 +1,8 @@
 import { RouteConfig } from "aurelia-router";
-import { IRoutableInstruction, IRoutableResourceTarget, IRouteConfigInstruction } from "./interfaces";
-import { RouterMetadataSettings } from "./router-metadata-settings";
+import { ICreateRouteConfigInstruction, IRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
 
 /**
- * Class that creates RouteConfigs for the @routable() decorator
+ * Class that creates RouteConfigs for the @routeConfig() decorator
  */
 export abstract class RouteConfigFactory {
   // tslint:disable-next-line:variable-name
@@ -20,7 +19,7 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * @param instruction Instruction containing all information based on which the `RouteConfig` objects
    * will be created
    */
-  public createRouteConfigs(instruction: IRouteConfigInstruction): RouteConfig[] {
+  public createRouteConfigs(instruction: ICreateRouteConfigInstruction): RouteConfig[] {
     const { target, routes, baseRoute, moduleId, settings } = instruction;
     const configs: RouteConfig[] = [];
 
@@ -60,7 +59,7 @@ function ensureArray<T>(value: T | undefined | T[]): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-function getNameConventionDefaults(target: IRoutableResourceTarget): RouteConfig {
+function getNameConventionDefaults(target: IRouterResourceTarget): RouteConfig {
   const hyphenated = hyphenate(target.name);
 
   return {
@@ -70,7 +69,7 @@ function getNameConventionDefaults(target: IRoutableResourceTarget): RouteConfig
   };
 }
 
-function getPrototypeDefaults(target: IRoutableResourceTarget): RouteConfig {
+function getPrototypeDefaults(target: IRouterResourceTarget): RouteConfig {
   // start with the first up in the prototype chain and override any properties we come across down the chain
   if (target === Function.prototype) {
     return {} as any;

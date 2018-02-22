@@ -1,30 +1,30 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
-import { RouterMetadataSettings } from "./router-metadata-settings";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
 
 /**
- * Instruction that contains information needed to create a @routable
+ * Instruction that contains information needed to create a @routeConfig
  */
-export interface IRoutableInstruction {
-  target: IRoutableResourceTarget;
+export interface IRouteConfigInstruction {
+  target: IRouterResourceTarget;
   routes?: RouteConfig | RouteConfig[];
   baseRoute?: RouteConfig;
-  transformRouteConfigs?(configs: RouteConfig[], configInstruction: IRouteConfigInstruction): RouteConfig[];
+  transformRouteConfigs?(configs: RouteConfig[], configInstruction: ICreateRouteConfigInstruction): RouteConfig[];
 }
 
 /**
- * Instruction that contains information needed to create a @mapRoutables
+ * Instruction that contains information needed to create a @configureRouter
  */
-export interface IMapRoutablesInstruction {
-  target: IRoutableResourceTarget;
-  routableModuleIds: string | string[];
+export interface IConfigureRouterInstruction {
+  target: IRouterResourceTarget;
+  routeConfigModuleIds: string | string[];
   enableEagerLoading?: boolean;
-  filterChildRoutes?(config: RouteConfig, allConfigs: RouteConfig[], mapInstruction: IMapRoutablesInstruction): boolean;
+  filterChildRoutes?(config: RouteConfig, allConfigs: RouteConfig[], configureInstruction: IConfigureRouterInstruction): boolean;
 }
 
 /**
- * Instruction that contains information needed to create the RouteConfigs for a @routable
+ * Instruction that contains information needed to create the RouteConfigs for a @routeConfig
  */
-export interface IRouteConfigInstruction extends IRoutableInstruction {
+export interface ICreateRouteConfigInstruction extends IRouteConfigInstruction {
   moduleId: string;
   settings: RouterMetadataSettings;
 }
@@ -32,8 +32,8 @@ export interface IRouteConfigInstruction extends IRoutableInstruction {
 /**
  * Interface that describes relevant potential static properties on a ViewModel
  */
-export interface IRoutableResourceTarget extends Function {
-  prototype: IRoutableResourceTargetProto;
+export interface IRouterResourceTarget extends Function {
+  prototype: IRouterResourceTargetProto;
   route?: string | string[];
   routeName?: string;
   moduleId?: string;
@@ -59,7 +59,7 @@ export interface IRoutableResourceTarget extends Function {
 /**
  * Interface that describes relevant potential properties on the prototype of a ViewModel
  */
-export interface IRoutableResourceTargetProto extends Object {
+export interface IRouterResourceTargetProto extends Object {
   configureRouter?(config: RouterConfiguration, router: Router): Promise<void> | PromiseLike<void> | void;
   [key: string]: any;
 }

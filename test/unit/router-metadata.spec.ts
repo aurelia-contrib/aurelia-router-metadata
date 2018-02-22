@@ -1,7 +1,7 @@
 import { metadata } from "aurelia-metadata";
 import { PLATFORM } from "aurelia-pal";
-import { IMapRoutablesInstruction, IRoutableInstruction } from "../../src/interfaces";
-import { RoutableResource } from "../../src/routable-resource";
+import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
+import { RouterResource } from "../../src/router-resource";
 import { IRouterMetadataType, moduleClassStorage, routerMetadata } from "../../src/router-metadata";
 
 // tslint:disable:no-empty
@@ -143,14 +143,14 @@ describe("routerMetadata", () => {
           expect(routerMetadata.getTarget).toHaveBeenCalledWith(dummyModuleId);
         });
 
-        it("returns a newly created RoutableResource with the correct moduleId and target", () => {
+        it("returns a newly created RouterResource with the correct moduleId and target", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyModuleId);
 
           expect(resource.moduleId).toBe(dummyModuleId);
           expect(resource.target).toBe(dummyClass);
         });
 
-        it("calls metadata.define() with the newly created RoutableResource", () => {
+        it("calls metadata.define() with the newly created RouterResource", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyModuleId);
 
           expect(metadata.define).toHaveBeenCalledWith(jasmine.any(String), resource, dummyClass);
@@ -189,14 +189,14 @@ describe("routerMetadata", () => {
           expect(routerMetadata.getModuleId).toHaveBeenCalledWith(dummyClass);
         });
 
-        it("returns a newly created RoutableResource with the correct moduleId and target", () => {
+        it("returns a newly created RouterResource with the correct moduleId and target", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyClass);
 
           expect(resource.moduleId).toBe(dummyModuleId);
           expect(resource.target).toBe(dummyClass);
         });
 
-        it("calls metadata.define() with the newly created RoutableResource", () => {
+        it("calls metadata.define() with the newly created RouterResource", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyClass);
 
           expect(metadata.define).toHaveBeenCalledWith(jasmine.any(String), resource, dummyClass);

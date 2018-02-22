@@ -1,7 +1,7 @@
 import { RouteConfig } from "aurelia-router";
-import { IRouteConfigInstruction } from "../../src/interfaces";
+import { ICreateRouteConfigInstruction } from "../../src/interfaces";
 import { DefaultRouteConfigFactory } from "../../src/route-config-factory";
-import { RouterMetadataSettings } from "../../src/router-metadata-settings";
+import { RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import {
   HasConfigureRouter,
   HasStaticBaseRoute,
@@ -33,7 +33,7 @@ const routeConfigProperies = [
 
 describe("DefaultRouteConfigFactory", () => {
   let sut: DefaultRouteConfigFactory;
-  let instruction: IRouteConfigInstruction;
+  let instruction: ICreateRouteConfigInstruction;
 
   beforeEach(() => {
     sut = new DefaultRouteConfigFactory();
