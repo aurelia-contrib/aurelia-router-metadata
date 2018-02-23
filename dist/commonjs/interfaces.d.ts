@@ -1,35 +1,44 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
-import { RouterMetadataSettings } from "./router-metadata-settings";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterResource } from "./router-resource";
 /**
- * Instruction that contains information needed to create a @routable
+ * Instruction that contains basic information common to all RouterResource types
  */
-export interface IRoutableInstruction {
-    target: IRoutableResourceTarget;
+export interface IRouterResourceInstruction {
+    /**
+     * The target class to be decorated
+     */
+    target: IRouterResourceTarget;
+    /**
+     *  (optional): settings to override the global settings for this particular resource
+     */
+    settings?: RouterMetadataSettings;
+}
+/**
+ * Instruction that contains information needed to create a @routeConfig
+ */
+export interface IRouteConfigInstruction extends IRouterResourceInstruction {
+    target: IRouterResourceTarget;
     routes?: RouteConfig | RouteConfig[];
-    baseRoute?: RouteConfig;
-    transformRouteConfigs?(configs: RouteConfig[], configInstruction: IRouteConfigInstruction): RouteConfig[];
 }
 /**
- * Instruction that contains information needed to create a @mapRoutables
+ * Instruction that contains information needed to create a @configureRouter
  */
-export interface IMapRoutablesInstruction {
-    target: IRoutableResourceTarget;
-    routableModuleIds: string | string[];
-    enableEagerLoading?: boolean;
-    filterChildRoutes?(config: RouteConfig, allConfigs: RouteConfig[], mapInstruction: IMapRoutablesInstruction): boolean;
+export interface IConfigureRouterInstruction extends IRouterResourceInstruction {
+    routeConfigModuleIds: string | string[];
 }
 /**
- * Instruction that contains information needed to create the RouteConfigs for a @routable
+ * Instruction that contains information needed to create the RouteConfigs for a @routeConfig
  */
-export interface IRouteConfigInstruction extends IRoutableInstruction {
-    moduleId: string;
+export interface ICreateRouteConfigInstruction extends IRouteConfigInstruction {
+    moduleId?: string;
     settings: RouterMetadataSettings;
 }
 /**
  * Interface that describes relevant potential static properties on a ViewModel
  */
-export interface IRoutableResourceTarget extends Function {
-    prototype: IRoutableResourceTargetProto;
+export interface IRouterResourceTarget extends Function {
+    prototype: IRouterResourceTargetProto;
     route?: string | string[];
     routeName?: string;
     moduleId?: string;
@@ -54,7 +63,7 @@ export interface IRoutableResourceTarget extends Function {
 /**
  * Interface that describes relevant potential properties on the prototype of a ViewModel
  */
-export interface IRoutableResourceTargetProto extends Object {
+export interface IRouterResourceTargetProto extends Object {
     configureRouter?(config: RouterConfiguration, router: Router): Promise<void> | PromiseLike<void> | void;
     [key: string]: any;
 }
@@ -63,6 +72,9 @@ export interface IRoutableResourceTargetProto extends Object {
  */
 export interface IModuleLoader {
     loadAllModules(moduleIds: string[]): Promise<any[]>;
+}
+export interface IResourceLoader {
+    loadRouterResource(moduleId: string, resourceTarget?: Function): Promise<RouterResource>;
 }
 /**
  * Interface that describes the properties that are set on RouteConfig.settings by
@@ -78,6 +90,6 @@ export interface IRouteConfigSettings {
  * Interface that extends the RouteConfig interface to provide type checking on the
  * settings property with information relevant to router-metadata
  */
-export interface IRouteConfig extends RouteConfig {
+export interface IRouteConfig extends Partial<RouteConfig> {
     settings: IRouteConfigSettings;
 }

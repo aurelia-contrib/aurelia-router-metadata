@@ -48,7 +48,7 @@ System.register([], function (exports_1, context_1) {
         setters: [],
         execute: function () {
             /**
-             * Class that creates RouteConfigs for the @routable() decorator
+             * Class that creates RouteConfigs for the @routeConfig() decorator
              */
             RouteConfigFactory = class RouteConfigFactory {
             };
@@ -64,12 +64,11 @@ System.register([], function (exports_1, context_1) {
                  * will be created
                  */
                 createRouteConfigs(instruction) {
-                    const { target, routes, baseRoute, moduleId, settings } = instruction;
+                    const { target, routes, moduleId, settings } = instruction;
                     const configs = [];
                     const settingsDefaults = Object.assign({}, (settings.routeConfigDefaults || {}));
                     const conventionDefaults = Object.assign({}, getNameConventionDefaults(target));
                     const prototypeDefaults = getPrototypeDefaults(target);
-                    const argumentDefaults = Object.assign({}, (baseRoute || {}));
                     const defaults = Object.assign({}, settingsDefaults, conventionDefaults, prototypeDefaults);
                     const prototypeRoutes = ensureArray(target.routes);
                     const argumentRoutes = ensureArray(routes);
@@ -79,7 +78,7 @@ System.register([], function (exports_1, context_1) {
                     }
                     const overrides = Object.assign({}, (settings.routeConfigOverrides || {}));
                     for (const baseConfig of baseConfigs) {
-                        const config = Object.assign({}, baseConfig, overrides);
+                        const config = Object.assign({}, defaults, baseConfig, overrides);
                         config.settings = config.settings || {};
                         config.moduleId = moduleId;
                         config.route = ensureArray(config.route);
@@ -112,4 +111,3 @@ System.register([], function (exports_1, context_1) {
         }
     };
 });
-//# sourceMappingURL=route-config-factory.js.map

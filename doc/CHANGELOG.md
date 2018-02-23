@@ -1,3 +1,33 @@
+<a name="0.5.0"></a>
+# [0.5.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.4.0...v0.5.0) (2018-02-23)
+
+
+### Bug Fixes
+
+* improve the resource loading to make the plugin work with all build systems ([cf5e9c0](https://github.com/fkleuver/aurelia-router-metadata/commit/cf5e9c0)), closes [#5](https://github.com/fkleuver/aurelia-router-metadata/issues/5) [#2](https://github.com/fkleuver/aurelia-router-metadata/issues/2)
+
+
+### Code Refactoring
+
+* Rename decorators to make the API more consistent with aurelia-router terminology ([ab54664](https://github.com/fkleuver/aurelia-router-metadata/commit/ab54664))
+
+
+### BREAKING CHANGES
+
+* The following items were renamed:
+- [class] RoutableResource -> RouterResource
+- [method] RoutableResource.ROUTABLE -> RouterResource.ROUTE_CONFIG
+- [method] RoutableResource.MAP_ROUTABLES -> RouterResource.CONFIGURE_ROUTER
+- [properties] *.routableModuleIds -> *.routeConfigModuleIds
+- [decorator] routable -> routeConfig
+- [decorator] mapRoutables -> configureRouter
+- [interface] IRoutableInstruction -> IRouteConfigInstruction
+- [interface] IMapRoutablesInstruction -> IConfigureRouterInstruction
+- [interface] IRouteConfigInstruction -> ICreateRouteConfigInstruction
+Functionality remains unchanged; find/replace should be enough to make it work again.
+
+
+
 <a name="0.4.0"></a>
 ## 0.4.0 (2018-02-21)
 

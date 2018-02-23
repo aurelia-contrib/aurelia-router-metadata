@@ -1,9 +1,8 @@
 import { Container } from "aurelia-dependency-injection";
-import { PLATFORM } from "aurelia-pal";
+import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
-import { RouterMetadataSettings } from "./router-metadata-settings";
 /**
- * Class used to configure behavior of [[RoutableResource]]
+ * Class used to configure behavior of [[RouterResource]]
  */
 export class RouterMetadataConfiguration {
     /**
@@ -34,7 +33,7 @@ export class RouterMetadataConfiguration {
      * Gets the RouteConfigFactory that is registered with DI, or defaults to
      * [[DefaultRouteConfigFactory]] if its not registered.
      * @param container Optionally pass in a container to use for resolving this dependency.
-     * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+     * Can be a ChildContainer to scope certain overrides for certain viewModels.
      */
     getConfigFactory(container) {
         const c = container || this.container;
@@ -47,22 +46,37 @@ export class RouterMetadataConfiguration {
      * Gets the RouterMetadataSettings that is registered with DI, or creates
      * a default one with noop functions if its not registered.
      * @param container Optionally pass in a container to use for resolving this dependency.
-     * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+     * Can be a ChildContainer to scope certain overrides for certain viewModels.
      */
     getSettings(container) {
         const c = container || this.container;
         return c.get(RouterMetadataSettings);
     }
     /**
-     * Gets the Loader instance that is registered with the PLATFORM.Loader key
-     * Mostly intended for unit testing where module loading needs to be mocked,
-     * but can be overriden if needed.
+     * Gets the ResourceLoader that is registered with DI
      * @param container Optionally pass in a container to use for resolving this dependency.
-     * Can be a ChildContainer in to scope certain overrides for certain viewModels.
+     * Can be a ChildContainer to scope certain overrides for certain viewModels.
      */
-    getModuleLoader(container) {
+    getResourceLoader(container) {
         const c = container || this.container;
-        return c.get(PLATFORM.Loader);
+        return c.get(ResourceLoader);
     }
 }
-//# sourceMappingURL=router-metadata-configuration.js.map
+const noTransform = (configs) => configs;
+const noFilter = () => true;
+const defaults = {
+    nav: true
+};
+const overrides = {};
+/**
+ * All available aurelia-router-metadata settings
+ */
+export class RouterMetadataSettings {
+    constructor() {
+        this.routeConfigDefaults = defaults;
+        this.routeConfigOverrides = overrides;
+        this.transformRouteConfigs = noTransform;
+        this.filterChildRoutes = noFilter;
+        this.enableEagerLoading = true;
+    }
+}
