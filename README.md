@@ -1,141 +1,139 @@
-# Motivation
+# aurelia-router-metadata
 
-## Convention over configuration
+Metadata extension for aurelia-router aimed at simplifying router configuration and providing "eager loading" capabilities.
 
-The aurelia router kind of lacks the "convention over configuration goodness" that the rest of Aurelia has. This plugin aims to fill that gap with decorators that statically analyze class prototypes to create sensible defaults (which, of course, can be overridden) and stores that information in metadata in much the same way DI and Templating do.
+The `@routeConfig({...})` and `@configureRouter([...])` decorators largely eliminate the need for `configureRouter()` and make configuration a bit more like the [Route()] attributes in ASP.NET.
 
+Here's a simple [nested navigation example](https://github.com/fkleuver/aurelia-router-metadata-sample) that shows the absolute minimum needed configuration
 
-## Eager loading
+## Installation
+Install the npm dependency via
 
-The routing configuration is now known during framework configuration (before aurelia starts). Thus, technically you can request it at any time you want. These are just the `RouteConfigs`. The only overhead is that the modules will be loaded by the platform loader (webpack doesn't load everything by default), but no lifecycles will be invoked.
-
-
-# How it works
-
-Just apply the `@routable()` decorator to a class. This tells plugin to generate a valid `RouteConfig` object containing all information needed to navigate to that page.
-
-Then on the parent page, apply `@mapRoutables([..])` with an array of the moduleIds of the pages you want map. The decorator will add a `configureRouter()` method to the class prototype if it's not there, or proxy the existing one if it is.
-
-When called, it will find the corresponding `RouteConfigs` and `config.map()` them for you. Though you might still keep a (small) `configureRouter()` for a few basic settings like the root's title, pushState, a default redirect, fallbacks, etc.
-
-Eager loading is opt-in which you can enable during framework configuration like so:
-
-```
-export function configure() {
-  RouterMetadataConfiguration.INSTANCE.getSettings().enableEagerLoading = true;
-}
+```bash
+npm i aurelia-router-metadata
 ```
 
-When enabled, the first `configureRouter()` call on the root page will recursively load moduleIds for child pages to invoke the decorators and get their `RouteConfigs`, which will then be assigned to the parent config.settings.childRoutes property.
+If you are using webpack, no additional steps are required. Simply import a decorator and it will work.
 
-# Usage:
+For aurelia-cli projects with RequireJS add this to your aurelia.json:
 
-There are many ways to provide configuration defaults, overrides and custom transform functions to control how `RouteConfig` objects are created for target classes, as well as how they are mapped and whether to eagerly load them or not.
-
-There will be more examples in the future.
-
-## The TypeScript definitions have fairly descriptive comments so make sure to check those out.
-
-## To configure a component so that it can be navigated to:
-
-Apply the `@routable()` decorator, or
-```
-@routable()
-export class FooBar {}
+```json
+"dependencies": [
+  {
+    "name": "aurelia-router-metadata",
+    "path": "../node_modules/aurelia-router-metadata/dist/amd",
+    "main": "aurelia-router-metadata"
+  }
+]
 ```
 
-Call `RoutableResource.ROUTABLE()` in a feature (as long as it's before aurelia.start()):
-```
-import { FooBar } from "pages/foo-bar";
+## Usage
 
-export function configure() {
-  RoutableResource.ROUTABLE({target: FooBar});
-}
-
-```
-
-When no arguments are passed in, no static properties are present on the target, and the `RouterMetadataSettings` object is also not customized,
-`@routable()` creates a default `RouteConfig` based on the target class like so:
-
-```
-{
-  route: "foo-bar",
-  name: "foo-bar",
-  title: "Foo Bar",
-  moduleId: PLATFORM.moduleName("pages/foo-bar"),
-  nav: true
-}
-```
+There are several ways to configure and customize, but at minimum you need to apply `@configureRouter()` on the viewmodel where you would normally add a `configureRouter()` method, and pass in the moduleNames:
 
 
-## To configure a component so that it maps routes for routable components:
+```ts
+import { configureRouter } from "aurelia-router-metadata";
+import { PLATFORM } from "aurelia-pal";
 
-Apply the `@mapRoutables()` decorator, or
-```
-@mapRoutables([PLATFORM.moduleName("pages/foo-bar")])
-export class App {}
-```
+// PLATFORM is crucial to make it work in webpack, but with SystemJS/RequireJS you can keep it shorter
+const moduleIds = [
+  PLATFORM.moduleName("pages/foo"),
+  PLATFORM.moduleName("pages/bar"),
+  PLATFORM.moduleName("pages/foo-bar")
+];
 
-Call `RoutableResource.MAP_ROUTABLES()` in a feature (as long as it's before aurelia.start()):
-```
-import { App } from "app";
-
-export function configure() {
-  RoutableResource.ROUTABLE({target: App, routableModuleIds: [PLATFORM.moduleName("pages/foo-bar")]});
-}
-
-```
-
-Effectively that will put the following function to App's prototype (it will proxy any existing one so nothing is lost):
-
-```
-configureRouter(config, router) {
-  config.map({
-    route: "foo-bar",
-    name: "foo-bar",
-    title: "Foo Bar",
-    moduleId: PLATFORM.moduleName("pages/foo-bar"),
-    nav: true
-  })
-}
-
-```
-
-
-## Manual loading
-
-You can also completely skip the decorators and have the configuration tucked away in a feature somewhere. That might look like this:
-
-```
-import { App } from "app";
-import { FooBar } from "pages/foo-bar";
-import { RoutableResource } from "aurelia-router-metadata";
-
-export function configure() {
-  RoutableResource.ROUTABLE({target: FooBar});
-  RoutableResource.MAP_ROUTABLES({target: App, routableModuleIds: [PLATFORM.moduleName("pages/foo-bar")]});
-
-  //
-}
-
-```
-
-And then manually kick off the route tree resolution a bit earlier:
-
-```
-import { routerMetadata } from "aurelia-router-metadata";
-
+@configureRouter(moduleIds)
 export class App {
-  constructor() {
-    const resource = routerMetadata.getOwn(App);
-    let childRoutes;
-    resource.loadChildRoutes().then(routes => {
-      childRoutes = routes;
-    });
+  configureRouter(config, router) {
+    // decorator support for this kind of thing will be added in the near future
+    config.title = "App";
+    config.map({route: "", redirect: "foo"});
+    this.router = router;
   }
 }
 
+...
+
+// Will be mapped in App as: { route: "foo", name: "foo", title: "Foo", nav: true }
+export class Foo {}
+
+...
+import { routeConfig } from "aurelia-router-metadata";
+
+// Will be mapped in App as: { route: "foo", name: "foo", title: "Foo", nav: false }
+@routeConfig({ nav: false })
+export class Bar {}
+
+...
+
+// Static properties with RouteConfig property names will also be checked
+// Will be mapped in App as: { route: "foo-bar", name: "foo-bar", title: "The Foo Bar", nav: true }
+export class FooBar {
+  static title = "The Foo Bar";
+}
 ```
+
+Both decorators can be applied on the same class, nested, etc
+
+## Configuration (optional)
+Configuration is entirely optional. The `RouterMetadataSettings` class exposes configuration that can be applied both on a global level and on a per-module level (to override the globals):
+
+
+```ts
+export declare class RouterMetadataSettings {
+  // @routeConfig() settings
+  // ------------------------
+
+  /* The initial settings to use for each route before class-based conventions are applied */
+  routeConfigDefaults: RouteConfig;
+
+  /* RouteConfig settings that will be applied last before transformation; these settings will override all other defaults and arguments */
+  routeConfigOverrides: RouteConfig;
+
+  /* Perform any final modifications on the routes just before they are stored in the metadata
+  * @param configs The route configs that were created by the @routeConfig() decorator
+  * @param createInstruction The create instruction that was passed to the RouteConfigFactory */
+  transformRouteConfigs: (configs: RouteConfig[], createInstruction: ICreateRouteConfigInstruction) => RouteConfig[];
+
+  // @configureRouter() settings
+  // ------------------------
+
+  /* Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes */
+  filterChildRoutes: (config: RouteConfig, allConfigs: RouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean;
+
+  /* Enable/disable eager loading by default */
+  enableEagerLoading: boolean;
+}
+```
+
+To access the global settings:
+
+```ts
+import { RouterMetadataConfiguration } from "aurelia-router-metadata";
+
+export function configure(config) {
+  // You don't have to do this during framework configuration, just keep in mind the order in which your components load so that you set these early enough.
+  const settings = RouterMetadataConfiguration.INSTANCE.getSettings();
+  settings.routeConfigDefaults = { ... } // Only title, name and route are set by convention defaults, you can specify defaults for any other RouteConfig property here
+  settings.transformRouteConfigs = (configs, instruction) => {
+    // You can identify which module these configs belong to from instruction.moduleId and instruction.target (which is the viewmodel constructor)
+    // If you wish to dynamically add/remove routes here based on runtime information (instead of inside configureRouter on the page), just turn off eager loading. Then it behaves like Aurelia does by default and they won't configure before they're actually being navigated to.
+  };
+  settings.enableEagerLoading = false; // enabled by default
+  settings.filterChildRoutes = (config, configs, instruction) => {
+    // The first config is the config to test against a predicate, the rest is just extra information you could use
+    return config.settings.icon === undefined; // This now won't be added to the parent config.settings.childRoutes
+  }
+}
+
+
+```
+
+There will be more examples in the future.
+
+The TypeScript definitions have fairly descriptive comments so make sure to check those out.
+
 
 ## Building a navigation menu
 
@@ -143,13 +141,13 @@ Conceptually:
 
 `nav-menu.html`
 
-```
+```html
 <template bindable="routes">
   <template repeat.for="route of routes">
-    <a if.bind="!routes.settings.childRoutes" href.bind="route.settings.path">${route.title}</a>
+    <a if.bind="!routes.settings.childRoutes" href.bind="route.settings.routerResource.path">${route.title}</a>
     <div if.bind="route.settings.childRoutes">
       <template repeat.for="child of route.settings.childRoutes">
-        <a href.bind="child.settings.path">${child.title}</a>
+        <a href.bind="child.settings.routerResource.path">${child.title}</a>
         <nav-menu routes.bind="child.settings.childRoutes"></nav-menu>
       </template>
     </div>
@@ -162,11 +160,6 @@ Conceptually:
 It's still in early development and needs more testing and feedback.
 
 Feel free to reach out with any questions/issues/suggestions :)
-
-## Eager loading navigation sample:
-
-https://github.com/fkleuver/aurelia-router-metadata-sample
-(might be slightly outdated!)
 
 
 ## Building The Code
