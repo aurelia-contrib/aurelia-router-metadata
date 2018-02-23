@@ -99,5 +99,16 @@
       "aurelia-pal": "^1.5.0",
       "aurelia-router": "^1.5.0"
     }
+  },
+  "aurelia": {
+    "import": {
+      "dependencies": [
+        {
+          "name": "aurelia-router-metadata",
+          "path": "../node_modules/aurelia-router-metadata/dist/amd",
+          "main": "aurelia-router-metadata"
+        }
+      ]
+    }
   }
 }
