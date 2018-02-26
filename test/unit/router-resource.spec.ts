@@ -84,7 +84,6 @@ describe("RouterResource", () => {
       expect(sut.childRoutes).toEqual([]);
       expect(sut.filterChildRoutes).toEqual(null);
       expect(sut.areChildRoutesLoaded).toEqual(false);
-      expect(sut.areChildRouteModulesLoaded).toEqual(false);
       expect(sut.isRouterConfigured).toEqual(false);
       expect(sut.router).toBeNull();
       expect(sut.instance).toBeNull();
@@ -105,7 +104,6 @@ describe("RouterResource", () => {
       expect(sut.childRoutes).toEqual([]);
       expect(sut.filterChildRoutes).toEqual(null);
       expect(sut.areChildRoutesLoaded).toEqual(false);
-      expect(sut.areChildRouteModulesLoaded).toEqual(false);
       expect(sut.isRouterConfigured).toEqual(false);
       expect(sut.router).toBeNull();
       expect(sut.instance).toBeNull();
@@ -149,7 +147,6 @@ describe("RouterResource", () => {
       expect(resource.childRoutes).toEqual([]);
       expect(resource.filterChildRoutes).toEqual(null);
       expect(resource.areChildRoutesLoaded).toEqual(false);
-      expect(resource.areChildRouteModulesLoaded).toEqual(false);
       expect(resource.isRouterConfigured).toEqual(false);
       expect(resource.router).toBeNull();
       expect(resource.instance).toBeNull();
@@ -208,7 +205,6 @@ describe("RouterResource", () => {
       expect(resource.childRoutes).toEqual([]);
       expect(resource.filterChildRoutes).toBe(instruction.settings.filterChildRoutes);
       expect(resource.areChildRoutesLoaded).toEqual(false);
-      expect(resource.areChildRouteModulesLoaded).toEqual(false);
       expect(resource.isRouterConfigured).toEqual(false);
       expect(resource.router).toBeNull();
       expect(resource.instance).toBeNull();

@@ -109,13 +109,6 @@ export class RouterResource {
   /**
    * Only applicable when `isConfigureRouter`
    *
-   * True if `loadChildRouteModules()` has run on this instance
-   */
-  public areChildRouteModulesLoaded: boolean;
-
-  /**
-   * Only applicable when `isConfigureRouter`
-   *
    * True if `configureRouter()` was invoked on the target class, and we are currently still loading the child routes
    */
   public isConfiguringRouter: boolean;
@@ -182,7 +175,6 @@ export class RouterResource {
     this.filterChildRoutes = null as any;
     this.areChildRoutesLoaded = false;
     this.areOwnRoutesLoaded = false;
-    this.areChildRouteModulesLoaded = false;
     this.isConfiguringRouter = false;
     this.isRouterConfigured = false;
     this.parent = null as any;
