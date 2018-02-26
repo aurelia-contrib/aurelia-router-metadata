@@ -13,9 +13,29 @@ Install the npm dependency via
 npm i aurelia-router-metadata
 ```
 
+or via the Aurelia CLI
+
+```bash
+au install aurelia-router-metadata
+```
+
 If you are using webpack, no additional steps are required. Simply import a decorator and it will work.
 
-For aurelia-cli projects with RequireJS add this to your aurelia.json:
+## Aurelia-CLI
+
+For Aurelia-CLI projects based on RequireJS or SystemJS, the following will install and declare the dependency in your aurelia.json:
+
+```bash
+au install aurelia-router-metadata
+```
+
+or if you have already installed and only need to add the dependency to aurelia.json:
+
+```bash
+au import aurelia-router-metadata
+```
+
+alternatively you can manually add the dependency to your vendor.bundles:
 
 ```json
 "dependencies": [
