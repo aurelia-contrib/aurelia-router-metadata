@@ -94,7 +94,14 @@ export interface IRouteConfigSettings {
   [key: string]: any;
   childRoutes: ICompleteRouteConfig[];
   parentRoute?: ICompleteRouteConfig;
+  /**
+   * A naively generated URL (does not account for params and the sorts) that includes the paths from all of its parentRoutes
+   */
   path: string;
+  /**
+   * The name of the RouteConfig property to use when generating a path
+   */
+  pathProperty?: string;
 }
 
 /**

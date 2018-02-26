@@ -343,6 +343,7 @@ export class RouterResource {
   public async configureRouter(config: RouterConfiguration, router: Router): Promise<void> {
     this.isConfiguringRouter = true;
     const routes = await this.loadChildRoutes();
+    assignPaths(routes);
     config.map(routes);
 
     this.router = router;
@@ -383,6 +384,17 @@ function ensureArray<T>(value: T | undefined | T[]): T[] {
   }
 
   return Array.isArray(value) ? value : [value];
+}
+
+function assignPaths(routes: ICompleteRouteConfig[]): void {
+  for (const route of routes) {
+    const parentPath = route.settings.parentRoute ? route.settings.parentRoute.settings.path : "";
+    const pathProperty = route.settings.pathProperty || "route";
+    const path = route[pathProperty];
+    route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/");
+
+    assignPaths(route.settings.childRoutes || []);
+  }
 }
 
 function assignOrProxyPrototypeProperty(
