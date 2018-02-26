@@ -364,7 +364,7 @@ describe("RouterResource", () => {
       expect(mr11).toBe(rt11);
       expect(mr12).toBe(rt12);
 
-      expect(mr0.path).toBeNull();
+      expect(mr0.path).toEqual("");
       expect(mr0.parent).toBeNull();
       expect(mr0.ownRoutes.length).toEqual(0);
       expect(mr0.childRoutes.length).toEqual(2);

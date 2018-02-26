@@ -1,7 +1,8 @@
 import { Container } from "aurelia-dependency-injection";
 import { getLogger, Logger } from "aurelia-logging";
-import { RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+import { Router, RouterConfiguration } from "aurelia-router";
 import {
+  ICompleteRouteConfig,
   IConfigureRouterInstruction,
   ICreateRouteConfigInstruction,
   IResourceLoader,
@@ -63,14 +64,14 @@ export class RouterResource {
    *
    * The `RouteConfig` objects with which the target's class is mapped in parent `@configureRouter`
    */
-  public ownRoutes: RouteConfig[];
+  public ownRoutes: ICompleteRouteConfig[];
 
   /**
    * Only applicable when `isConfigureRouter`
    *
    * The `RouteConfig` objects that will be mapped on the target class' router
    */
-  public childRoutes: RouteConfig[];
+  public childRoutes: ICompleteRouteConfig[];
 
   /**
    * Only applicable when `isConfigureRouter`
@@ -78,8 +79,8 @@ export class RouterResource {
    * Filter function to determine which `RouteConfig` objects to exclude from mapping on the target class' router
    */
   public filterChildRoutes: (
-    config: RouteConfig,
-    allConfigs: RouteConfig[],
+    config: ICompleteRouteConfig,
+    allConfigs: ICompleteRouteConfig[],
     configureInstruction: IConfigureRouterInstruction
   ) => boolean;
 
@@ -162,8 +163,8 @@ export class RouterResource {
    * together with the parents up to the root
    */
   public get path(): string {
-    const ownName = (this.ownRoutes.length > 0 ? this.ownRoutes[0].name : null) as string;
-    const parentPath = (this.parent ? this.parent.path : null) as string;
+    const ownName = this.ownRoutes.length > 0 ? this.ownRoutes[0].name : "";
+    const parentPath = this.parent ? this.parent.path : null;
 
     return parentPath ? `${parentPath}/${ownName}` : ownName;
   }
@@ -253,7 +254,7 @@ export class RouterResource {
     }
   }
 
-  public loadOwnRoutes(router?: Router): RouteConfig[] {
+  public loadOwnRoutes(router?: Router): ICompleteRouteConfig[] {
     this.router = router || (null as any);
     if (this.areOwnRoutesLoaded) {
       return this.ownRoutes;
@@ -291,7 +292,7 @@ export class RouterResource {
    *
    * @param router (Optional) The router that was passed to the target instance's `configureRouter()`
    */
-  public async loadChildRoutes(router?: Router): Promise<RouteConfig[]> {
+  public async loadChildRoutes(router?: Router): Promise<ICompleteRouteConfig[]> {
     this.router = router || (null as any);
     if (this.areChildRoutesLoaded) {
       return this.childRoutes;

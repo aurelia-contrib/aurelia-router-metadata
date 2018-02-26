@@ -1,5 +1,5 @@
 import { RouteConfig } from "aurelia-router";
-import { ICreateRouteConfigInstruction } from "../../src/interfaces";
+import { ICompleteRouteConfig, ICreateRouteConfigInstruction } from "../../src/interfaces";
 import { DefaultRouteConfigFactory } from "../../src/route-config-factory";
 import { RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import {
@@ -120,7 +120,7 @@ describe("DefaultRouteConfigFactory", () => {
     it("should apply transformRouteConfigs() last", () => {
       instruction.target = HasStaticBaseRoute;
       instruction.moduleId = "pages/has-static-base-route";
-      instruction.settings.transformRouteConfigs = (): RouteConfig[] => [randomRouteConfig2];
+      instruction.settings.transformRouteConfigs = (): ICompleteRouteConfig[] => [randomRouteConfig2 as any];
 
       const expected = randomRouteConfig2;
       const actual = sut.createRouteConfigs(instruction)[0];

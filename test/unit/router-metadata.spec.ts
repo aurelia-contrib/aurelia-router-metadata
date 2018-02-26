@@ -91,7 +91,6 @@ describe("routerMetadata", () => {
         spyOn(routerMetadata, "getOwn").and.callFake(() => undefined);
       });
 
-
       describe("when given an existing target (function)", () => {
         it("returns a newly created RouterResource with the correct target", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyClass);

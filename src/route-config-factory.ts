@@ -1,12 +1,11 @@
-import { RouteConfig } from "aurelia-router";
-import { ICreateRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
+import { ICompleteRouteConfig, ICreateRouteConfigInstruction, IRouteConfig, IRouterResourceTarget } from "./interfaces";
 
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */
 export abstract class RouteConfigFactory {
   // tslint:disable-next-line:variable-name
-  public abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): RouteConfig[];
+  public abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[];
 }
 
 /**
@@ -19,9 +18,9 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * @param instruction Instruction containing all information based on which the `RouteConfig` objects
    * will be created
    */
-  public createRouteConfigs(instruction: ICreateRouteConfigInstruction): RouteConfig[] {
+  public createRouteConfigs(instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[] {
     const { target, routes, moduleId, settings } = instruction;
-    const configs: RouteConfig[] = [];
+    const configs: ICompleteRouteConfig[] = [];
 
     const settingsDefaults = { ...(settings.routeConfigDefaults || {}) };
     const conventionDefaults = { ...getNameConventionDefaults(target) };
@@ -58,7 +57,7 @@ function ensureArray<T>(value: T | undefined | T[]): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-function getNameConventionDefaults(target: IRouterResourceTarget): RouteConfig {
+function getNameConventionDefaults(target: IRouterResourceTarget): IRouteConfig {
   const hyphenated = hyphenate(target.name);
 
   return {
@@ -68,7 +67,7 @@ function getNameConventionDefaults(target: IRouterResourceTarget): RouteConfig {
   };
 }
 
-function getPrototypeDefaults(target: IRouterResourceTarget): RouteConfig {
+function getPrototypeDefaults(target: IRouterResourceTarget): IRouteConfig {
   // start with the first up in the prototype chain and override any properties we come across down the chain
   if (target === Function.prototype) {
     return {} as any;

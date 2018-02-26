@@ -1,6 +1,5 @@
-import { RouteConfig } from "aurelia-router";
 import { RouterMetadataSettings } from "./aurelia-router-metadata";
-import { IConfigureRouterInstruction, IRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
+import { IConfigureRouterInstruction, IRouteConfig, IRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
 import { RouterResource } from "./router-resource";
 
 /**
@@ -10,7 +9,7 @@ import { RouterResource } from "./router-resource";
  * @param overrideSettings A settings object to override the global RouterMetadataSettings for this resource
  */
 export function routeConfig(
-  routesOrInstruction?: (RouteConfig | RouteConfig[]) | IRouteConfigInstruction,
+  routesOrInstruction?: (IRouteConfig | IRouteConfig[]) | IRouteConfigInstruction,
   overrideSettings?: RouterMetadataSettings
 ): ClassDecorator {
   return (target: IRouterResourceTarget): void => {
@@ -23,7 +22,7 @@ export function routeConfig(
     } else {
       instruction = {
         target,
-        routes: routesOrInstruction as RouteConfig | RouteConfig[],
+        routes: routesOrInstruction as IRouteConfig | IRouteConfig[],
         settings: overrideSettings
       };
     }

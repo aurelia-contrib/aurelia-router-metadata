@@ -1,6 +1,11 @@
 import { Container } from "aurelia-dependency-injection";
-import { RouteConfig } from "aurelia-router";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader } from "./interfaces";
+import {
+  ICompleteRouteConfig,
+  IConfigureRouterInstruction,
+  ICreateRouteConfigInstruction,
+  IResourceLoader,
+  IRouteConfig
+} from "./interfaces";
 import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 
@@ -78,7 +83,7 @@ export class RouterMetadataConfiguration {
   }
 }
 
-const noTransform = (configs: RouteConfig[]): RouteConfig[] => configs;
+const noTransform = (configs: ICompleteRouteConfig[]): ICompleteRouteConfig[] => configs;
 const noFilter = (): boolean => true;
 const defaults = {
   nav: true
@@ -94,12 +99,12 @@ export class RouterMetadataSettings {
   /**
    * The initial settings to use for each route before class-based conventions are applied
    */
-  public routeConfigDefaults: RouteConfig;
+  public routeConfigDefaults: IRouteConfig;
 
   /**
    * RouteConfig settings that will be applied last before transformation; these settings will override all other defaults and arguments
    */
-  public routeConfigOverrides: RouteConfig;
+  public routeConfigOverrides: IRouteConfig;
 
   /**
    * Perform any final modifications on the routes just before they are stored in the metadata
@@ -107,16 +112,16 @@ export class RouterMetadataSettings {
    * @param createInstruction The create instruction that was passed to the RouteConfigFactory
    */
   public transformRouteConfigs: (
-    configs: RouteConfig[],
+    configs: ICompleteRouteConfig[],
     createInstruction: ICreateRouteConfigInstruction
-  ) => RouteConfig[];
+  ) => ICompleteRouteConfig[];
 
   /**
    * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes
    */
   public filterChildRoutes: (
-    config: RouteConfig,
-    allConfigs: RouteConfig[],
+    config: ICompleteRouteConfig,
+    allConfigs: ICompleteRouteConfig[],
     configureInstruction: IConfigureRouterInstruction
   ) => boolean;
 
@@ -126,8 +131,8 @@ export class RouterMetadataSettings {
   public enableEagerLoading: boolean;
 
   constructor() {
-    this.routeConfigDefaults = defaults as any;
-    this.routeConfigOverrides = overrides as any;
+    this.routeConfigDefaults = defaults;
+    this.routeConfigOverrides = overrides;
     this.transformRouteConfigs = noTransform;
     this.filterChildRoutes = noFilter;
     this.enableEagerLoading = true;

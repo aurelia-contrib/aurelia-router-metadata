@@ -22,7 +22,7 @@ export interface IRouterResourceInstruction {
  */
 export interface IRouteConfigInstruction extends IRouterResourceInstruction {
   target: IRouterResourceTarget;
-  routes?: RouteConfig | RouteConfig[];
+  routes?: IRouteConfig | IRouteConfig[];
 }
 
 /**
@@ -61,8 +61,8 @@ export interface IRouterResourceTarget extends Function {
   layoutView?: string;
   layoutViewModel?: string;
   layoutModel?: any;
-  routes?: RouteConfig[];
-  baseRoute?: RouteConfig;
+  routes?: IRouteConfig[];
+  baseRoute?: IRouteConfig;
   navigationStrategy?(instruction: NavigationInstruction): Promise<void> | void;
   [key: string]: any;
 }
@@ -92,8 +92,8 @@ export interface IResourceLoader {
  */
 export interface IRouteConfigSettings {
   [key: string]: any;
-  childRoutes: IRouteConfig[];
-  parentRoute?: IRouteConfig;
+  childRoutes: ICompleteRouteConfig[];
+  parentRoute?: ICompleteRouteConfig;
   path: string;
 }
 
@@ -102,5 +102,17 @@ export interface IRouteConfigSettings {
  * settings property with information relevant to router-metadata
  */
 export interface IRouteConfig extends Partial<RouteConfig> {
+  settings?: IRouteConfigSettings;
+}
+
+/**
+ * Output version of the IRouteConfig interface that is guaranteed to have certain properties assigned
+ * which may help reduce friction in some type checking situations
+ */
+export interface ICompleteRouteConfig extends IRouteConfig {
+  route: string;
+  name: string;
+  moduleId: string;
+  nav: boolean | number;
   settings: IRouteConfigSettings;
 }
