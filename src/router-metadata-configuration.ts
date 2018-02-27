@@ -1,10 +1,12 @@
 import { Container } from "aurelia-dependency-injection";
+import { RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
   ICreateRouteConfigInstruction,
   IResourceLoader,
-  IRouteConfig
+  IRouteConfig,
+  IRouterConfiguration
 } from "./interfaces";
 import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
@@ -130,11 +132,18 @@ export class RouterMetadataSettings {
    */
   public enableEagerLoading: boolean;
 
+  /**
+   * Specify RouterConfiguration properties that need to be set on the AppRouter
+   */
+  public routerConfiguration: IRouterConfiguration;
+
   constructor() {
     this.routeConfigDefaults = defaults;
     this.routeConfigOverrides = overrides;
     this.transformRouteConfigs = noTransform;
     this.filterChildRoutes = noFilter;
     this.enableEagerLoading = true;
+
+    this.routerConfiguration = new RouterConfiguration() as any;
   }
 }

@@ -1,12 +1,13 @@
 import { Container } from "aurelia-dependency-injection";
 import { getLogger, Logger } from "aurelia-logging";
-import { Router, RouterConfiguration } from "aurelia-router";
+import { AppRouter, Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
   ICreateRouteConfigInstruction,
   IResourceLoader,
   IRouteConfigInstruction,
+  IRouterConfiguration,
   IRouterResourceTarget,
   IRouterResourceTargetProto
 } from "./interfaces";
@@ -339,6 +340,11 @@ export class RouterResource {
     config.map(routes);
 
     this.router = router;
+    if (router instanceof AppRouter) {
+      const settingsConfig = this.getSettings().routerConfiguration || {} as any;
+      mergeRouterConfiguration(config, settingsConfig);
+    }
+
     this.isRouterConfigured = true;
     this.isConfiguringRouter = false;
 
@@ -413,3 +419,14 @@ async function configureRouter(config: RouterConfiguration, router: Router): Pro
   await resource.configureRouter(config, router);
 }
 // tslint:enable:no-invalid-this
+
+function mergeRouterConfiguration(target: RouterConfiguration, source: IRouterConfiguration): RouterConfiguration {
+  target.instructions = (target.instructions || []).concat(source.instructions || []);
+  target.options = { ...(target.options || {}), ...(source.options || {}) };
+  target.pipelineSteps = (target.pipelineSteps || []).concat(source.pipelineSteps as any || []);
+  target.title = source.title as string;
+  target.unknownRouteConfig = source.unknownRouteConfig;
+  target.viewPortDefaults = { ...(target.viewPortDefaults || {}), ...(source.viewPortDefaults || {}) };
+
+  return target;
+}

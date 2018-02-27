@@ -1,4 +1,11 @@
-import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+import {
+  NavigationInstruction,
+  NavModel,
+  PipelineStep,
+  RouteConfig,
+  Router,
+  RouterConfiguration
+} from "aurelia-router";
 import { RouterMetadataSettings } from "./router-metadata-configuration";
 import { RouterResource } from "./router-resource";
 
@@ -122,4 +129,29 @@ export interface ICompleteRouteConfig extends IRouteConfig {
   moduleId: string;
   nav: boolean | number;
   settings: IRouteConfigSettings;
+}
+
+export type UnknownRouteConfig =
+  | string
+  | RouteConfig
+  | ((instruction: NavigationInstruction) => string | RouteConfig | Promise<string | RouteConfig>);
+
+/**
+ * Interface of aurelia-router's RouterConfiguration class
+ */
+export interface IRouterConfiguration {
+  instructions: ((router: Router) => void)[];
+  options: {
+    compareQueryParams?: boolean;
+    root?: string;
+    pushState?: boolean;
+    hashChange?: boolean;
+    silent?: boolean;
+  };
+  pipelineSteps: ({ name: string; step: Function | PipelineStep })[];
+  title?: string;
+  unknownRouteConfig?: UnknownRouteConfig;
+  viewPortDefaults?: {
+    [name: string]: { moduleId: string; [key: string]: any };
+  };
 }
