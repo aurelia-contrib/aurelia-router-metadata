@@ -113,6 +113,10 @@ export function configure(au: Aurelia) {
   // other stuff
 
   au.use.plugin("aurelia-router-metadata", (settings: RouterMetadataSettings) => {
+    // settings.routerConfiguration is the same "config" object you normally get in configureRouter
+    // they will be merged during configureRouter
+    settings.routerConfiguration.title = "Foo";
+
     // only title, name and route are set by convention logic and will override what you set here
     settings.routeConfigDefaults = { ... }
 
