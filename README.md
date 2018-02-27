@@ -96,64 +96,53 @@ export class FooBar {
 
 Both decorators can be applied on the same class, nested, etc
 
-## Configuration (optional)
-Configuration is entirely optional. The `RouterMetadataSettings` class exposes configuration that can be applied both on a global level and on a per-module level (to override the globals):
+## Configuration
+Registering and configuring the plugin is entirely optional, and the defaults should be fine in many cases.
 
+However you can configure the settings like so:
 
-```ts
-export declare class RouterMetadataSettings {
-  // @routeConfig() settings
-  // ------------------------
+(the interface imports are just for better intellisense / documentation)
 
-  /* The initial settings to use for each route before class-based conventions are applied */
-  routeConfigDefaults: RouteConfig;
+```typescript
+import { Aurelia } from "aurelia-framework";
+import { RouterMetadataSettings, ICreateRouteConfigInstruction, ICompleteRouteConfig, routerMetadata } from "aurelia-router-metadata";
 
-  /* RouteConfig settings that will be applied last before transformation; these settings will override all other defaults and arguments */
-  routeConfigOverrides: RouteConfig;
+export function configure(au: Aurelia) {
+  au.use.standardConfiguration();
 
-  /* Perform any final modifications on the routes just before they are stored in the metadata
-  * @param configs The route configs that were created by the @routeConfig() decorator
-  * @param createInstruction The create instruction that was passed to the RouteConfigFactory */
-  transformRouteConfigs: (configs: RouteConfig[], createInstruction: ICreateRouteConfigInstruction) => RouteConfig[];
+  // other stuff
 
-  // @configureRouter() settings
-  // ------------------------
+  au.use.plugin("aurelia-router-metadata", (settings: RouterMetadataSettings) => {
+    // only title, name and route are set by convention logic and will override what you set here
+    settings.routeConfigDefaults = { ... }
 
-  /* Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes */
-  filterChildRoutes: (config: RouteConfig, allConfigs: RouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean;
+    // these will override all other defaults and convention logic
+    settings.routeConfigOverrides = { ... }
 
-  /* Enable/disable eager loading by default */
-  enableEagerLoading: boolean;
+    // this is invoked after the overrides are applied and is the last step before the routes are stored in metadata
+    settings.transformRouteConfigs = (configs: ICompleteRouteConfig[], instruction: ICreateRouteConfigInstruction) => {
+      // get more information from the resource
+      const resource = routerMetadata.getOwn(instruction.target);
+      // add/remove/modify stuff
+      return configs;
+    };
+
+    // causes a RouterResource to also call .loadChildRoutes() recursively on its children when its called by the first configureRouter
+    settings.enableEagerLoading = true; // enabled by default
+
+    // determine which routes are added to config.settings.childRoutes during .loadChildRoutes()
+    settings.filterChildRoutes = (configToTest: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], instruction: IConfigureRouterInstruction) => {
+      // get more information from the (parent) resource
+      const resource = routerMetadata.getOwn(instruction.target);
+      return true;
+    }
+  });
+
+  // other stuff
+
+  au.start().then(() => au.setRoot());
 }
 ```
-
-To access the global settings:
-
-```ts
-import { RouterMetadataConfiguration } from "aurelia-router-metadata";
-
-export function configure(config) {
-  // You don't have to do this during framework configuration, just keep in mind the order in which your components load so that you set these early enough.
-  const settings = RouterMetadataConfiguration.INSTANCE.getSettings();
-  settings.routeConfigDefaults = { ... } // Only title, name and route are set by convention defaults, you can specify defaults for any other RouteConfig property here
-  settings.transformRouteConfigs = (configs, instruction) => {
-    // You can identify which module these configs belong to from instruction.moduleId and instruction.target (which is the viewmodel constructor)
-    // If you wish to dynamically add/remove routes here based on runtime information (instead of inside configureRouter on the page), just turn off eager loading. Then it behaves like Aurelia does by default and they won't configure before they're actually being navigated to.
-  };
-  settings.enableEagerLoading = false; // enabled by default
-  settings.filterChildRoutes = (config, configs, instruction) => {
-    // The first config is the config to test against a predicate, the rest is just extra information you could use
-    return config.settings.icon === undefined; // This now won't be added to the parent config.settings.childRoutes
-  }
-}
-
-
-```
-
-There will be more examples in the future.
-
-The TypeScript definitions have fairly descriptive comments so make sure to check those out.
-
 
 ## Building a navigation menu
 
@@ -163,17 +152,18 @@ Conceptually:
 
 ```html
 <template bindable="routes">
-  <template repeat.for="route of routes">
-    <a if.bind="!routes.settings.childRoutes" href.bind="route.settings.routerResource.path">${route.title}</a>
-    <div if.bind="route.settings.childRoutes">
-      <template repeat.for="child of route.settings.childRoutes">
-        <a href.bind="child.settings.routerResource.path">${child.title}</a>
+  <ul>
+    <li repeat.for="route of routes">
+      <a href.bind="route.settings.path">${route.title}</a>
+      <template if.bind="route.settings.childRoutes">
         <nav-menu routes.bind="child.settings.childRoutes"></nav-menu>
       </template>
-    </div>
-  </template>
+    </li>
+  </ul>
 </template>
 ```
+
+For a working example see the [live demo](https://fkleuver.github.io/aurelia-router-metadata-sample/) ([source](https://github.com/fkleuver/aurelia-router-metadata-sample))
 
 ## Feedback
 
