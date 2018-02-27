@@ -1,4 +1,4 @@
-System.register(["aurelia-logging", "./router-metadata", "./router-metadata-configuration"], function (exports_1, context_1) {
+System.register(["aurelia-logging", "aurelia-router", "./router-metadata", "./router-metadata-configuration"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -17,6 +17,15 @@ System.register(["aurelia-logging", "./router-metadata", "./router-metadata-conf
             return [];
         }
         return Array.isArray(value) ? value : [value];
+    }
+    function assignPaths(routes) {
+        for (const route of routes) {
+            const parentPath = route.settings.parentRoute ? route.settings.parentRoute.settings.path : "";
+            const pathProperty = route.settings.pathProperty || "route";
+            const path = route[pathProperty];
+            route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/");
+            assignPaths(route.settings.childRoutes || []);
+        }
     }
     function assignOrProxyPrototypeProperty(proto, name, refSymbol, value) {
         if (name in proto) {
@@ -37,11 +46,24 @@ System.register(["aurelia-logging", "./router-metadata", "./router-metadata-conf
             yield resource.configureRouter(config, router);
         });
     }
-    var aurelia_logging_1, router_metadata_1, router_metadata_configuration_1, configureRouterSymbol, logger, RouterResource;
+    // tslint:enable:no-invalid-this
+    function mergeRouterConfiguration(target, source) {
+        target.instructions = (target.instructions || []).concat(source.instructions || []);
+        target.options = Object.assign({}, (target.options || {}), (source.options || {}));
+        target.pipelineSteps = (target.pipelineSteps || []).concat(source.pipelineSteps || []);
+        target.title = source.title;
+        target.unknownRouteConfig = source.unknownRouteConfig;
+        target.viewPortDefaults = Object.assign({}, (target.viewPortDefaults || {}), (source.viewPortDefaults || {}));
+        return target;
+    }
+    var aurelia_logging_1, aurelia_router_1, router_metadata_1, router_metadata_configuration_1, configureRouterSymbol, logger, RouterResource;
     return {
         setters: [
             function (aurelia_logging_1_1) {
                 aurelia_logging_1 = aurelia_logging_1_1;
+            },
+            function (aurelia_router_1_1) {
+                aurelia_router_1 = aurelia_router_1_1;
             },
             function (router_metadata_1_1) {
                 router_metadata_1 = router_metadata_1_1;
@@ -80,8 +102,8 @@ System.register(["aurelia-logging", "./router-metadata", "./router-metadata-conf
                  * together with the parents up to the root
                  */
                 get path() {
-                    const ownName = (this.ownRoutes.length > 0 ? this.ownRoutes[0].name : null);
-                    const parentPath = (this.parent ? this.parent.path : null);
+                    const ownName = this.ownRoutes.length > 0 ? this.ownRoutes[0].name : "";
+                    const parentPath = this.parent ? this.parent.path : null;
                     return parentPath ? `${parentPath}/${ownName}` : ownName;
                 }
                 constructor(target, moduleId) {
@@ -97,7 +119,6 @@ System.register(["aurelia-logging", "./router-metadata", "./router-metadata-conf
                     this.filterChildRoutes = null;
                     this.areChildRoutesLoaded = false;
                     this.areOwnRoutesLoaded = false;
-                    this.areChildRouteModulesLoaded = false;
                     this.isConfiguringRouter = false;
                     this.isRouterConfigured = false;
                     this.parent = null;
@@ -238,8 +259,13 @@ System.register(["aurelia-logging", "./router-metadata", "./router-metadata-conf
                     return __awaiter(this, void 0, void 0, function* () {
                         this.isConfiguringRouter = true;
                         const routes = yield this.loadChildRoutes();
+                        assignPaths(routes);
                         config.map(routes);
                         this.router = router;
+                        if (router instanceof aurelia_router_1.AppRouter) {
+                            const settingsConfig = this.getSettings().routerConfiguration || {};
+                            mergeRouterConfiguration(config, settingsConfig);
+                        }
                         this.isRouterConfigured = true;
                         this.isConfiguringRouter = false;
                         const originalConfigureRouter = this.target.prototype[configureRouterSymbol];

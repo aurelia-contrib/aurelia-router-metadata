@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { getLogger } from "aurelia-logging";
+import { AppRouter } from "aurelia-router";
 import { routerMetadata } from "./router-metadata";
 import { RouterMetadataConfiguration } from "./router-metadata-configuration";
 const configureRouterSymbol = Symbol("configureRouter");
@@ -38,8 +39,8 @@ export class RouterResource {
      * together with the parents up to the root
      */
     get path() {
-        const ownName = (this.ownRoutes.length > 0 ? this.ownRoutes[0].name : null);
-        const parentPath = (this.parent ? this.parent.path : null);
+        const ownName = this.ownRoutes.length > 0 ? this.ownRoutes[0].name : "";
+        const parentPath = this.parent ? this.parent.path : null;
         return parentPath ? `${parentPath}/${ownName}` : ownName;
     }
     constructor(target, moduleId) {
@@ -55,7 +56,6 @@ export class RouterResource {
         this.filterChildRoutes = null;
         this.areChildRoutesLoaded = false;
         this.areOwnRoutesLoaded = false;
-        this.areChildRouteModulesLoaded = false;
         this.isConfiguringRouter = false;
         this.isRouterConfigured = false;
         this.parent = null;
@@ -196,8 +196,13 @@ export class RouterResource {
         return __awaiter(this, void 0, void 0, function* () {
             this.isConfiguringRouter = true;
             const routes = yield this.loadChildRoutes();
+            assignPaths(routes);
             config.map(routes);
             this.router = router;
+            if (router instanceof AppRouter) {
+                const settingsConfig = this.getSettings().routerConfiguration || {};
+                mergeRouterConfiguration(config, settingsConfig);
+            }
             this.isRouterConfigured = true;
             this.isConfiguringRouter = false;
             const originalConfigureRouter = this.target.prototype[configureRouterSymbol];
@@ -229,6 +234,15 @@ function ensureArray(value) {
     }
     return Array.isArray(value) ? value : [value];
 }
+function assignPaths(routes) {
+    for (const route of routes) {
+        const parentPath = route.settings.parentRoute ? route.settings.parentRoute.settings.path : "";
+        const pathProperty = route.settings.pathProperty || "route";
+        const path = route[pathProperty];
+        route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/");
+        assignPaths(route.settings.childRoutes || []);
+    }
+}
 function assignOrProxyPrototypeProperty(proto, name, refSymbol, value) {
     if (name in proto) {
         let protoOrBase = proto;
@@ -249,3 +263,12 @@ function configureRouter(config, router) {
     });
 }
 // tslint:enable:no-invalid-this
+function mergeRouterConfiguration(target, source) {
+    target.instructions = (target.instructions || []).concat(source.instructions || []);
+    target.options = Object.assign({}, (target.options || {}), (source.options || {}));
+    target.pipelineSteps = (target.pipelineSteps || []).concat(source.pipelineSteps || []);
+    target.title = source.title;
+    target.unknownRouteConfig = source.unknownRouteConfig;
+    target.viewPortDefaults = Object.assign({}, (target.viewPortDefaults || {}), (source.viewPortDefaults || {}));
+    return target;
+}

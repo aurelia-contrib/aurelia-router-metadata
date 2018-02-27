@@ -1,3 +1,15 @@
+<a name="0.6.0"></a>
+# [0.6.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.5.1...v0.6.0) (2018-02-27)
+
+
+### Features
+
+* **configuration:** expose RouterConfiguration object via RouterMetadataSettings ([9be60a0](https://github.com/fkleuver/aurelia-router-metadata/commit/9be60a0)), closes [#1](https://github.com/fkleuver/aurelia-router-metadata/issues/1)
+* **configure:** add au.use.plugin() support to configure the settings ([4095857](https://github.com/fkleuver/aurelia-router-metadata/commit/4095857))
+* **router-resource:** perform naive parent/child path generation during configureRouter ([3a96435](https://github.com/fkleuver/aurelia-router-metadata/commit/3a96435))
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.4.0...v0.5.0) (2018-02-23)
 

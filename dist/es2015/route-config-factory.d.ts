@@ -1,10 +1,9 @@
-import { RouteConfig } from "aurelia-router";
-import { ICreateRouteConfigInstruction } from "./interfaces";
+import { ICompleteRouteConfig, ICreateRouteConfigInstruction } from "./interfaces";
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */
 export declare abstract class RouteConfigFactory {
-    abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): RouteConfig[];
+    abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[];
 }
 /**
  * The default RouteConfig factory
@@ -16,5 +15,5 @@ export declare class DefaultRouteConfigFactory extends RouteConfigFactory {
      * @param instruction Instruction containing all information based on which the `RouteConfig` objects
      * will be created
      */
-    createRouteConfigs(instruction: ICreateRouteConfigInstruction): RouteConfig[];
+    createRouteConfigs(instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[];
 }

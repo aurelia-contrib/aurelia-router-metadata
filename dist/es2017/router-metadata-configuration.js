@@ -1,4 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
+import { RouterConfiguration } from "aurelia-router";
 import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 /**
@@ -78,5 +79,6 @@ export class RouterMetadataSettings {
         this.transformRouteConfigs = noTransform;
         this.filterChildRoutes = noFilter;
         this.enableEagerLoading = true;
+        this.routerConfiguration = new RouterConfiguration();
     }
 }

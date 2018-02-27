@@ -1,11 +1,14 @@
-System.register(["aurelia-dependency-injection", "./resource-loader", "./route-config-factory"], function (exports_1, context_1) {
+System.register(["aurelia-dependency-injection", "aurelia-router", "./resource-loader", "./route-config-factory"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var aurelia_dependency_injection_1, resource_loader_1, route_config_factory_1, RouterMetadataConfiguration, noTransform, noFilter, defaults, overrides, RouterMetadataSettings;
+    var aurelia_dependency_injection_1, aurelia_router_1, resource_loader_1, route_config_factory_1, RouterMetadataConfiguration, noTransform, noFilter, defaults, overrides, RouterMetadataSettings;
     return {
         setters: [
             function (aurelia_dependency_injection_1_1) {
                 aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            },
+            function (aurelia_router_1_1) {
+                aurelia_router_1 = aurelia_router_1_1;
             },
             function (resource_loader_1_1) {
                 resource_loader_1 = resource_loader_1_1;
@@ -93,6 +96,7 @@ System.register(["aurelia-dependency-injection", "./resource-loader", "./route-c
                     this.transformRouteConfigs = noTransform;
                     this.filterChildRoutes = noFilter;
                     this.enableEagerLoading = true;
+                    this.routerConfiguration = new aurelia_router_1.RouterConfiguration();
                 }
             };
             exports_1("RouterMetadataSettings", RouterMetadataSettings);

@@ -1,3 +1,5 @@
+import { RouterMetadataSettings } from "./aurelia-router-metadata";
+export declare function configure(fxconfig: any, configureSettings: (settings: RouterMetadataSettings) => void): void;
 export * from "./interfaces";
 export * from "./decorators";
 export * from "./resource-loader";

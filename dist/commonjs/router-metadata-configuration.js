@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const aurelia_dependency_injection_1 = require("aurelia-dependency-injection");
+const aurelia_router_1 = require("aurelia-router");
 const resource_loader_1 = require("./resource-loader");
 const route_config_factory_1 = require("./route-config-factory");
 /**
@@ -81,6 +82,7 @@ class RouterMetadataSettings {
         this.transformRouteConfigs = noTransform;
         this.filterChildRoutes = noFilter;
         this.enableEagerLoading = true;
+        this.routerConfiguration = new aurelia_router_1.RouterConfiguration();
     }
 }
 exports.RouterMetadataSettings = RouterMetadataSettings;

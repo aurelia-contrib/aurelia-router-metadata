@@ -1,4 +1,4 @@
-define(["require", "exports", "aurelia-dependency-injection", "./resource-loader", "./route-config-factory"], function (require, exports, aurelia_dependency_injection_1, resource_loader_1, route_config_factory_1) {
+define(["require", "exports", "aurelia-dependency-injection", "aurelia-router", "./resource-loader", "./route-config-factory"], function (require, exports, aurelia_dependency_injection_1, aurelia_router_1, resource_loader_1, route_config_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -79,6 +79,7 @@ define(["require", "exports", "aurelia-dependency-injection", "./resource-loader
             this.transformRouteConfigs = noTransform;
             this.filterChildRoutes = noFilter;
             this.enableEagerLoading = true;
+            this.routerConfiguration = new aurelia_router_1.RouterConfiguration();
         }
     }
     exports.RouterMetadataSettings = RouterMetadataSettings;

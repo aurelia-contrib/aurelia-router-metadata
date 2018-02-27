@@ -1,4 +1,4 @@
-import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+import { NavigationInstruction, NavModel, PipelineStep, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import { RouterMetadataSettings } from "./router-metadata-configuration";
 import { RouterResource } from "./router-resource";
 /**
@@ -19,7 +19,7 @@ export interface IRouterResourceInstruction {
  */
 export interface IRouteConfigInstruction extends IRouterResourceInstruction {
     target: IRouterResourceTarget;
-    routes?: RouteConfig | RouteConfig[];
+    routes?: IRouteConfig | IRouteConfig[];
 }
 /**
  * Instruction that contains information needed to create a @configureRouter
@@ -55,8 +55,8 @@ export interface IRouterResourceTarget extends Function {
     layoutView?: string;
     layoutViewModel?: string;
     layoutModel?: any;
-    routes?: RouteConfig[];
-    baseRoute?: RouteConfig;
+    routes?: IRouteConfig[];
+    baseRoute?: IRouteConfig;
     navigationStrategy?(instruction: NavigationInstruction): Promise<void> | void;
     [key: string]: any;
 }
@@ -82,14 +82,58 @@ export interface IResourceLoader {
  */
 export interface IRouteConfigSettings {
     [key: string]: any;
-    childRoutes: IRouteConfig[];
-    parentRoute?: IRouteConfig;
+    childRoutes: ICompleteRouteConfig[];
+    parentRoute?: ICompleteRouteConfig;
+    /**
+     * A naively generated URL (does not account for params and the sorts) that includes the paths from all of its parentRoutes
+     */
     path: string;
+    /**
+     * The name of the RouteConfig property to use when generating a path
+     */
+    pathProperty?: string;
 }
 /**
  * Interface that extends the RouteConfig interface to provide type checking on the
  * settings property with information relevant to router-metadata
  */
 export interface IRouteConfig extends Partial<RouteConfig> {
+    settings?: IRouteConfigSettings;
+}
+/**
+ * Output version of the IRouteConfig interface that is guaranteed to have certain properties assigned
+ * which may help reduce friction in some type checking situations
+ */
+export interface ICompleteRouteConfig extends IRouteConfig {
+    route: string;
+    name: string;
+    moduleId: string;
+    nav: boolean | number;
     settings: IRouteConfigSettings;
+}
+export declare type UnknownRouteConfig = string | RouteConfig | ((instruction: NavigationInstruction) => string | RouteConfig | Promise<string | RouteConfig>);
+/**
+ * Interface of aurelia-router's RouterConfiguration class
+ */
+export interface IRouterConfiguration {
+    instructions: ((router: Router) => void)[];
+    options: {
+        compareQueryParams?: boolean;
+        root?: string;
+        pushState?: boolean;
+        hashChange?: boolean;
+        silent?: boolean;
+    };
+    pipelineSteps: ({
+        name: string;
+        step: Function | PipelineStep;
+    })[];
+    title?: string;
+    unknownRouteConfig?: UnknownRouteConfig;
+    viewPortDefaults?: {
+        [name: string]: {
+            moduleId: string;
+            [key: string]: any;
+        };
+    };
 }

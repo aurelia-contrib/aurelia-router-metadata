@@ -1,6 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { RouteConfig } from "aurelia-router";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader } from "./interfaces";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfig, IRouterConfiguration } from "./interfaces";
 import { RouteConfigFactory } from "./route-config-factory";
 /**
  * Class used to configure behavior of [[RouterResource]]
@@ -51,24 +50,28 @@ export declare class RouterMetadataSettings {
     /**
      * The initial settings to use for each route before class-based conventions are applied
      */
-    routeConfigDefaults: RouteConfig;
+    routeConfigDefaults: IRouteConfig;
     /**
      * RouteConfig settings that will be applied last before transformation; these settings will override all other defaults and arguments
      */
-    routeConfigOverrides: RouteConfig;
+    routeConfigOverrides: IRouteConfig;
     /**
      * Perform any final modifications on the routes just before they are stored in the metadata
      * @param configs The route configs that were created by the @routeConfig() decorator
      * @param createInstruction The create instruction that was passed to the RouteConfigFactory
      */
-    transformRouteConfigs: (configs: RouteConfig[], createInstruction: ICreateRouteConfigInstruction) => RouteConfig[];
+    transformRouteConfigs: (configs: ICompleteRouteConfig[], createInstruction: ICreateRouteConfigInstruction) => ICompleteRouteConfig[];
     /**
      * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes
      */
-    filterChildRoutes: (config: RouteConfig, allConfigs: RouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean;
+    filterChildRoutes: (config: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean;
     /**
      * Enable/disable eager loading by default
      */
     enableEagerLoading: boolean;
+    /**
+     * Specify RouterConfiguration properties that need to be set on the AppRouter
+     */
+    routerConfiguration: IRouterConfiguration;
     constructor();
 }
