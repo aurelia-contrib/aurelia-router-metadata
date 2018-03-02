@@ -1,79 +1,60 @@
-import { Container, ContainerConfiguration } from "aurelia-dependency-injection";
-import { metadata, Origin } from "aurelia-metadata";
+import { Container } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
 import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
 import { ResourceLoader } from "../../src/resource-loader";
-import { DefaultRouteConfigFactory, RouteConfigFactory } from "../../src/route-config-factory";
-import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
-import { RouterMetadataConfiguration } from "../../src/router-metadata-configuration";
+import { routerMetadata } from "../../src/router-metadata";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import { RouterResource } from "../../src/router-resource";
+import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
 
-// tslint:disable:no-empty
-// tslint:disable:no-backbone-get-set-outside-model
-// tslint:disable:no-unnecessary-class
+// tslint:disable:function-name
 // tslint:disable:max-classes-per-file
+// tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 describe("RouterResource", () => {
-  let dummyModuleId: string;
-  let dummyClass: Function;
-  let moduleMap: Map<string, any>;
-  let routerMetadataBackup: IRouterMetadataType;
-  let originGetBackup: any;
-  let loader: { loadModule(moduleId: string): Promise<any> };
+  let dummy: {
+    moduleId: string;
+    target: Function;
+  };
 
-  beforeAll(() => {
-    routerMetadataBackup = {} as any;
-    originGetBackup = Origin.get;
-  });
+  let routerMetadataMock: RouterMetadataMock;
+  let originMock: OriginMock;
+  let loaderMock: LoaderMock;
 
   beforeEach(() => {
-    Object.assign(routerMetadataBackup, routerMetadata);
-    dummyModuleId = "some/module";
-    dummyClass = new Function();
-    moduleMap = new Map<string, any>();
-    moduleMap.set(dummyModuleId, dummyClass);
-    delete (dummyClass as any).__metadata__;
-    loader = {
-      loadModule: async (moduleId: string): Promise<any> => moduleMap.get(moduleId)
+    dummy = {
+      moduleId: "some/module",
+      target: new Function()
     };
-    const resourceLoader = new ResourceLoader(loader as any);
-    Origin.get = jasmine.createSpy().and.callFake((moduleId: string) => ({ moduleId }));
+
+    routerMetadataMock = new RouterMetadataMock().activate();
+    originMock = new OriginMock().activate();
+    loaderMock = new LoaderMock()
+      .activate()
+      .link(originMock)
+      .add(dummy.moduleId, dummy.target);
+
+    const resourceLoader = new ResourceLoader(loaderMock as any);
     Container.instance = new Container();
     Container.instance.registerInstance(ResourceLoader, resourceLoader);
     RouterMetadataConfiguration.INSTANCE = new RouterMetadataConfiguration(Container.instance);
-    routerMetadata.getOwn = jasmine.createSpy().and.callFake((target: any) => {
-      if (target.hasOwnProperty("__metadata__")) {
-        return target.__metadata__["aurelia:router-metadata"];
-      }
-    });
-    routerMetadata.getOrCreateOwn = jasmine.createSpy().and.callFake((target: any, moduleId?: string) => {
-      let result = routerMetadata.getOwn(target);
-
-      if (result === undefined) {
-        result = new RouterResource(target, moduleId);
-        routerMetadata.define(result, target);
-      }
-
-      return result;
-    });
-    routerMetadata.define = jasmine.createSpy().and.callFake((value: any, target: any) => {
-      const container = target.hasOwnProperty("__metadata__") ? target.__metadata__ : (target.__metadata__ = {});
-      container["aurelia:router-metadata"] = value;
-    });
   });
 
   afterEach(() => {
-    Object.assign(routerMetadata, routerMetadataBackup);
-    Origin.get = originGetBackup;
+    routerMetadataMock.deactivate();
+    originMock.deactivate();
+    loaderMock.deactivate();
   });
 
   describe("constructor", () => {
     it("sets correct defaults when called directly", () => {
-      const sut = new RouterResource(dummyClass, dummyModuleId);
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
 
-      expect(sut.moduleId).toBe(dummyModuleId);
-      expect(sut.target).toBe(dummyClass);
+      expect(sut.moduleId).toBe(dummy.moduleId);
+      expect(sut.target).toBe(dummy.target);
 
       expect(sut.isRouteConfig).toEqual(false);
       expect(sut.isConfigureRouter).toEqual(false);
@@ -90,10 +71,10 @@ describe("RouterResource", () => {
     });
 
     it("sets correct defaults when called by metadata", () => {
-      const sut = routerMetadata.getOrCreateOwn(dummyClass, dummyModuleId);
+      const sut = routerMetadata.getOrCreateOwn(dummy.target, dummy.moduleId);
 
-      expect(sut.moduleId).toBe(dummyModuleId);
-      expect(sut.target).toBe(dummyClass);
+      expect(sut.moduleId).toBe(dummy.moduleId);
+      expect(sut.target).toBe(dummy.target);
 
       expect(sut.isRouteConfig).toEqual(false);
       expect(sut.isConfigureRouter).toEqual(false);
@@ -115,7 +96,7 @@ describe("RouterResource", () => {
 
     beforeEach(() => {
       instruction = {
-        target: dummyClass
+        target: dummy.target
       };
     });
 
@@ -136,7 +117,7 @@ describe("RouterResource", () => {
       const resource = RouterResource.ROUTE_CONFIG(instruction);
 
       expect(resource.moduleId).toBeUndefined();
-      expect(resource.target).toBe(dummyClass);
+      expect(resource.target).toBe(dummy.target);
 
       expect(resource.isRouteConfig).toEqual(true);
       expect(resource.isConfigureRouter).toEqual(false);
@@ -165,7 +146,7 @@ describe("RouterResource", () => {
 
     beforeEach(() => {
       instruction = {
-        target: dummyClass,
+        target: dummy.target,
         routeConfigModuleIds: [],
         settings: {} as any
       };
@@ -186,9 +167,10 @@ describe("RouterResource", () => {
 
     it("correctly initializes the resource properties from the instruction", () => {
       instruction.target = new Function();
-      moduleMap.set(dummyModuleId, instruction.target);
-      instruction.settings.enableEagerLoading = true;
-      instruction.settings.filterChildRoutes = (): boolean => false;
+      loaderMock.add(dummy.moduleId, instruction.target);
+      const settings = instruction.settings as RouterMetadataSettings;
+      settings.enableEagerLoading = true;
+      settings.filterChildRoutes = (): boolean => false;
       instruction.routeConfigModuleIds = [];
 
       const resource = RouterResource.CONFIGURE_ROUTER(instruction);
@@ -200,10 +182,10 @@ describe("RouterResource", () => {
       expect(resource.isConfigureRouter).toEqual(true);
 
       expect(resource.routeConfigModuleIds).toBe(instruction.routeConfigModuleIds);
-      expect(resource.enableEagerLoading).toBe(instruction.settings.enableEagerLoading);
+      expect(resource.enableEagerLoading).toBe(settings.enableEagerLoading);
       expect(resource.ownRoutes).toEqual([]);
       expect(resource.childRoutes).toEqual([]);
-      expect(resource.filterChildRoutes).toBe(instruction.settings.filterChildRoutes);
+      expect(resource.filterChildRoutes).toBe(settings.filterChildRoutes);
       expect(resource.areChildRoutesLoaded).toEqual(false);
       expect(resource.isRouterConfigured).toEqual(false);
       expect(resource.router).toBeNull();
@@ -218,17 +200,17 @@ describe("RouterResource", () => {
     });
 
     it("assigns a configureRouter function to the target's prototype", () => {
-      expect(dummyClass.prototype.configureRouter).not.toBeDefined();
+      expect(dummy.target.prototype.configureRouter).not.toBeDefined();
 
-      const resource = RouterResource.CONFIGURE_ROUTER(instruction);
+      RouterResource.CONFIGURE_ROUTER(instruction);
 
-      expect(dummyClass.prototype.configureRouter).toBeDefined();
+      expect(dummy.target.prototype.configureRouter).toBeDefined();
     });
   });
 
   describe("loadChildRoutes", () => {
     it("returns childRoutes", async () => {
-      const sut = new RouterResource(dummyClass, dummyModuleId);
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
 
       const actual = await sut.loadChildRoutes();
 
@@ -238,7 +220,7 @@ describe("RouterResource", () => {
 
   describe("configureRouter", () => {
     it("calls config.map() with its own childRoutes", async () => {
-      const sut = new RouterResource(dummyClass, dummyModuleId);
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
       const config: any = { map: jasmine.createSpy() };
 
       await sut.configureRouter(config, {} as any);
@@ -247,7 +229,7 @@ describe("RouterResource", () => {
     });
 
     it("sets the correct properties on the resource", async () => {
-      const sut = new RouterResource(dummyClass, dummyModuleId);
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
       const router: any = { container: { viewModel: {}, get: Container.instance.get } };
 
       await sut.configureRouter({ map: PLATFORM.noop } as any, router);
@@ -306,18 +288,18 @@ describe("RouterResource", () => {
         delete c.__metadata__;
       }
 
-      moduleMap.set("empty", Empty);
-      moduleMap.set("pg0 ", Pg0);
-      moduleMap.set("pg1", Pg1);
-      moduleMap.set("pg2", Pg2);
-      moduleMap.set("pg1/pg1", Pg1Pg1);
-      moduleMap.set("pg1/pg2", Pg1Pg2);
-      moduleMap.set("pg2/pg1", Pg2Pg1);
-      moduleMap.set("pg2/pg2", Pg2Pg2);
-      moduleMap.set("pg1/pg1/pg1", Pg1Pg1Pg1);
-      moduleMap.set("pg1/pg1/pg2", Pg1Pg1Pg2);
-      moduleMap.set("pg1/pg2/pg1", Pg1Pg2Pg1);
-      moduleMap.set("pg1/pg2/pg2", Pg1Pg2Pg2);
+      loaderMock.add("empty", Empty);
+      loaderMock.add("pg0 ", Pg0);
+      loaderMock.add("pg1", Pg1);
+      loaderMock.add("pg2", Pg2);
+      loaderMock.add("pg1/pg1", Pg1Pg1);
+      loaderMock.add("pg1/pg2", Pg1Pg2);
+      loaderMock.add("pg2/pg1", Pg2Pg1);
+      loaderMock.add("pg2/pg2", Pg2Pg2);
+      loaderMock.add("pg1/pg1/pg1", Pg1Pg1Pg1);
+      loaderMock.add("pg1/pg1/pg2", Pg1Pg1Pg2);
+      loaderMock.add("pg1/pg2/pg1", Pg1Pg2Pg1);
+      loaderMock.add("pg1/pg2/pg2", Pg1Pg2Pg2);
 
       mr0 = RouterResource.CONFIGURE_ROUTER({
         target: Pg0,

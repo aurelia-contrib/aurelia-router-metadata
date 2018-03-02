@@ -2,10 +2,10 @@ import { configureRouter, routeConfig } from "../../src/decorators";
 import { RouterResource } from "../../src/router-resource";
 
 // tslint:disable:function-name
-// tslint:disable:no-unnecessary-class
-// tslint:disable:variable-name
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 describe("@routeConfig", () => {
   let originalMethod: any;
@@ -25,6 +25,7 @@ describe("@routeConfig", () => {
 
     expect(RouterResource.CONFIGURE_ROUTER).toHaveBeenCalledWith(instruction);
   });
+
   it("should call RouterResource.CONFIGURE_ROUTER with a created instruction containing the passed-in parameters", () => {
     const instruction = {} as any;
     configureRouter(instruction)(new Function());
@@ -52,8 +53,9 @@ describe("@routeConfig", () => {
 
     expect(RouterResource.ROUTE_CONFIG).toHaveBeenCalledWith(instruction);
   });
+
   it("should call RouterResource.ROUTE_CONFIG with a created instruction containing the passed-in parameters", () => {
-    const instruction = { } as any;
+    const instruction = {} as any;
     routeConfig(instruction)(new Function());
 
     expect(RouterResource.ROUTE_CONFIG).toHaveBeenCalled();

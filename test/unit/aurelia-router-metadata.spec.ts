@@ -2,10 +2,10 @@ import { Container } from "aurelia-dependency-injection";
 import { configure, RouterMetadataConfiguration } from "../../src/aurelia-router-metadata";
 
 // tslint:disable:function-name
-// tslint:disable:no-unnecessary-class
-// tslint:disable:variable-name
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 describe("configure()", () => {
   let fxconfig: any;

@@ -1,15 +1,14 @@
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
-import { IRouteConfigInstruction } from "../../src/interfaces";
 
 // tslint:disable:function-name
-// tslint:disable:no-unnecessary-class
-// tslint:disable:variable-name
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 export class IsEmpty {}
 export class HasConfigureRouter {
-  public router: Router;
+  public router: Router = null as any;
 
   public async configureRouter(_config: RouterConfiguration, router: Router): Promise<void> {
     this.router = router;

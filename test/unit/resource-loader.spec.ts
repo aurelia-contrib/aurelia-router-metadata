@@ -1,6 +1,12 @@
 import { ResourceLoader } from "../../src/aurelia-router-metadata";
 import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
 
+// tslint:disable:function-name
+// tslint:disable:max-classes-per-file
+// tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
+
 describe("resourceLoader", () => {
   let validSingleDummy: {
     moduleId: string;
@@ -39,13 +45,10 @@ describe("resourceLoader", () => {
     };
 
     routerMetadataMock = new RouterMetadataMock().activate();
-    originMock = new OriginMock()
-      .activate()
-      .add(validSingleDummy.target, validSingleDummy.moduleId)
-      .add(validMultiDummy.target, validMultiDummy.moduleId)
-      .add(invalidDummy.target, invalidDummy.moduleId);
+    originMock = new OriginMock().activate();
     loaderMock = new LoaderMock()
       .activate()
+      .link(originMock)
       .add(validSingleDummy.moduleId, validSingleDummy.target)
       .add(validMultiDummy.moduleId, validMultiDummy.target)
       .add(invalidDummy.moduleId, invalidDummy.target);

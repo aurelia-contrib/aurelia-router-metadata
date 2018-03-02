@@ -1,38 +1,23 @@
-import { metadata } from "aurelia-metadata";
-import { PLATFORM } from "aurelia-pal";
-import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
-import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
-import { RouterResource } from "../../src/router-resource";
+import { routerMetadata } from "../../src/router-metadata";
+import { MetadataMock } from "./mocks";
 
-// tslint:disable:no-empty
-// tslint:disable:no-backbone-get-set-outside-model
-// tslint:disable:no-unnecessary-class
+// tslint:disable:function-name
 // tslint:disable:max-classes-per-file
+// tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 describe("routerMetadata", () => {
   let dummyClass: Function;
-  let routerMetadataBackup: IRouterMetadataType;
-
-  beforeAll(() => {
-    routerMetadataBackup = {} as any;
-  });
+  let metadataMock: MetadataMock;
 
   beforeEach(() => {
-    Object.assign(routerMetadataBackup, routerMetadata);
     dummyClass = new Function();
-    metadata.getOwn = jasmine.createSpy().and.callFake((key: any, target: any) => {
-      if (target.hasOwnProperty("__metadata__")) {
-        return target.__metadata__[key];
-      }
-    });
-    metadata.define = jasmine.createSpy().and.callFake((key: any, value: any, target: any) => {
-      const container = target.hasOwnProperty("__metadata__") ? target.__metadata__ : (target.__metadata__ = {});
-      container[key] = value;
-    });
+    metadataMock = new MetadataMock().activate();
   });
 
   afterEach(() => {
-    Object.assign(routerMetadata, routerMetadataBackup);
+    metadataMock.deactivate();
   });
 
   describe("getOwn", () => {
@@ -40,7 +25,7 @@ describe("routerMetadata", () => {
       it("calls metadata.getOwn() with the target", () => {
         routerMetadata.getOwn(dummyClass);
 
-        expect(metadata.getOwn).toHaveBeenCalledWith(jasmine.any(String), dummyClass);
+        expect(metadataMock.getOwn).toHaveBeenCalledWith(jasmine.any(String), dummyClass);
       });
     });
 
@@ -49,7 +34,7 @@ describe("routerMetadata", () => {
         const nonExisting = new Function();
         routerMetadata.getOwn(nonExisting);
 
-        expect(metadata.getOwn).toHaveBeenCalledWith(jasmine.any(String), nonExisting);
+        expect(metadataMock.getOwn).toHaveBeenCalledWith(jasmine.any(String), nonExisting);
       });
     });
   });
@@ -60,7 +45,7 @@ describe("routerMetadata", () => {
       const target: any = {};
       routerMetadata.define(value, target);
 
-      expect(metadata.define).toHaveBeenCalledWith(jasmine.any(String), value, target);
+      expect(metadataMock.define).toHaveBeenCalledWith(jasmine.any(String), value, target);
     });
   });
 
@@ -101,7 +86,7 @@ describe("routerMetadata", () => {
         it("calls metadata.define() with the newly created RouterResource", () => {
           const resource = routerMetadata.getOrCreateOwn(dummyClass);
 
-          expect(metadata.define).toHaveBeenCalledWith(jasmine.any(String), resource, dummyClass);
+          expect(metadataMock.define).toHaveBeenCalledWith(jasmine.any(String), resource, dummyClass);
         });
       });
     });

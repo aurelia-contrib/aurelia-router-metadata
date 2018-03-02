@@ -2,14 +2,13 @@ import { RouteConfig } from "aurelia-router";
 import { ICompleteRouteConfig, ICreateRouteConfigInstruction } from "../../src/interfaces";
 import { DefaultRouteConfigFactory } from "../../src/route-config-factory";
 import { RouterMetadataSettings } from "../../src/router-metadata-configuration";
-import {
-  HasConfigureRouter,
-  HasStaticBaseRoute,
-  HasStaticProperties,
-  IsEmpty,
-  randomRouteConfig1,
-  randomRouteConfig2
-} from "./test-data";
+import { HasStaticBaseRoute, HasStaticProperties, IsEmpty, randomRouteConfig1, randomRouteConfig2 } from "./test-data";
+
+// tslint:disable:function-name
+// tslint:disable:max-classes-per-file
+// tslint:disable:no-empty
+// tslint:disable:no-unnecessary-class
+// tslint:disable:variable-name
 
 const routeConfigProperies = [
   { targetProp: "route", sourceProp: "route", early: false, late: false },
@@ -43,12 +42,12 @@ describe("DefaultRouteConfigFactory", () => {
   });
 
   describe("createRouteConfigs()", () => {
-    it("should apply settings-based defaults for properties that do not overlap with convention-based defaults", () => {
+    it("should apply settings-based defaults for properties that do not overlap with convention-based defaults", async () => {
       instruction.target = IsEmpty;
       instruction.moduleId = "pages/is-empty";
 
       const expected = instruction.settings.routeConfigDefaults;
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
       for (const prop of routeConfigProperies) {
         if (prop.early) {
@@ -57,17 +56,17 @@ describe("DefaultRouteConfigFactory", () => {
           if (prop.targetProp !== "name") {
             expect(actual[prop.targetProp]).not.toBe(expected[prop.sourceProp]);
           } else {
-            expect(actual[prop.targetProp]).not.toBe(expected.name);
+            expect(actual[prop.targetProp]).not.toBe(expected.name as string);
           }
         }
       }
     });
 
-    it("should generate convention-based defaults from an empty class with no static properties", () => {
+    it("should generate convention-based defaults from an empty class with no static properties", async () => {
       instruction.target = IsEmpty;
       instruction.moduleId = "pages/is-empty";
 
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
       expect(actual.route).toBe("is-empty");
       expect(actual.name).toBe("is-empty");
@@ -75,12 +74,12 @@ describe("DefaultRouteConfigFactory", () => {
       expect(actual.moduleId).toBe(instruction.moduleId);
     });
 
-    it("should override convention-based defaults with information found on static properties on the class", () => {
+    it("should override convention-based defaults with information found on static properties on the class", async () => {
       instruction.target = HasStaticProperties;
       instruction.moduleId = "pages/has-static-properties";
 
       const expected = instruction.target;
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
       for (const prop of routeConfigProperies) {
         if (!prop.late) {
@@ -89,47 +88,47 @@ describe("DefaultRouteConfigFactory", () => {
       }
     });
 
-    it("should override static property settings with settings on the static baseRoute property on the class", () => {
+    it("should override static property settings with settings on the static baseRoute property on the class", async () => {
       instruction.target = HasStaticBaseRoute;
       instruction.moduleId = "pages/has-static-base-route";
 
       const expected = instruction.target.baseRoute as RouteConfig;
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
       for (const prop of routeConfigProperies) {
         if (!prop.late) {
           if (prop.targetProp !== "name") {
             expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
           } else {
-            expect(actual[prop.targetProp]).toBe(expected.name);
+            expect(actual[prop.targetProp]).toBe(expected.name as string);
           }
         }
       }
     });
 
-    it("should assign the instruction's moduleId after applying settings, convention-based defaults and static properties", () => {
+    it("should assign the instruction's moduleId after applying settings, convention-based defaults and static properties", async () => {
       instruction.target = HasStaticBaseRoute;
       instruction.moduleId = "pages/has-static-base-route";
 
       const expected = instruction;
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
-      expect(actual.moduleId).toBe(expected.moduleId);
+      expect(actual.moduleId).toBe(expected.moduleId as string);
     });
 
-    it("should apply transformRouteConfigs() last", () => {
+    it("should apply transformRouteConfigs() last", async () => {
       instruction.target = HasStaticBaseRoute;
       instruction.moduleId = "pages/has-static-base-route";
       instruction.settings.transformRouteConfigs = (): ICompleteRouteConfig[] => [randomRouteConfig2 as any];
 
       const expected = randomRouteConfig2;
-      const actual = sut.createRouteConfigs(instruction)[0];
+      const actual = (await sut.createRouteConfigs(instruction))[0];
 
       for (const prop of routeConfigProperies) {
         if (prop.targetProp !== "name") {
           expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
         } else {
-          expect(actual[prop.targetProp]).toBe(expected.name);
+          expect(actual[prop.targetProp]).toBe(expected.name as string);
         }
       }
     });
