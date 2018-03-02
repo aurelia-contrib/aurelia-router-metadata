@@ -1,0 +1,22 @@
+<template>
+  <require from="./nav-menu.css"></require>
+  <div class="menu-container" ref="menuContainer">
+    <div class="ui vertical menu">
+      <template repeat.for="nav of router.navigation">
+        <a href.bind="nav.href" class="item ${nav.isActive ? 'active' : ''} ${nav.settings.hovering ? 'hovering' : ''}" mouseenter.trigger="navItemMouseEnter(nav)">
+          ${nav.title}
+          <i if.bind="nav.settings.childRoutes" class="icon chevron right"></i>
+        </a>
+      </template>
+    </div>
+    <div class="ui vertical menu" repeat.for="item of hoverPath">
+      <template repeat.for="route of item.settings.childRoutes | filter:'nav':true">
+        <a href="${'#/' + route.settings.routerResource.path}" class="item ${route.isActive || (route.navModel && route.navModel.isActive) ? 'active' : ''} ${route.settings.hovering ? 'hovering' : ''}"
+          mouseenter.trigger="navItemMouseEnter(route)">
+          ${route.title}
+          <i if.bind="route.settings.childRoutes" class="icon chevron right"></i>
+        </a>
+      </template>
+    </div>
+  </div>
+</template>

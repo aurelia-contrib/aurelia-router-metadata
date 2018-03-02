@@ -1,0 +1,25 @@
+[aurelia-app="main"] {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+router-view {
+  display: flex;
+  flex-flow: row nowrap;
+  flex: 1 1 auto;
+
+  margin: 1rem 3rem 1rem .5rem;
+  padding: .5rem;
+  border: 2px solid black;
+  border-radius: 1rem;
+  min-height: 10rem;
+}
+
+router-view>router-view {
+  margin: 0;
+}
