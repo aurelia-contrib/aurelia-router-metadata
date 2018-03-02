@@ -340,7 +340,7 @@ export class RouterResource {
     config.map(routes);
 
     this.router = router;
-    if (router instanceof AppRouter) {
+    if (router instanceof AppRouter || router.isRoot) {
       const settingsConfig = this.getSettings().routerConfiguration || ({} as any);
       mergeRouterConfiguration(config, settingsConfig);
     }
