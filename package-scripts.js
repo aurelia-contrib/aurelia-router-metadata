@@ -97,6 +97,16 @@ module.exports = {
       npm: {
         publish: "npm publish"
       }
-    }
+    },
+    ghpages: series(
+      "git checkout gh-pages",
+      "git merge master --no-edit",
+      rimraf("*.bundle.js"),
+      "nps build.demos.production",
+      "git add index.html *.bundle.js",
+      "git commit -m \"doc(demos): build demos\"",
+      "git push",
+      "git checkout master"
+    )
   }
 };
