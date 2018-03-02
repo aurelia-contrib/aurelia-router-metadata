@@ -1,6 +1,6 @@
 import { Container } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
-import { RouteConfig } from "aurelia-router";
+import { RouteConfig, AppRouter, RouterConfiguration } from "aurelia-router";
 import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
 import { ResourceLoader } from "../../src/resource-loader";
 import { routerMetadata } from "../../src/router-metadata";
@@ -49,8 +49,8 @@ describe("RouterResource", () => {
     loaderMock.deactivate();
   });
 
-  describe("constructor", () => {
-    it("sets correct defaults when called directly", () => {
+  describe("constructor()", () => {
+    it("should set correct defaults when called directly", () => {
       const sut = new RouterResource(dummy.target, dummy.moduleId);
 
       expect(sut.moduleId).toBe(dummy.moduleId);
@@ -70,7 +70,7 @@ describe("RouterResource", () => {
       expect(sut.instance).toBeNull();
     });
 
-    it("sets correct defaults when called by metadata", () => {
+    it("should set correct defaults when called by metadata", () => {
       const sut = routerMetadata.getOrCreateOwn(dummy.target, dummy.moduleId);
 
       expect(sut.moduleId).toBe(dummy.moduleId);
@@ -91,7 +91,7 @@ describe("RouterResource", () => {
     });
   });
 
-  describe("ROUTE_CONFIG", () => {
+  describe("ROUTE_CONFIG()", () => {
     let instruction: IRouteConfigInstruction;
 
     beforeEach(() => {
@@ -100,20 +100,20 @@ describe("RouterResource", () => {
       };
     });
 
-    it("returns RouterResource", () => {
+    it("should return a RouterResource", () => {
       const resource = RouterResource.ROUTE_CONFIG(instruction);
 
       expect(resource instanceof RouterResource).toEqual(true);
     });
 
-    it("instantiates RouterResource through routerMetadata", () => {
+    it("should instantiate the RouterResource through routerMetadata", () => {
       RouterResource.ROUTE_CONFIG(instruction);
 
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledWith(instruction.target);
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
     });
 
-    it("correctly initializes the resource properties", () => {
+    it("should correctly initialize the resource properties", () => {
       const resource = RouterResource.ROUTE_CONFIG(instruction);
 
       expect(resource.moduleId).toBeUndefined();
@@ -133,7 +133,7 @@ describe("RouterResource", () => {
       expect(resource.instance).toBeNull();
     });
 
-    it("will reuse the existing resource if applied multiple times to the same target", () => {
+    it("should reuse the existing resource if applied multiple times to the same target", () => {
       const resource1 = RouterResource.ROUTE_CONFIG(instruction);
       const resource2 = RouterResource.ROUTE_CONFIG(instruction);
 
@@ -141,7 +141,7 @@ describe("RouterResource", () => {
     });
   });
 
-  describe("CONFIGURE_ROUTER", () => {
+  describe("CONFIGURE_ROUTER()", () => {
     let instruction: IConfigureRouterInstruction;
 
     beforeEach(() => {
@@ -152,20 +152,20 @@ describe("RouterResource", () => {
       };
     });
 
-    it("returns RouterResource", () => {
+    it("should return a RouterResource", () => {
       const resource = RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(resource instanceof RouterResource).toEqual(true);
     });
 
-    it("instantiates RouterResource through routerMetadata", () => {
+    it("should instantiate the RouterResource through routerMetadata", () => {
       RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledWith(instruction.target);
       expect(routerMetadata.getOrCreateOwn).toHaveBeenCalledTimes(1);
     });
 
-    it("correctly initializes the resource properties from the instruction", () => {
+    it("should correctly initialize the resource properties", () => {
       instruction.target = new Function();
       loaderMock.add(dummy.moduleId, instruction.target);
       const settings = instruction.settings as RouterMetadataSettings;
@@ -192,14 +192,14 @@ describe("RouterResource", () => {
       expect(resource.instance).toBeNull();
     });
 
-    it("will reuse the existing resource if applied multiple times to the same target", () => {
+    it("should reuse the existing resource if applied multiple times to the same target", () => {
       const resource1 = RouterResource.CONFIGURE_ROUTER(instruction);
       const resource2 = RouterResource.CONFIGURE_ROUTER(instruction);
 
       expect(resource1).toBe(resource2);
     });
 
-    it("assigns a configureRouter function to the target's prototype", () => {
+    it("should assign a configureRouter function to the target's prototype", () => {
       expect(dummy.target.prototype.configureRouter).not.toBeDefined();
 
       RouterResource.CONFIGURE_ROUTER(instruction);
@@ -208,19 +208,97 @@ describe("RouterResource", () => {
     });
   });
 
-  describe("loadChildRoutes", () => {
-    it("returns childRoutes", async () => {
+  describe("initialize()", () => {
+    it("should initialize as RouteConfig when no instruction is passed in", () => {
       const sut = new RouterResource(dummy.target, dummy.moduleId);
 
+      sut.initialize();
+
+      expect(sut.isRouteConfig).toBe(true);
+      expect(sut.isConfigureRouter).toBe(false);
+    });
+  });
+
+  describe("loadOwnRoutes()", async () => {
+    it("should initialize itself when it wasn't initialized yet", async () => {
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
+
+      await sut.loadOwnRoutes();
+
+      expect(sut.isRouteConfig).toBe(true);
+      expect(sut.isConfigureRouter).toBe(false);
+    });
+
+    it("should return one valid route when it only has a target and moduleId", async () => {
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
+
+      const actual = await sut.loadOwnRoutes();
+
+      expect(actual.length).toBe(1);
+    });
+  });
+
+  describe("loadChildRoutes()", () => {
+    let sut: RouterResource;
+    let sutInitInstruction: any;
+    let childResource: RouterResource;
+
+    beforeEach(() => {
+      sut = new RouterResource(dummy.target, dummy.moduleId);
+      childResource = new RouterResource(new Function(), "some/child");
+      routerMetadataMock.define(childResource, childResource.target);
+      loaderMock.add(childResource.moduleId, childResource.target);
+      sutInitInstruction = {
+        target: dummy.target,
+        moduleId: dummy.moduleId,
+        routeConfigModuleIds: [childResource.moduleId]
+      } as any;
+    });
+
+    it("should return its own childRoutes property", async () => {
       const actual = await sut.loadChildRoutes();
 
       expect(actual).toBe(sut.childRoutes);
     });
+
+    it("should load the routes from its referenced routeConfigModuleIds", async () => {
+      sut.initialize(sutInitInstruction);
+
+      const actual = await sut.loadChildRoutes();
+
+      expect(actual.length).toBe(1);
+      expect(actual[0]).toBe(childResource.ownRoutes[0]);
+    });
+
+    it("should set \"areChildRoutesLoaded\" to true", async () => {
+      sut.initialize(sutInitInstruction);
+
+      sut.areChildRoutesLoaded = false;
+
+      await sut.loadChildRoutes();
+
+      expect(sut.areChildRoutesLoaded).toBe(true);
+    });
+
+    it("should return its cached childRoutes when \"areChildRoutesLoaded\" is true", async () => {
+      const expected: any[] = [];
+      sut.childRoutes = expected;
+      sut.areChildRoutesLoaded = true;
+
+      const actual = await sut.loadChildRoutes();
+
+      expect(actual).toBe(expected);
+    });
   });
 
-  describe("configureRouter", () => {
-    it("calls config.map() with its own childRoutes", async () => {
-      const sut = new RouterResource(dummy.target, dummy.moduleId);
+  describe("configureRouter()", () => {
+    let sut: RouterResource;
+
+    beforeEach(() => {
+      sut = new RouterResource(dummy.target, dummy.moduleId);
+    });
+
+    it("should call config.map() with its own childRoutes", async () => {
       const config: any = { map: jasmine.createSpy() };
 
       await sut.configureRouter(config, {} as any);
@@ -228,8 +306,7 @@ describe("RouterResource", () => {
       expect(config.map).toHaveBeenCalledWith(sut.childRoutes);
     });
 
-    it("sets the correct properties on the resource", async () => {
-      const sut = new RouterResource(dummy.target, dummy.moduleId);
+    it("should set the correct properties on the resource", async () => {
       const router: any = { container: { viewModel: {}, get: Container.instance.get } };
 
       await sut.configureRouter({ map: PLATFORM.noop } as any, router);
@@ -237,6 +314,78 @@ describe("RouterResource", () => {
       expect(sut.router).toBe(router);
       expect(sut.isRouterConfigured).toEqual(true);
       expect(sut.instance).toBe(router.container.viewModel);
+    });
+
+    it("should merge the RouterConfigurations when configuring the AppRouter", async () => {
+      const router: any = { container: Container.instance, isRoot: true };
+      const config = new RouterConfiguration();
+      config.options.foo = "foo";
+      RouterMetadataConfiguration.INSTANCE.getSettings().routerConfiguration = { options: { bar: "bar" } } as any;
+
+      await sut.configureRouter(config, router);
+
+      expect(config.options.foo).toBe("foo");
+      expect(config.options.bar).toBe("bar");
+    });
+
+    it("should create an empty RouterConfiguration (not fail/throw) if it's falsey in the settings", async () => {
+      const router: any = { container: Container.instance, isRoot: true };
+      RouterMetadataConfiguration.INSTANCE.getSettings().routerConfiguration = null as any;
+
+      await sut.configureRouter(new RouterConfiguration(), router);
+    });
+
+    it("should call the original configureRouter() when a class already had one", async () => {
+      class HasConfigureRouter {
+        public isConfigured: boolean = false;
+        public configureRouter(): void {
+          this.isConfigured = true;
+        }
+      }
+      sut.target = HasConfigureRouter;
+      sut.initialize({target: HasConfigureRouter, routeConfigModuleIds: []});
+      const viewModel = new HasConfigureRouter();
+      const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };
+      const config = new RouterConfiguration();
+
+      await sut.configureRouter(config, router);
+
+      expect(viewModel.isConfigured).toBe(true);
+    });
+
+    it("should call the original configureRouter() when a class has inherited one", async () => {
+      class HasConfigureRouter {
+        public isConfigured: boolean = false;
+        public configureRouter(): void {
+          this.isConfigured = true;
+        }
+      }
+      class InheritsConfigureRouter extends HasConfigureRouter {}
+      sut.target = InheritsConfigureRouter;
+      sut.initialize({target: InheritsConfigureRouter, routeConfigModuleIds: []});
+      const viewModel = new InheritsConfigureRouter();
+      const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };
+      const config = new RouterConfiguration();
+
+      await sut.configureRouter(config, router);
+
+      expect(viewModel.isConfigured).toBe(true);
+    });
+
+    it("should be called when configureRouter() is called on the viewmodel instance", async () => {
+      class HasConfigureRouter {
+        public async configureRouter(...args: any[]): Promise<void> {}
+      }
+      sut.target = HasConfigureRouter;
+      sut.initialize({target: HasConfigureRouter, routeConfigModuleIds: []});
+      routerMetadata.define(sut, HasConfigureRouter);
+      const viewModel = new HasConfigureRouter();
+      const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };
+      const config = new RouterConfiguration();
+
+      await viewModel.configureRouter(config, router);
+
+      expect(sut.isRouterConfigured).toBe(true);
     });
   });
 
