@@ -1,8 +1,8 @@
-import { RouterResource } from "../../src/aurelia-router-metadata";
-import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
-import { Origin } from "aurelia-metadata";
 import { Container } from "aurelia-dependency-injection";
 import { Loader } from "aurelia-loader";
+import { Origin } from "aurelia-metadata";
+import { RouterResource } from "../../src/aurelia-router-metadata";
+import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
 
 export class RouterMetadataMock {
   public backup: IRouterMetadataType;
