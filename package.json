@@ -30,6 +30,7 @@
     "demos-prod": "nps build.demos.production",
     "release-patch": "nps release.patch",
     "release-minor": "nps release.minor",
+    "release-major": "nps release.major",
     "ghpages": "nps ghpages"
   },
   "dependencies": {
