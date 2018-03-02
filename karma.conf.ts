@@ -38,38 +38,12 @@ export default (config: IConfig): void => {
       module: {
         rules: [
           {
-            enforce: "pre",
-            test: /\.ts$/,
-            loader: "tslint-loader",
-            exclude: /node_modules/,
-            options: {
-              emitErrors: config.singleRun,
-              failOnHint: config.singleRun
-            }
-          },
-          {
             test: /\.ts$/,
             loader: "ts-loader",
             exclude: /node_modules/,
             options: {
-              transpileOnly: !config.singleRun,
-              compilerOptions: {
-                allowSyntheticDefaultImports: true,
-                allowUnreachableCode: true,
-                allowUnusedLabels: true,
-                declaration: false,
-                module: "es2015",
-                noEmitHelpers: false,
-                noEmitOnError: false,
-                noImplicitAny: false,
-                noImplicitReturns: false,
-                noImplicitThis: false,
-                noUnusedLocals: false,
-                noUnusedParameters: false,
-                sourceMap: true,
-                strict: false,
-                target: "es2015"
-              }
+              configFile: path.resolve(__dirname, "configs/tsconfig-test.json"),
+              transpileOnly: !config.singleRun
             }
           },
           {
