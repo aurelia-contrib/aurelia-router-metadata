@@ -74,6 +74,18 @@ describe("DefaultRouteConfigFactory", () => {
       expect(actual.moduleId).toBe(instruction.moduleId);
     });
 
+    it("should return a RouteConfig when called synchronously and the inner transform function is synchronous", () => {
+      instruction.target = IsEmpty;
+      instruction.moduleId = "pages/is-empty";
+
+      const actual = (sut.createRouteConfigs(instruction) as ICompleteRouteConfig[])[0];
+
+      expect(actual.route).toBe("is-empty");
+      expect(actual.name).toBe("is-empty");
+      expect(actual.title).toBe("Is Empty");
+      expect(actual.moduleId).toBe(instruction.moduleId);
+    });
+
     it("should override convention-based defaults with information found on static properties on the class", async () => {
       instruction.target = HasStaticProperties;
       instruction.moduleId = "pages/has-static-properties";
