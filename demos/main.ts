@@ -39,12 +39,6 @@ export async function configure(au: Aurelia): Promise<void> {
     au.use.plugin(PLATFORM.moduleName("aurelia-testing"));
   }
   await au.start();
-
-  const defaultPageResource = await RouterMetadataConfiguration.INSTANCE.getResourceLoader().loadRouterResource(
-    PLATFORM.moduleName("pages/default")
-  );
-  const defaultRoute = (await defaultPageResource.loadOwnRoutes())[0];
-
   await au.setRoot(PLATFORM.moduleName("app"));
 
   function transformRouteConfigs(
@@ -63,12 +57,16 @@ export async function configure(au: Aurelia): Promise<void> {
     return configs;
   }
 
-  // very hacky, should make these promiseable and add some cleaner hook for adding routes dynamically
-  function filterChildRoutes(
+  // quite hacky, should some cleaner hook for adding routes dynamically
+  async function filterChildRoutes(
     config: ICompleteRouteConfig,
     allConfigs: ICompleteRouteConfig[],
     instruction: IConfigureRouterInstruction
-  ): boolean {
+  ): Promise<boolean> {
+    const loader = RouterMetadataConfiguration.INSTANCE.getResourceLoader();
+    const defaultPageResource = await loader.loadRouterResource(PLATFORM.moduleName("pages/default"));
+    const defaultRoute = (await defaultPageResource.loadOwnRoutes())[0];
+
     const parentResource = routerMetadata.getOwn(instruction.target);
     if (parentResource.childRoutes.indexOf(defaultRoute) === -1) {
       parentResource.childRoutes.push(defaultRoute);
