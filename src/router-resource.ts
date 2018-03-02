@@ -413,7 +413,7 @@ function assignOrProxyPrototypeProperty(
 }
 
 // tslint:disable:no-invalid-this
-async function configureRouter(config: RouterConfiguration, router: Router): Promise<void> {
+async function configureRouter(this: any, config: RouterConfiguration, router: Router): Promise<void> {
   const target = Object.getPrototypeOf(this).constructor as IRouterResourceTarget;
   const resource = routerMetadata.getOwn(target);
   await resource.configureRouter(config, router);
