@@ -1,4 +1,6 @@
 // tslint:disable:no-implicit-dependencies
+// tslint:disable:import-name
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import * as karma from "karma";
 import * as path from "path";
 import * as webpack from "webpack";
@@ -23,7 +25,7 @@ export default (config: IConfig): void => {
     frameworks: ["jasmine"],
     files: ["test/setup.ts"],
     preprocessors: {
-      "test/setup.ts": ["webpack"]
+      "test/setup.ts": ["webpack", "sourcemap"]
     },
     webpack: {
       mode: "development",
@@ -62,7 +64,16 @@ export default (config: IConfig): void => {
       plugins: [
         new webpack.ProvidePlugin({
           Promise: "bluebird"
-        })
+        }),
+        ...(config.singleRun
+          ? [new webpack.NoEmitOnErrorsPlugin()]
+          : [
+              new ForkTsCheckerWebpackPlugin({
+                watch: ["./src"],
+                formatter: "codeframe",
+                tsconfig: path.resolve(__dirname, "configs/tsconfig-test.json")
+              })
+            ])
       ]
     },
     mime: {
@@ -78,7 +89,7 @@ export default (config: IConfig): void => {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ["Chrome"],
+    browsers: ["ChromeHeadless"],
     singleRun: false
   });
 };
