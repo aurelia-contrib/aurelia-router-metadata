@@ -25,7 +25,7 @@ function release(version) {
     default: series.nps(
       `release.${version}.before`,
       `release.version`,
-      `release.after`
+      `release.${version}.after`
     ),
     before: series.nps(
       `release.build`,
@@ -85,7 +85,7 @@ module.exports = {
       patch: release("patch"),
       minor: release("minor"),
       major: release("major"),
-      version: "standard-version --first-release",
+      version: "standard-version --first-release --commit-all",
       build: series.nps(
         "test",
         "build.dist"
