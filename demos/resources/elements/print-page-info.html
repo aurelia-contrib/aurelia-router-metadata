@@ -1,0 +1,7 @@
+<template>
+  <require from="./print-page-info.css"></require>
+  <h3>${resource.moduleId}</h3>
+  <span repeat.for="prop of props">
+    <b>${prop}</b>: ${resource[prop]}
+  </span>
+</template>
