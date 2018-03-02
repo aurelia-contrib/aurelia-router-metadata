@@ -60,11 +60,11 @@ export declare class RouterMetadataSettings {
      * @param configs The route configs that were created by the @routeConfig() decorator
      * @param createInstruction The create instruction that was passed to the RouteConfigFactory
      */
-    transformRouteConfigs: (configs: ICompleteRouteConfig[], createInstruction: ICreateRouteConfigInstruction) => ICompleteRouteConfig[];
+    transformRouteConfigs: (configs: ICompleteRouteConfig[], createInstruction: ICreateRouteConfigInstruction) => ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]>;
     /**
      * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes
      */
-    filterChildRoutes: (config: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean;
+    filterChildRoutes: (config: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean | Promise<boolean> | PromiseLike<boolean>;
     /**
      * Enable/disable eager loading by default
      */

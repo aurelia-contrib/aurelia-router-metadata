@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.7.0"></a>
+# [0.7.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.6.0...v0.7.0) (2018-03-02)
+
+
+### Features
+
+* **configuration:** make filterChildRoutes and transformRouteConfigs promiseable ([481713e](https://github.com/fkleuver/aurelia-router-metadata/commit/481713e))
+
 
 
 <a name="0.6.0"></a>

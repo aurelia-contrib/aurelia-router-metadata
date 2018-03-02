@@ -109,7 +109,7 @@ export class RouterResource {
             this.createRouteConfigInstruction = Object.assign({}, configInstruction, { settings });
         }
     }
-    loadOwnRoutes(router) {
+    async loadOwnRoutes(router) {
         this.router = router || null;
         if (this.areOwnRoutesLoaded) {
             return this.ownRoutes;
@@ -121,7 +121,7 @@ export class RouterResource {
         }
         const instruction = this.createRouteConfigInstruction;
         instruction.moduleId = instruction.moduleId || this.moduleId;
-        const configs = this.getConfigFactory().createRouteConfigs(instruction);
+        const configs = await this.getConfigFactory().createRouteConfigs(instruction);
         for (const config of configs) {
             config.settings.routerResource = this;
             this.ownRoutes.push(config);
@@ -150,13 +150,13 @@ export class RouterResource {
         const loader = this.getResourceLoader();
         for (const moduleId of this.routeConfigModuleIds) {
             const resource = await loader.loadRouterResource(moduleId);
-            const childRoutes = resource.loadOwnRoutes();
+            const childRoutes = await resource.loadOwnRoutes();
             resource.parent = this;
             if (resource.isConfigureRouter && this.enableEagerLoading) {
                 await resource.loadChildRoutes();
             }
             for (const childRoute of childRoutes) {
-                if (this.filterChildRoutes(childRoute, childRoutes, this)) {
+                if (await this.filterChildRoutes(childRoute, childRoutes, this)) {
                     if (this.ownRoutes.length > 0) {
                         childRoute.settings.parentRoute = this.ownRoutes[0];
                     }
@@ -165,7 +165,7 @@ export class RouterResource {
             }
         }
         if (this.isRouteConfig) {
-            const ownRoutes = this.loadOwnRoutes();
+            const ownRoutes = await this.loadOwnRoutes();
             for (const ownRoute of ownRoutes) {
                 ownRoute.settings.childRoutes = this.childRoutes;
             }
