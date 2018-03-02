@@ -116,7 +116,7 @@ export class RouterMetadataSettings {
   public transformRouteConfigs: (
     configs: ICompleteRouteConfig[],
     createInstruction: ICreateRouteConfigInstruction
-  ) => ICompleteRouteConfig[];
+  ) => ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]>;
 
   /**
    * Filter which routes from a @routeConfig are added to a @configureRouter's childRoutes
@@ -125,7 +125,7 @@ export class RouterMetadataSettings {
     config: ICompleteRouteConfig,
     allConfigs: ICompleteRouteConfig[],
     configureInstruction: IConfigureRouterInstruction
-  ) => boolean;
+  ) => boolean | Promise<boolean> | PromiseLike<boolean>;
 
   /**
    * Enable/disable eager loading by default

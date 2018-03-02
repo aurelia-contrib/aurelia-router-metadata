@@ -83,7 +83,7 @@ export class RouterResource {
     config: ICompleteRouteConfig,
     allConfigs: ICompleteRouteConfig[],
     configureInstruction: IConfigureRouterInstruction
-  ) => boolean;
+  ) => boolean | Promise<boolean> | PromiseLike<boolean>;
 
   /**
    * Only applicable when `isRouteConfig`
@@ -247,7 +247,7 @@ export class RouterResource {
     }
   }
 
-  public loadOwnRoutes(router?: Router): ICompleteRouteConfig[] {
+  public async loadOwnRoutes(router?: Router): Promise<ICompleteRouteConfig[]> {
     this.router = router || (null as any);
     if (this.areOwnRoutesLoaded) {
       return this.ownRoutes;
@@ -262,7 +262,7 @@ export class RouterResource {
     const instruction = this.createRouteConfigInstruction;
     instruction.moduleId = instruction.moduleId || this.moduleId;
 
-    const configs = this.getConfigFactory().createRouteConfigs(instruction);
+    const configs = await this.getConfigFactory().createRouteConfigs(instruction);
     for (const config of configs) {
       config.settings.routerResource = this;
       this.ownRoutes.push(config);
@@ -297,13 +297,13 @@ export class RouterResource {
 
     for (const moduleId of this.routeConfigModuleIds) {
       const resource = await loader.loadRouterResource(moduleId);
-      const childRoutes = resource.loadOwnRoutes();
+      const childRoutes = await resource.loadOwnRoutes();
       resource.parent = this;
       if (resource.isConfigureRouter && this.enableEagerLoading) {
         await resource.loadChildRoutes();
       }
       for (const childRoute of childRoutes) {
-        if (this.filterChildRoutes(childRoute, childRoutes, this)) {
+        if (await this.filterChildRoutes(childRoute, childRoutes, this)) {
           if (this.ownRoutes.length > 0) {
             childRoute.settings.parentRoute = this.ownRoutes[0];
           }
@@ -313,7 +313,7 @@ export class RouterResource {
     }
 
     if (this.isRouteConfig) {
-      const ownRoutes = this.loadOwnRoutes();
+      const ownRoutes = await this.loadOwnRoutes();
       for (const ownRoute of ownRoutes) {
         ownRoute.settings.childRoutes = this.childRoutes;
       }
@@ -341,7 +341,7 @@ export class RouterResource {
 
     this.router = router;
     if (router instanceof AppRouter) {
-      const settingsConfig = this.getSettings().routerConfiguration || {} as any;
+      const settingsConfig = this.getSettings().routerConfiguration || ({} as any);
       mergeRouterConfiguration(config, settingsConfig);
     }
 
@@ -423,7 +423,7 @@ async function configureRouter(this: any, config: RouterConfiguration, router: R
 function mergeRouterConfiguration(target: RouterConfiguration, source: IRouterConfiguration): RouterConfiguration {
   target.instructions = (target.instructions || []).concat(source.instructions || []);
   target.options = { ...(target.options || {}), ...(source.options || {}) };
-  target.pipelineSteps = (target.pipelineSteps || []).concat(source.pipelineSteps as any || []);
+  target.pipelineSteps = (target.pipelineSteps || []).concat((source.pipelineSteps as any) || []);
   target.title = source.title as string;
   target.unknownRouteConfig = source.unknownRouteConfig;
   target.viewPortDefaults = { ...(target.viewPortDefaults || {}), ...(source.viewPortDefaults || {}) };

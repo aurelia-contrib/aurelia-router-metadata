@@ -4,8 +4,10 @@ import { ICompleteRouteConfig, ICreateRouteConfigInstruction, IRouteConfig, IRou
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */
 export abstract class RouteConfigFactory {
-  // tslint:disable-next-line:variable-name
-  public abstract createRouteConfigs(_instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[];
+  public abstract createRouteConfigs(
+    // tslint:disable-next-line:variable-name
+    _instruction: ICreateRouteConfigInstruction
+  ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]>;
 }
 
 /**
@@ -18,7 +20,9 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * @param instruction Instruction containing all information based on which the `RouteConfig` objects
    * will be created
    */
-  public createRouteConfigs(instruction: ICreateRouteConfigInstruction): ICompleteRouteConfig[] {
+  public createRouteConfigs(
+    instruction: ICreateRouteConfigInstruction
+  ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
     const { target, routes, moduleId, settings } = instruction;
     const configs: ICompleteRouteConfig[] = [];
 
