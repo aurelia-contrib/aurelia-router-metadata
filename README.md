@@ -4,7 +4,7 @@ Metadata extension for aurelia-router aimed at simplifying router configuration 
 
 The `@routeConfig({...})` and `@configureRouter([...])` decorators largely eliminate the need for `configureRouter()` and make configuration a bit more like the [Route()] attributes in ASP.NET.
 
-View a [LIVE DEMO](https://fkleuver.github.io/aurelia-router-metadata-sample/)
+View a [LIVE DEMO](https://fkleuver.github.io/aurelia-router-metadata/)
 
 ## Installation
 Install the npm dependency via
