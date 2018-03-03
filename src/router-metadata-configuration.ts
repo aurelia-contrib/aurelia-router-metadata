@@ -1,5 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { RouterConfiguration } from "aurelia-router";
+import { Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
@@ -10,6 +10,7 @@ import {
 } from "./interfaces";
 import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
+import { RouterResource } from "./router-resource";
 
 /**
  * Class used to configure behavior of [[RouterResource]]
@@ -137,6 +138,62 @@ export class RouterMetadataSettings {
    */
   public routerConfiguration: IRouterConfiguration;
 
+  /**
+   * Called first when inside `configureRouter()`: childRoutes are not loaded, and no changes have
+   * been made to the router, config or viewmodel yet.
+   */
+  public onBeforeLoadChildRoutes: (
+    viewModelInstance: any,
+    config: RouterConfiguration,
+    router: Router,
+    resource: RouterResource,
+    ...lifeCycleArgs: any[]
+  ) => void | Promise<void> | PromiseLike<void>;
+
+  /**
+   * Called directly after `loadChildRoutes()` and before `config.map(routes)`
+   */
+  public onBeforeConfigMap: (
+    viewModelInstance: any,
+    config: RouterConfiguration,
+    router: Router,
+    resource: RouterResource,
+    childRoutes: ICompleteRouteConfig[],
+    ...lifeCycleArgs: any[]
+  ) => void | Promise<void> | PromiseLike<void>;
+
+  /**
+   * If true, target class will have its "router" property assigned from the proxied `configureRouter()` method.
+   *
+   * If a string is provided, the router will be assigned to the property with that name (implies true).
+   *
+   * If a function is provided, that function will be called during `configureRouter()` when normally the router would be assigned.
+   * This is directly after `config.map(routes)` and before the RouterConfigurations are merged (if it's the root)
+   */
+  public assignRouterToViewModel:
+    | boolean
+    | string
+    | ((
+        viewModelInstance: any,
+        config: RouterConfiguration,
+        router: Router,
+        resource: RouterResource,
+        childRoutes: ICompleteRouteConfig[],
+        ...lifeCycleArgs: any[]
+      ) => void | Promise<void> | PromiseLike<void>);
+
+  /**
+   * Called directly after the RouterConfigurations are merged (if it's the root)
+   */
+  public onAfterMergeRouterConfiguration: (
+    viewModelInstance: any,
+    config: RouterConfiguration,
+    router: Router,
+    resource: RouterResource,
+    childRoutes: ICompleteRouteConfig[],
+    ...lifeCycleArgs: any[]
+  ) => void | Promise<void> | PromiseLike<void>;
+
   constructor() {
     this.routeConfigDefaults = defaults;
     this.routeConfigOverrides = overrides;
@@ -145,5 +202,9 @@ export class RouterMetadataSettings {
     this.enableEagerLoading = true;
 
     this.routerConfiguration = new RouterConfiguration() as any;
+    this.onBeforeLoadChildRoutes = null as any;
+    this.onBeforeConfigMap = null as any;
+    this.assignRouterToViewModel = false;
+    this.onAfterMergeRouterConfiguration = null as any;
   }
 }

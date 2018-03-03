@@ -301,7 +301,7 @@ describe("RouterResource", () => {
     it("should call config.map() with its own childRoutes", async () => {
       const config: any = { map: jasmine.createSpy() };
 
-      await sut.configureRouter(config, {} as any);
+      await sut.configureRouter(config, {container: {}} as any);
 
       expect(config.map).toHaveBeenCalledWith(sut.childRoutes);
     });
