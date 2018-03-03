@@ -196,22 +196,43 @@ class RouterResource {
      * If `target.prototype.configureRouter` already exists, a reference to that original method will be kept
      * and called at the end of this `configureRouter()` method.
      */
-    configureRouter(config, router) {
+    configureRouter(config, router, ...args) {
         return __awaiter(this, void 0, void 0, function* () {
+            const viewModel = router.container.viewModel;
+            const settings = this.getSettings();
+            if (typeof settings.onBeforeLoadChildRoutes === "function") {
+                yield settings.onBeforeLoadChildRoutes(viewModel, config, router, this, ...args);
+            }
             this.isConfiguringRouter = true;
             const routes = yield this.loadChildRoutes();
             assignPaths(routes);
+            if (typeof settings.onBeforeConfigMap === "function") {
+                yield settings.onBeforeConfigMap(viewModel, config, router, this, routes, ...args);
+            }
             config.map(routes);
             this.router = router;
-            if (router instanceof aurelia_router_1.AppRouter) {
+            if (router instanceof aurelia_router_1.AppRouter || router.isRoot) {
+                const assign = settings.assignRouterToViewModel;
+                if (assign === true) {
+                    viewModel.router = router;
+                }
+                else if (Object.prototype.toString.call(assign) === "[object String]") {
+                    viewModel[assign] = router;
+                }
+                else if (typeof assign === "function") {
+                    yield assign(viewModel, config, router, this, routes, ...args);
+                }
                 const settingsConfig = this.getSettings().routerConfiguration || {};
                 mergeRouterConfiguration(config, settingsConfig);
+                if (typeof settings.onAfterMergeRouterConfiguration === "function") {
+                    yield settings.onAfterMergeRouterConfiguration(viewModel, config, router, this, routes, ...args);
+                }
             }
             this.isRouterConfigured = true;
             this.isConfiguringRouter = false;
             const originalConfigureRouter = this.target.prototype[configureRouterSymbol];
             if (originalConfigureRouter !== undefined) {
-                return originalConfigureRouter.call(router.container.viewModel, config, router);
+                return originalConfigureRouter.call(viewModel, config, router);
             }
         });
     }
@@ -260,11 +281,11 @@ function assignOrProxyPrototypeProperty(proto, name, refSymbol, value) {
     proto[name] = value;
 }
 // tslint:disable:no-invalid-this
-function configureRouter(config, router) {
+function configureRouter(config, router, ...args) {
     return __awaiter(this, void 0, void 0, function* () {
         const target = Object.getPrototypeOf(this).constructor;
         const resource = router_metadata_1.routerMetadata.getOwn(target);
-        yield resource.configureRouter(config, router);
+        yield resource.configureRouter(config, router, ...args);
     });
 }
 // tslint:enable:no-invalid-this

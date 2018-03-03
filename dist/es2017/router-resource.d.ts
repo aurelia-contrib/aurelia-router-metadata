@@ -163,7 +163,7 @@ export declare class RouterResource {
      * If `target.prototype.configureRouter` already exists, a reference to that original method will be kept
      * and called at the end of this `configureRouter()` method.
      */
-    configureRouter(config: RouterConfiguration, router: Router): Promise<void>;
+    configureRouter(config: RouterConfiguration, router: Router, ...args: any[]): Promise<void>;
     protected getSettings(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): RouterMetadataSettings;
     protected getConfigFactory(): RouteConfigFactory;
     protected getResourceLoader(): IResourceLoader;

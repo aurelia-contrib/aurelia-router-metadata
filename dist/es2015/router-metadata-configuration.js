@@ -80,5 +80,9 @@ export class RouterMetadataSettings {
         this.filterChildRoutes = noFilter;
         this.enableEagerLoading = true;
         this.routerConfiguration = new RouterConfiguration();
+        this.onBeforeLoadChildRoutes = null;
+        this.onBeforeConfigMap = null;
+        this.assignRouterToViewModel = false;
+        this.onAfterMergeRouterConfiguration = null;
     }
 }

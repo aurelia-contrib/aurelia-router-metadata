@@ -182,21 +182,42 @@ export class RouterResource {
      * If `target.prototype.configureRouter` already exists, a reference to that original method will be kept
      * and called at the end of this `configureRouter()` method.
      */
-    async configureRouter(config, router) {
+    async configureRouter(config, router, ...args) {
+        const viewModel = router.container.viewModel;
+        const settings = this.getSettings();
+        if (typeof settings.onBeforeLoadChildRoutes === "function") {
+            await settings.onBeforeLoadChildRoutes(viewModel, config, router, this, ...args);
+        }
         this.isConfiguringRouter = true;
         const routes = await this.loadChildRoutes();
         assignPaths(routes);
+        if (typeof settings.onBeforeConfigMap === "function") {
+            await settings.onBeforeConfigMap(viewModel, config, router, this, routes, ...args);
+        }
         config.map(routes);
         this.router = router;
-        if (router instanceof AppRouter) {
+        if (router instanceof AppRouter || router.isRoot) {
+            const assign = settings.assignRouterToViewModel;
+            if (assign === true) {
+                viewModel.router = router;
+            }
+            else if (Object.prototype.toString.call(assign) === "[object String]") {
+                viewModel[assign] = router;
+            }
+            else if (typeof assign === "function") {
+                await assign(viewModel, config, router, this, routes, ...args);
+            }
             const settingsConfig = this.getSettings().routerConfiguration || {};
             mergeRouterConfiguration(config, settingsConfig);
+            if (typeof settings.onAfterMergeRouterConfiguration === "function") {
+                await settings.onAfterMergeRouterConfiguration(viewModel, config, router, this, routes, ...args);
+            }
         }
         this.isRouterConfigured = true;
         this.isConfiguringRouter = false;
         const originalConfigureRouter = this.target.prototype[configureRouterSymbol];
         if (originalConfigureRouter !== undefined) {
-            return originalConfigureRouter.call(router.container.viewModel, config, router);
+            return originalConfigureRouter.call(viewModel, config, router);
         }
     }
     getSettings(instruction) {
@@ -243,10 +264,10 @@ function assignOrProxyPrototypeProperty(proto, name, refSymbol, value) {
     proto[name] = value;
 }
 // tslint:disable:no-invalid-this
-async function configureRouter(config, router) {
+async function configureRouter(config, router, ...args) {
     const target = Object.getPrototypeOf(this).constructor;
     const resource = routerMetadata.getOwn(target);
-    await resource.configureRouter(config, router);
+    await resource.configureRouter(config, router, ...args);
 }
 // tslint:enable:no-invalid-this
 function mergeRouterConfiguration(target, source) {

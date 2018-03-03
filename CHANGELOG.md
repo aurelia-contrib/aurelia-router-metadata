@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.8.0"></a>
+# [0.8.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.7.0...v0.8.0) (2018-03-03)
+
+
+### Bug Fixes
+
+* **router-resource:** also check the .isRoot property on the router when deciding whether to merge the RouterConfiguration ([c9711ec](https://github.com/fkleuver/aurelia-router-metadata/commit/c9711ec))
+
+
+### Features
+
+* add lifeCycleArgs and additional configuration hooks for centralized control over app-wide router configuration ([084e1da](https://github.com/fkleuver/aurelia-router-metadata/commit/084e1da))
+
+
+
 <a name="0.7.0"></a>
 # [0.7.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.6.0...v0.7.0) (2018-03-02)
 

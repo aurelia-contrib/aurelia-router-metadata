@@ -80,6 +80,10 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-router", 
             this.filterChildRoutes = noFilter;
             this.enableEagerLoading = true;
             this.routerConfiguration = new aurelia_router_1.RouterConfiguration();
+            this.onBeforeLoadChildRoutes = null;
+            this.onBeforeConfigMap = null;
+            this.assignRouterToViewModel = false;
+            this.onAfterMergeRouterConfiguration = null;
         }
     }
     exports.RouterMetadataSettings = RouterMetadataSettings;
