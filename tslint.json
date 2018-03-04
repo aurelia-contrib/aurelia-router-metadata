@@ -74,7 +74,7 @@
     "no-unnecessary-callback-wrapper": true,
     "no-unnecessary-initializer": true,
     "no-unnecessary-override": true,
-    "no-unsafe-any": true,
+    "no-unsafe-any": false, // fkleuver: checking "any" arguments for null or undefined should be up to the author, as in many cases this leads to redundant checks
     "no-unsafe-finally": true,
     "no-unused-expression": true,
     "no-use-before-declare": true,
@@ -85,7 +85,14 @@
     "react-this-binding-issue": true,
     "react-unused-props-and-state": true,
     "restrict-plus-operands": true, // the plus operand should really only be used for strings and numbers
-    "strict-boolean-expressions": true,
+    "strict-boolean-expressions": [
+      true,
+      "allow-null-union",
+      "allow-undefined-union",
+      "allow-string",
+      "allow-number",
+      "allow-mix"
+      ], // fkleuver: allowing these is a productivity tradeoff between time spent looking for bugs caused by unintentional uses, and time saved by writing shorter code
     "switch-default": true,
     "switch-final-break": true,
     "triple-equals": [true, "allow-null-check"],

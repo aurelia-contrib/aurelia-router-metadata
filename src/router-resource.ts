@@ -1,5 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { getLogger, Logger } from "aurelia-logging";
+import { getLogger } from "aurelia-logging";
 import { AppRouter, Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
@@ -18,7 +18,7 @@ import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-me
 const configureRouterSymbol = (Symbol("configureRouter") as any) as string;
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
 
-const logger = getLogger("router-metadata") as Logger;
+const logger = getLogger("router-metadata");
 
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or
@@ -79,11 +79,13 @@ export class RouterResource {
    *
    * Filter function to determine which `RouteConfig` objects to exclude from mapping on the target class' router
    */
-  public filterChildRoutes: (
-    config: ICompleteRouteConfig,
-    allConfigs: ICompleteRouteConfig[],
-    configureInstruction: IConfigureRouterInstruction
-  ) => boolean | Promise<boolean> | PromiseLike<boolean>;
+  public filterChildRoutes:
+    | ((
+        config: ICompleteRouteConfig,
+        allConfigs: ICompleteRouteConfig[],
+        configureInstruction: IConfigureRouterInstruction
+      ) => boolean | Promise<boolean> | PromiseLike<boolean>)
+    | null;
 
   /**
    * Only applicable when `isRouteConfig`
@@ -91,7 +93,7 @@ export class RouterResource {
    * Instruction that describes how the RouteConfigs (ownRoutes) should be created when the routes
    * are requested to be loaded.
    */
-  public createRouteConfigInstruction: ICreateRouteConfigInstruction;
+  public createRouteConfigInstruction: ICreateRouteConfigInstruction | null;
 
   /**
    * Only applicable when `isConfigureRouter`
@@ -124,22 +126,22 @@ export class RouterResource {
   /**
    * The parent route
    */
-  public parent: RouterResource;
+  public parent: RouterResource | null;
 
   /**
    * Only applicable when `isConfigureRouter`
    *
    * The router that was passed to the target class' `configureRouter()` method
    */
-  public router: Router;
+  public router: Router | null;
 
   /**
    * Only applicable when `isConfigureRouter`
    *
    * A convenience property which returns `router.container`, or `null` if the router is not set
    */
-  public get container(): Container {
-    return this.router ? this.router.container : (null as any);
+  public get container(): Container | null {
+    return this.router ? this.router.container : null;
   }
 
   /**
@@ -148,7 +150,7 @@ export class RouterResource {
    * A convenience property which returns `router.container.viewModel`, or `null` if the router is not set
    * This is an instance of the target class
    */
-  public get instance(): IRouterResourceTargetProto {
+  public get instance(): IRouterResourceTargetProto | null {
     return this.container ? (this.container as any).viewModel : null;
   }
 
@@ -170,16 +172,16 @@ export class RouterResource {
     this.isConfigureRouter = false;
     this.routeConfigModuleIds = [];
     this.enableEagerLoading = false;
-    this.createRouteConfigInstruction = null as any;
+    this.createRouteConfigInstruction = null;
     this.ownRoutes = [];
     this.childRoutes = [];
-    this.filterChildRoutes = null as any;
+    this.filterChildRoutes = null;
     this.areChildRoutesLoaded = false;
     this.areOwnRoutesLoaded = false;
     this.isConfiguringRouter = false;
     this.isRouterConfigured = false;
-    this.parent = null as any;
-    this.router = null as any;
+    this.parent = null;
+    this.router = null;
   }
 
   /**
@@ -218,11 +220,11 @@ export class RouterResource {
    * be initialized as `configureRouter`, otherwise as `routeConfig`
    * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
    */
-  public initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): void {
+  public initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction | null): void {
     if (!instruction) {
       // We're not being called from a decorator, so just apply defaults as if we're a @routeConfig
       // tslint:disable-next-line:no-parameter-reassignment
-      instruction = { target: this.target };
+      instruction = this.ensureCreateRouteConfigInstruction();
     }
     const settings = this.getSettings(instruction);
     const target = instruction.target;
@@ -248,7 +250,7 @@ export class RouterResource {
   }
 
   public async loadOwnRoutes(router?: Router): Promise<ICompleteRouteConfig[]> {
-    this.router = router || (null as any);
+    this.router = router !== undefined ? router : null;
     if (this.areOwnRoutesLoaded) {
       return this.ownRoutes;
     }
@@ -256,12 +258,10 @@ export class RouterResource {
     // If we're in this method then it can never be the root, so it's always safe to apply @routeConfig initialization
     if (!this.isRouteConfig) {
       this.isRouteConfig = true;
-      this.initialize(this.createRouteConfigInstruction);
+      this.initialize();
     }
 
-    const instruction = this.createRouteConfigInstruction;
-    instruction.moduleId = instruction.moduleId || this.moduleId;
-
+    const instruction = this.ensureCreateRouteConfigInstruction();
     const configs = await this.getConfigFactory().createRouteConfigs(instruction);
     for (const config of configs) {
       config.settings.routerResource = this;
@@ -286,7 +286,7 @@ export class RouterResource {
    * @param router (Optional) The router that was passed to the target instance's `configureRouter()`
    */
   public async loadChildRoutes(router?: Router): Promise<ICompleteRouteConfig[]> {
-    this.router = router || (null as any);
+    this.router = router !== undefined ? router : null;
     if (this.areChildRoutesLoaded) {
       return this.childRoutes;
     }
@@ -303,7 +303,7 @@ export class RouterResource {
         await resource.loadChildRoutes();
       }
       for (const childRoute of childRoutes) {
-        if (await this.filterChildRoutes(childRoute, childRoutes, this)) {
+        if (!this.filterChildRoutes || (await this.filterChildRoutes(childRoute, childRoutes, this))) {
           if (this.ownRoutes.length > 0) {
             childRoute.settings.parentRoute = this.ownRoutes[0];
           }
@@ -376,6 +376,15 @@ export class RouterResource {
     if (originalConfigureRouter !== undefined) {
       return originalConfigureRouter.call(viewModel, config, router);
     }
+  }
+
+  protected ensureCreateRouteConfigInstruction(): ICreateRouteConfigInstruction {
+    const instruction = this.createRouteConfigInstruction || (this.createRouteConfigInstruction = ({} as any));
+    instruction.target = instruction.target || this.target;
+    instruction.moduleId = instruction.moduleId || this.moduleId;
+    instruction.settings = instruction.settings || this.getSettings(instruction);
+
+    return instruction;
   }
 
   protected getSettings(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): RouterMetadataSettings {

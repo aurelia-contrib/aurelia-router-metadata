@@ -7,7 +7,7 @@ import { RouterResource } from "./router-resource";
 
 @autoinject()
 export class ResourceLoader implements IResourceLoader {
-  private cache: { [moduleId: string]: RouterResource };
+  private cache: { [moduleId: string]: RouterResource | undefined };
   private loader: Loader;
 
   constructor(loader: Loader) {

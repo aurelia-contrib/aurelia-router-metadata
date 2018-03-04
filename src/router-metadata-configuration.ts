@@ -12,82 +12,10 @@ import { ResourceLoader } from "./resource-loader";
 import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 import { RouterResource } from "./router-resource";
 
-/**
- * Class used to configure behavior of [[RouterResource]]
- */
-export class RouterMetadataConfiguration {
-  protected static instance: RouterMetadataConfiguration;
-  /**
-   * Gets the global configuration instance. This will be automatically resolved from
-   * [[Container.instance]] and assigned when first accessed.
-   */
-  public static get INSTANCE(): RouterMetadataConfiguration {
-    if (!this.instance) {
-      this.instance = Container.instance.get(RouterMetadataConfiguration);
-    }
-
-    return this.instance;
-  }
-  /**
-   * Sets the global configuration instance. Should be configured before setRoot()
-   * for changes to propagate.
-   */
-  public static set INSTANCE(instance: RouterMetadataConfiguration) {
-    this.instance = instance;
-  }
-
-  protected container: Container;
-
-  /**
-   * @param container Optionally pass in a container to use for resolving the dependencies
-   * that this class resolves. Will default to Container.instance if null.
-   */
-  constructor(container?: Container) {
-    this.container = container || Container.instance;
-  }
-
-  /**
-   * Gets the RouteConfigFactory that is registered with DI, or defaults to
-   * [[DefaultRouteConfigFactory]] if its not registered.
-   * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer to scope certain overrides for certain viewModels.
-   */
-  public getConfigFactory(container?: Container): RouteConfigFactory {
-    const c = container || this.container;
-
-    if (!c.hasResolver(RouteConfigFactory)) {
-      c.registerSingleton(RouteConfigFactory, DefaultRouteConfigFactory);
-    }
-
-    return c.get(RouteConfigFactory);
-  }
-
-  /**
-   * Gets the RouterMetadataSettings that is registered with DI, or creates
-   * a default one with noop functions if its not registered.
-   * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer to scope certain overrides for certain viewModels.
-   */
-  public getSettings(container?: Container): RouterMetadataSettings {
-    const c = container || this.container;
-
-    return c.get(RouterMetadataSettings);
-  }
-
-  /**
-   * Gets the ResourceLoader that is registered with DI
-   * @param container Optionally pass in a container to use for resolving this dependency.
-   * Can be a ChildContainer to scope certain overrides for certain viewModels.
-   */
-  public getResourceLoader(container?: Container): IResourceLoader {
-    const c = container || this.container;
-
-    return c.get(ResourceLoader);
-  }
-}
-
 const noTransform = (configs: ICompleteRouteConfig[]): ICompleteRouteConfig[] => configs;
 const noFilter = (): boolean => true;
+// tslint:disable-next-line:no-empty
+const noAction = (..._: any[]): void => {};
 const defaults = {
   nav: true
 };
@@ -202,9 +130,83 @@ export class RouterMetadataSettings {
     this.enableEagerLoading = true;
 
     this.routerConfiguration = new RouterConfiguration() as any;
-    this.onBeforeLoadChildRoutes = null as any;
-    this.onBeforeConfigMap = null as any;
+    this.onBeforeLoadChildRoutes = noAction;
+    this.onBeforeConfigMap = noAction;
     this.assignRouterToViewModel = false;
-    this.onAfterMergeRouterConfiguration = null as any;
+    this.onAfterMergeRouterConfiguration = noAction;
+  }
+}
+
+/**
+ * Class used to configure behavior of [[RouterResource]]
+ */
+export class RouterMetadataConfiguration {
+  protected static instance: RouterMetadataConfiguration;
+  /**
+   * Gets the global configuration instance. This will be automatically resolved from
+   * [[Container.instance]] and assigned when first accessed.
+   */
+  public static get INSTANCE(): RouterMetadataConfiguration {
+    if (this.instance === undefined) {
+      this.instance = Container.instance.get(RouterMetadataConfiguration);
+    }
+
+    return this.instance;
+  }
+  /**
+   * Sets the global configuration instance. Should be configured before setRoot()
+   * for changes to propagate.
+   */
+  public static set INSTANCE(instance: RouterMetadataConfiguration) {
+    this.instance = instance;
+  }
+
+  protected container: Container;
+
+  /**
+   * @param container Optionally pass in a container to use for resolving the dependencies
+   * that this class resolves. Will default to Container.instance if null.
+   */
+  constructor(container?: Container | null) {
+    this.container = container || Container.instance;
+  }
+
+  /**
+   * Gets the RouteConfigFactory that is registered with DI, or defaults to
+   * [[DefaultRouteConfigFactory]] if its not registered.
+   * @param container Optionally pass in a container to use for resolving this dependency.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
+   */
+  public getConfigFactory(container?: Container | null): RouteConfigFactory {
+    const c = container || this.container;
+
+    if (!c.hasResolver(RouteConfigFactory)) {
+      c.registerSingleton(RouteConfigFactory, DefaultRouteConfigFactory);
+    }
+
+    return c.get(RouteConfigFactory);
+  }
+
+  /**
+   * Gets the RouterMetadataSettings that is registered with DI, or creates
+   * a default one with noop functions if its not registered.
+   * @param container Optionally pass in a container to use for resolving this dependency.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
+   */
+  public getSettings(container?: Container | null): RouterMetadataSettings {
+    const c = container || this.container;
+
+    return c.get(RouterMetadataSettings);
+  }
+
+  /**
+   * Gets the ResourceLoader that is registered with DI
+   * @param container Optionally pass in a container to use for resolving this dependency.
+   * Can be a ChildContainer to scope certain overrides for certain viewModels.
+   */
+  public getResourceLoader(container?: Container | null): IResourceLoader {
+    const c = container || this.container;
+
+    return c.get(ResourceLoader);
   }
 }

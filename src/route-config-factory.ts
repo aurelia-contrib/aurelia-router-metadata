@@ -1,5 +1,24 @@
 import { ICompleteRouteConfig, ICreateRouteConfigInstruction, IRouteConfig, IRouterResourceTarget } from "./interfaces";
 
+const routeConfigProperties: string[] = [
+  "route",
+  "moduleId",
+  "redirect",
+  "navigationStrategy",
+  "viewPorts",
+  "nav",
+  "href",
+  "generationUsesHref",
+  "title",
+  "settings",
+  "navModel",
+  "caseSensitive",
+  "activationStrategy",
+  "layoutView",
+  "layoutViewModel",
+  "layoutModel"
+];
+
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */
@@ -53,8 +72,8 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
   }
 }
 
-function ensureArray<T>(value: T | undefined | T[]): T[] {
-  if (value === undefined) {
+function ensureArray<T>(value: T | null | undefined | T[]): T[] {
+  if (value === null || value === undefined) {
     return [];
   }
 
@@ -80,7 +99,7 @@ function getPrototypeDefaults(target: IRouterResourceTarget): IRouteConfig {
   let config = getPrototypeDefaults(proto);
 
   // first grab any static "RouteConfig-like" properties from the target
-  for (const prop of routeConfigProperies) {
+  for (const prop of routeConfigProperties) {
     if (target.hasOwnProperty(prop)) {
       config[prop] = target[prop];
     }
@@ -106,22 +125,3 @@ function hyphenate(value: string): string {
 function toTitle(value: string): string {
   return value.replace(/([A-Z])/g, (char: string) => ` ${char}`).trimLeft();
 }
-
-const routeConfigProperies: string[] = [
-  "route",
-  "moduleId",
-  "redirect",
-  "navigationStrategy",
-  "viewPorts",
-  "nav",
-  "href",
-  "generationUsesHref",
-  "title",
-  "settings",
-  "navModel",
-  "caseSensitive",
-  "activationStrategy",
-  "layoutView",
-  "layoutViewModel",
-  "layoutModel"
-];
