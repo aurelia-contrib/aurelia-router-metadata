@@ -1,11 +1,12 @@
 import { Container } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
-import { RouteConfig, AppRouter, RouterConfiguration } from "aurelia-router";
+import { AppRouter, RouteConfig, RouterConfiguration } from "aurelia-router";
 import { IConfigureRouterInstruction, IRouteConfigInstruction } from "../../src/interfaces";
 import { ResourceLoader } from "../../src/resource-loader";
 import { routerMetadata } from "../../src/router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import { RouterResource } from "../../src/router-resource";
+import { SymbolRegistry } from "../../src/symbol-registry";
 import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
 
 // tslint:disable:function-name
@@ -20,6 +21,7 @@ describe("RouterResource", () => {
     target: Function;
   };
 
+  let registry: SymbolRegistry;
   let routerMetadataMock: RouterMetadataMock;
   let originMock: OriginMock;
   let loaderMock: LoaderMock;
@@ -30,6 +32,7 @@ describe("RouterResource", () => {
       target: new Function()
     };
 
+    registry = new SymbolRegistry();
     routerMetadataMock = new RouterMetadataMock().activate();
     originMock = new OriginMock().activate();
     loaderMock = new LoaderMock()
@@ -37,7 +40,7 @@ describe("RouterResource", () => {
       .link(originMock)
       .add(dummy.moduleId, dummy.target);
 
-    const resourceLoader = new ResourceLoader(loaderMock as any);
+    const resourceLoader = new ResourceLoader(loaderMock as any, registry);
     Container.instance = new Container();
     Container.instance.registerInstance(ResourceLoader, resourceLoader);
     RouterMetadataConfiguration.INSTANCE = new RouterMetadataConfiguration(Container.instance);

@@ -1,4 +1,5 @@
 import { ResourceLoader } from "../../src/aurelia-router-metadata";
+import { SymbolRegistry } from "../../src/symbol-registry";
 import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
 
 // tslint:disable:function-name
@@ -21,6 +22,7 @@ describe("resourceLoader", () => {
     target: Object;
   };
 
+  let registry: SymbolRegistry;
   let routerMetadataMock: RouterMetadataMock;
   let originMock: OriginMock;
   let loaderMock: LoaderMock;
@@ -44,6 +46,7 @@ describe("resourceLoader", () => {
       target: new Object()
     };
 
+    registry = new SymbolRegistry();
     routerMetadataMock = new RouterMetadataMock().activate();
     originMock = new OriginMock().activate();
     loaderMock = new LoaderMock()
@@ -53,7 +56,7 @@ describe("resourceLoader", () => {
       .add(validMultiDummy.moduleId, validMultiDummy.target)
       .add(invalidDummy.moduleId, invalidDummy.target);
 
-    sut = new ResourceLoader(loaderMock as any);
+    sut = new ResourceLoader(loaderMock as any, registry);
   });
 
   afterEach(() => {
