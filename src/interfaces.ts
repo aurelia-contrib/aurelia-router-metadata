@@ -99,6 +99,7 @@ export interface IResourceLoader {
  */
 export interface IRouteConfigSettings {
   [key: string]: any;
+  routerResource: RouterResource;
   childRoutes: ICompleteRouteConfig[];
   parentRoute?: ICompleteRouteConfig;
   /**

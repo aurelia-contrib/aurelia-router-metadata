@@ -11,6 +11,7 @@ import {
   IRouterResourceTarget,
   IRouterResourceTargetProto
 } from "./interfaces";
+import { $Module } from "./model";
 import { RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
@@ -25,6 +26,9 @@ const logger = getLogger("router-metadata");
  * configures a router to navigate to other routes (maps routes)
  */
 export class RouterResource {
+
+  public $module: $Module | null;
+
   /**
    * The target ("constructor Function") of the class this resource applies to
    */
@@ -101,7 +105,6 @@ export class RouterResource {
    * True if `loadChildRoutes()` has run on this instance
    */
   public areChildRoutesLoaded: boolean;
-
   /**
    * Only applicable when `isRouteConfig`
    *
@@ -124,9 +127,16 @@ export class RouterResource {
   public isRouterConfigured: boolean;
 
   /**
-   * The parent route
+   * All parents of this route
    */
-  public parent: RouterResource | null;
+  public parents: Set<RouterResource>;
+
+  /**
+   * The first (primary) parent of this route
+   */
+  public get parent(): RouterResource | null {
+    return this.parents.keys().next().value || null;
+  }
 
   /**
    * Only applicable when `isConfigureRouter`
@@ -154,18 +164,9 @@ export class RouterResource {
     return this.container ? (this.container as any).viewModel : null;
   }
 
-  /**
-   * Returns a concatenation separated by '/' of the name of the first of `ownRoutes` of this instance,
-   * together with the parents up to the root
-   */
-  public get path(): string {
-    const ownName = this.ownRoutes.length > 0 ? this.ownRoutes[0].name : "";
-    const parentPath = this.parent ? this.parent.path : null;
-
-    return parentPath ? `${parentPath}/${ownName}` : ownName;
-  }
 
   constructor(target: IRouterResourceTarget, moduleId?: string) {
+    this.$module = null;
     this.target = target;
     this.moduleId = moduleId;
     this.isRouteConfig = false;
@@ -180,7 +181,7 @@ export class RouterResource {
     this.areOwnRoutesLoaded = false;
     this.isConfiguringRouter = false;
     this.isRouterConfigured = false;
-    this.parent = null;
+    this.parents = new Set<RouterResource>();
     this.router = null;
   }
 
@@ -215,13 +216,15 @@ export class RouterResource {
   /**
    * Initializes this resource based on the provided instruction.
    *
-   * This method is called by the static `ROUTE_CONFIG` and `CONFIGURE_ROUTER` methods, and can be used instead of those
-   * to achieve the same effect. If there is a `routeConfigModuleIds` property present on the instruction, it will
-   * be initialized as `configureRouter`, otherwise as `routeConfig`
+   * If there is a `routeConfigModuleIds` property present on the instruction,
+   * or the target has a `configureRouter()` method, it will be initialized as `configureRouter`, otherwise as `routeConfig`
    * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
    */
   public initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction | null): void {
     if (!instruction) {
+      if (this.isRouteConfig) {
+        return; // already configured
+      }
       // We're not being called from a decorator, so just apply defaults as if we're a @routeConfig
       // tslint:disable-next-line:no-parameter-reassignment
       instruction = this.ensureCreateRouteConfigInstruction();
@@ -229,6 +232,9 @@ export class RouterResource {
     const settings = this.getSettings(instruction);
     const target = instruction.target;
     if (isConfigureRouterInstruction(instruction)) {
+      if (this.isConfigureRouter) {
+        return; // already configured
+      }
       logger.debug(`initializing @configureRouter for ${target.name}`);
 
       this.isConfigureRouter = true;
@@ -240,6 +246,9 @@ export class RouterResource {
 
       assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
     } else {
+      if (this.isRouteConfig) {
+        return; // already configured
+      }
       logger.debug(`initializing @routeConfig for ${target.name}`);
 
       this.isRouteConfig = true;
@@ -249,8 +258,7 @@ export class RouterResource {
     }
   }
 
-  public async loadOwnRoutes(router?: Router): Promise<ICompleteRouteConfig[]> {
-    this.router = router !== undefined ? router : null;
+  public async loadOwnRoutes(): Promise<ICompleteRouteConfig[]> {
     if (this.areOwnRoutesLoaded) {
       return this.ownRoutes;
     }
@@ -298,7 +306,7 @@ export class RouterResource {
     for (const moduleId of this.routeConfigModuleIds) {
       const resource = await loader.loadRouterResource(moduleId);
       const childRoutes = await resource.loadOwnRoutes();
-      resource.parent = this;
+      resource.parents.add(this);
       if (resource.isConfigureRouter && this.enableEagerLoading) {
         await resource.loadChildRoutes();
       }
@@ -418,11 +426,11 @@ function ensureArray<T>(value: T | undefined | T[]): T[] {
 }
 
 function assignPaths(routes: ICompleteRouteConfig[]): void {
-  for (const route of routes) {
+  for (const route of routes.filter((r: ICompleteRouteConfig) => !r.settings.path)) {
     const parentPath = route.settings.parentRoute ? route.settings.parentRoute.settings.path : "";
     const pathProperty = route.settings.pathProperty || "route";
     const path = route[pathProperty];
-    route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/");
+    route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/").replace(/^\//, "");
 
     assignPaths(route.settings.childRoutes || []);
   }

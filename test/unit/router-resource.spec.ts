@@ -6,7 +6,7 @@ import { ResourceLoader } from "../../src/resource-loader";
 import { routerMetadata } from "../../src/router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import { RouterResource } from "../../src/router-resource";
-import { SymbolRegistry } from "../../src/symbol-registry";
+import { Registry } from "../../src/registry";
 import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
 
 // tslint:disable:function-name
@@ -21,7 +21,7 @@ describe("RouterResource", () => {
     target: Function;
   };
 
-  let registry: SymbolRegistry;
+  let registry: Registry;
   let routerMetadataMock: RouterMetadataMock;
   let originMock: OriginMock;
   let loaderMock: LoaderMock;
@@ -32,7 +32,7 @@ describe("RouterResource", () => {
       target: new Function()
     };
 
-    registry = new SymbolRegistry();
+    registry = new Registry();
     routerMetadataMock = new RouterMetadataMock().activate();
     originMock = new OriginMock().activate();
     loaderMock = new LoaderMock()
@@ -494,14 +494,12 @@ describe("RouterResource", () => {
       expect(mr11).toBe(rt11);
       expect(mr12).toBe(rt12);
 
-      expect(mr0.path).toEqual("");
       expect(mr0.parent).toBeNull();
       expect(mr0.ownRoutes.length).toEqual(0);
       expect(mr0.childRoutes.length).toEqual(2);
       expect(mr0.childRoutes[0]).toBe(rt1.ownRoutes[0]);
       expect(mr0.childRoutes[1]).toBe(rt2.ownRoutes[0]);
 
-      expect(rt1.path).toBe("pg1");
       expect(rt1.parent).toBe(mr0);
       expect(rt1.ownRoutes.length).toEqual(1);
       expect(rt1.ownRoutes[0].name).toEqual("pg1");
@@ -511,7 +509,6 @@ describe("RouterResource", () => {
       expect(rt1.ownRoutes[0].settings.childRoutes[0]).toBe(rt11.ownRoutes[0]);
       expect(rt1.ownRoutes[0].settings.childRoutes[1]).toBe(rt12.ownRoutes[0]);
 
-      expect(rt11.path).toBe("pg1/pg1-pg1");
       expect(rt11.parent).toBe(rt1);
       expect(rt11.ownRoutes.length).toEqual(1);
       expect(rt11.ownRoutes[0].name).toEqual("pg1-pg1");
@@ -521,7 +518,6 @@ describe("RouterResource", () => {
       expect(rt11.ownRoutes[0].settings.childRoutes[0]).toBe(rt111.ownRoutes[0]);
       expect(rt11.ownRoutes[0].settings.childRoutes[1]).toBe(rt112.ownRoutes[0]);
 
-      expect(rt12.path).toBe("pg1/pg1-pg2");
       expect(rt12.parent).toBe(rt1);
       expect(rt12.ownRoutes.length).toEqual(1);
       expect(rt12.ownRoutes[0].name).toEqual("pg1-pg2");
@@ -531,31 +527,26 @@ describe("RouterResource", () => {
       expect(rt12.ownRoutes[0].settings.childRoutes[0]).toBe(rt121.ownRoutes[0]);
       expect(rt12.ownRoutes[0].settings.childRoutes[1]).toBe(rt122.ownRoutes[0]);
 
-      expect(rt111.path).toBe("pg1/pg1-pg1/pg1-pg1-pg1");
       expect(rt111.parent).toBe(mr11);
       expect(rt111.ownRoutes.length).toEqual(1);
       expect(rt111.ownRoutes[0].name).toEqual("pg1-pg1-pg1");
       expect(rt111.childRoutes.length).toEqual(0);
 
-      expect(rt112.path).toBe("pg1/pg1-pg1/pg1-pg1-pg2");
       expect(rt112.parent).toBe(mr11);
       expect(rt112.ownRoutes.length).toEqual(1);
       expect(rt112.ownRoutes[0].name).toEqual("pg1-pg1-pg2");
       expect(rt112.childRoutes.length).toEqual(0);
 
-      expect(rt121.path).toBe("pg1/pg1-pg2/pg1-pg2-pg1");
       expect(rt121.parent).toBe(mr12);
       expect(rt121.ownRoutes.length).toEqual(1);
       expect(rt121.ownRoutes[0].name).toEqual("pg1-pg2-pg1");
       expect(rt121.childRoutes.length).toEqual(0);
 
-      expect(rt122.path).toBe("pg1/pg1-pg2/pg1-pg2-pg2");
       expect(rt122.parent).toBe(mr12);
       expect(rt122.ownRoutes.length).toEqual(1);
       expect(rt122.ownRoutes[0].name).toEqual("pg1-pg2-pg2");
       expect(rt122.childRoutes.length).toEqual(0);
 
-      expect(rt2.path).toBe("pg2");
       expect(rt2.parent).toBe(mr0);
       expect(rt2.ownRoutes.length).toEqual(1);
       expect(rt2.ownRoutes[0].name).toEqual("pg2");
@@ -563,14 +554,103 @@ describe("RouterResource", () => {
       expect(rt2.childRoutes[0]).toBe(rt21.ownRoutes[0]);
       expect(rt2.childRoutes[1]).toBe(rt22.ownRoutes[0]);
 
-      expect(rt21.path).toBe("pg2/pg2-pg1");
       expect(rt21.parent).toBe(rt2);
       expect(rt21.ownRoutes.length).toEqual(1);
       expect(rt21.childRoutes.length).toEqual(0);
 
-      expect(rt22.path).toBe("pg2/pg2-pg2");
       expect(rt22.parent).toBe(rt2);
       expect(rt22.ownRoutes.length).toEqual(1);
+      expect(rt22.childRoutes.length).toEqual(0);
+    });
+
+    it("configureRouter() on the root correctly configures it", async () => {
+      const appViewModel = new Pg0();
+      const configStub = { map: (): void => {} } as any;
+      const routerStub = { container: { viewModel: appViewModel, get: Container.instance.get } } as any;
+
+      await mr0.configureRouter(configStub, routerStub);
+
+      expect(mr1).toBe(rt1);
+      expect(mr2).toBe(rt2);
+      expect(mr11).toBe(rt11);
+      expect(mr12).toBe(rt12);
+
+      expect(mr0.parent).toBeNull();
+      expect(mr0.ownRoutes.length).toEqual(0);
+      expect(mr0.childRoutes.length).toEqual(2);
+      expect(mr0.childRoutes[0]).toBe(rt1.ownRoutes[0]);
+      expect(mr0.childRoutes[1]).toBe(rt2.ownRoutes[0]);
+
+      expect(rt1.parent).toBe(mr0);
+      expect(rt1.ownRoutes.length).toEqual(1);
+      expect(rt1.ownRoutes[0].name).toEqual("pg1");
+      expect(rt1.ownRoutes[0].settings.path).toBe("pg1");
+      expect(rt1.childRoutes.length).toEqual(2);
+      expect(rt1.childRoutes[0]).toBe(rt11.ownRoutes[0]);
+      expect(rt1.childRoutes[1]).toBe(rt12.ownRoutes[0]);
+      expect(rt1.ownRoutes[0].settings.childRoutes[0]).toBe(rt11.ownRoutes[0]);
+      expect(rt1.ownRoutes[0].settings.childRoutes[1]).toBe(rt12.ownRoutes[0]);
+
+      expect(rt11.parent).toBe(rt1);
+      expect(rt11.ownRoutes.length).toEqual(1);
+      expect(rt11.ownRoutes[0].name).toEqual("pg1-pg1");
+      expect(rt11.ownRoutes[0].settings.path).toBe("pg1/pg1-pg1");
+      expect(rt11.childRoutes.length).toEqual(2);
+      expect(rt11.childRoutes[0]).toBe(rt111.ownRoutes[0]);
+      expect(rt11.childRoutes[1]).toBe(rt112.ownRoutes[0]);
+      expect(rt11.ownRoutes[0].settings.childRoutes[0]).toBe(rt111.ownRoutes[0]);
+      expect(rt11.ownRoutes[0].settings.childRoutes[1]).toBe(rt112.ownRoutes[0]);
+
+      expect(rt12.parent).toBe(rt1);
+      expect(rt12.ownRoutes.length).toEqual(1);
+      expect(rt12.ownRoutes[0].name).toEqual("pg1-pg2");
+      expect(rt12.ownRoutes[0].settings.path).toBe("pg1/pg1-pg2");
+      expect(rt12.childRoutes.length).toEqual(2);
+      expect(rt12.childRoutes[0]).toBe(rt121.ownRoutes[0]);
+      expect(rt12.childRoutes[1]).toBe(rt122.ownRoutes[0]);
+      expect(rt12.ownRoutes[0].settings.childRoutes[0]).toBe(rt121.ownRoutes[0]);
+      expect(rt12.ownRoutes[0].settings.childRoutes[1]).toBe(rt122.ownRoutes[0]);
+
+      expect(rt111.parent).toBe(mr11);
+      expect(rt111.ownRoutes.length).toEqual(1);
+      expect(rt111.ownRoutes[0].name).toEqual("pg1-pg1-pg1");
+      expect(rt111.ownRoutes[0].settings.path).toBe("pg1/pg1-pg1/pg1-pg1-pg1");
+      expect(rt111.childRoutes.length).toEqual(0);
+
+      expect(rt112.parent).toBe(mr11);
+      expect(rt112.ownRoutes.length).toEqual(1);
+      expect(rt112.ownRoutes[0].name).toEqual("pg1-pg1-pg2");
+      expect(rt112.ownRoutes[0].settings.path).toBe("pg1/pg1-pg1/pg1-pg1-pg2");
+      expect(rt112.childRoutes.length).toEqual(0);
+
+      expect(rt121.parent).toBe(mr12);
+      expect(rt121.ownRoutes.length).toEqual(1);
+      expect(rt121.ownRoutes[0].name).toEqual("pg1-pg2-pg1");
+      expect(rt121.ownRoutes[0].settings.path).toBe("pg1/pg1-pg2/pg1-pg2-pg1");
+      expect(rt121.childRoutes.length).toEqual(0);
+
+      expect(rt122.parent).toBe(mr12);
+      expect(rt122.ownRoutes.length).toEqual(1);
+      expect(rt122.ownRoutes[0].name).toEqual("pg1-pg2-pg2");
+      expect(rt122.ownRoutes[0].settings.path).toBe("pg1/pg1-pg2/pg1-pg2-pg2");
+      expect(rt122.childRoutes.length).toEqual(0);
+
+      expect(rt2.parent).toBe(mr0);
+      expect(rt2.ownRoutes.length).toEqual(1);
+      expect(rt2.ownRoutes[0].name).toEqual("pg2");
+      expect(rt2.ownRoutes[0].settings.path).toBe("pg2");
+      expect(rt2.childRoutes.length).toEqual(2);
+      expect(rt2.childRoutes[0]).toBe(rt21.ownRoutes[0]);
+      expect(rt2.childRoutes[1]).toBe(rt22.ownRoutes[0]);
+
+      expect(rt21.parent).toBe(rt2);
+      expect(rt21.ownRoutes.length).toEqual(1);
+      expect(rt21.ownRoutes[0].settings.path).toBe("pg2/pg2-pg1");
+      expect(rt21.childRoutes.length).toEqual(0);
+
+      expect(rt22.parent).toBe(rt2);
+      expect(rt22.ownRoutes.length).toEqual(1);
+      expect(rt22.ownRoutes[0].settings.path).toBe("pg2/pg2-pg2");
       expect(rt22.childRoutes.length).toEqual(0);
     });
 
