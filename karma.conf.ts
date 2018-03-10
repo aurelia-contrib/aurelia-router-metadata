@@ -1,27 +1,28 @@
-// tslint:disable:no-implicit-dependencies
-// tslint:disable:import-name
-import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import * as karma from "karma";
 import * as path from "path";
 import * as webpack from "webpack";
 
-export interface IConfig extends karma.Config, IConfigOptions {
-  set(config: IConfigOptions): void;
+export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
+  transpileOnly?: boolean;
+  noInfo?: boolean;
+  coverage?: boolean;
+  tsconfig?: string;
+  devtool?: string;
+  set(config: IKarmaConfigOptions): void;
 }
 
-export interface IConfigOptions extends karma.ConfigOptions {
-  webpack: IConfiguration;
+export interface IKarmaConfigOptions extends karma.ConfigOptions {
+  webpack: webpack.Configuration;
   coverageIstanbulReporter: any;
   webpackServer: any;
+  customLaunchers: any;
 }
 
-export interface IConfiguration extends webpack.Configuration {
-  mode: "development" | "production";
-}
+export default (config: IKarmaConfig): void => {
+  const rules: webpack.Rule[] = [];
 
-export default (config: IConfig): void => {
-  config.set({
-    basePath: "./",
+  const options: IKarmaConfigOptions = {
+    basePath: config.basePath || "./",
     frameworks: ["jasmine"],
     files: ["test/setup.ts"],
     preprocessors: {
@@ -31,12 +32,9 @@ export default (config: IConfig): void => {
       mode: "development",
       resolve: {
         extensions: [".ts", ".js"],
-        modules: ["src", "node_modules"],
-        alias: {
-          bluebird: path.resolve(__dirname, "node_modules/bluebird/js/browser/bluebird.core")
-        }
+        modules: ["src", "node_modules"]
       },
-      devtool: "cheap-module-eval-source-map",
+      devtool: config.devtool || "cheap-module-eval-sourcemap",
       module: {
         rules: [
           {
@@ -44,52 +42,42 @@ export default (config: IConfig): void => {
             loader: "ts-loader",
             exclude: /node_modules/,
             options: {
-              configFile: path.resolve(__dirname, "configs/tsconfig-test.json"),
-              transpileOnly: !config.singleRun
+              configFile: config.tsconfig,
+              transpileOnly: config.transpileOnly
             }
-          },
-          {
-            test: /[\/\\]node_modules[\/\\]bluebird[\/\\].+\.js$/,
-            use: [{ loader: "expose-loader?Promise" }]
-          },
-          {
-            enforce: "post",
-            exclude: /(node_modules|\.spec\.ts$)/,
-            loader: "istanbul-instrumenter-loader",
-            options: { esModules: true },
-            test: /src[\/\\].+\.ts$/
           }
         ]
-      },
-      plugins: [
-        new webpack.ProvidePlugin({
-          Promise: "bluebird"
-        }),
-        ...(config.singleRun
-          ? [new webpack.NoEmitOnErrorsPlugin()]
-          : [
-              new ForkTsCheckerWebpackPlugin({
-                watch: ["./src"],
-                formatter: "codeframe",
-                tsconfig: path.resolve(__dirname, "configs/tsconfig-test.json")
-              })
-            ])
-      ]
+      }
     },
     mime: {
       "text/x-typescript": ["ts"]
     },
-    reporters: ["mocha", "progress", "coverage-istanbul"],
-    coverageIstanbulReporter: {
+    reporters: ["mocha", "progress"],
+    webpackServer: { noInfo: config.noInfo },
+    browsers: config.browsers || ["Chrome"],
+    customLaunchers: {
+      ChromeDebugging: {
+        base: "Chrome",
+        flags: ["--remote-debugging-port=9333"],
+        debug: true
+      }
+    }
+  };
+
+  if (config.coverage) {
+    options.webpack.module.rules.push({
+      enforce: "post",
+      exclude: /(node_modules|\.spec\.ts$)/,
+      loader: "istanbul-instrumenter-loader",
+      options: { esModules: true },
+      test: /src[\/\\].+\.ts$/
+    });
+    options.reporters.push("coverage-istanbul");
+    options.coverageIstanbulReporter = {
       reports: ["html", "lcovonly", "text-summary"],
       fixWebpackSourcePaths: true
-    },
-    webpackServer: { noInfo: true },
-    port: 9876,
-    colors: true,
-    logLevel: config.LOG_INFO,
-    autoWatch: true,
-    browsers: ["ChromeHeadless"],
-    singleRun: false
-  });
+    };
+  }
+
+  config.set(options);
 };

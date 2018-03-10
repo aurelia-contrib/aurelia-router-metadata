@@ -41,7 +41,7 @@
     "no-any": false, // fkleuver: we often need to use external libraries with incomplete/outdated type definitions, and casting "as any" is the only reasonable way to work around type-checking errors
     "no-arg": true,
     "no-backbone-get-set-outside-model": true,
-    "no-bitwise": true,
+    "no-bitwise": false, // fkleuver: we need bitwise and we know what we're doing..
     "no-conditional-assignment": true,
     "no-console": [true, "debug", "info", "log", "time", "timeEnd", "trace"],
     "no-constant-condition": true,
@@ -181,7 +181,7 @@
     "underscore-consistent-invocation": true,
     "unified-signatures": true,
     "use-default-type-parameter": true,
-    "variable-name": true,
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"], // fkleuver: allowing leading underscore allows for pragmatic enforcement of compiler rule "no-unused-locals"
 
     /**
      * Accessibility. The following rules should be turned on to guarantee the best user
