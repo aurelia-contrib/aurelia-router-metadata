@@ -2,6 +2,7 @@
 import { getLogger } from "aurelia-logging";
 import { NavModel, RouteConfig, Router } from "aurelia-router";
 import { bindable, customElement } from "aurelia-templating";
+import { TaskQueue } from "aurelia-framework";
 
 const logger = getLogger("nav-menu");
 
@@ -15,6 +16,12 @@ export class NavMenu {
   public menuContainer: HTMLDivElement;
   public hoverPath: NavItem[] = [];
 
+  private tq: TaskQueue
+
+  constructor(tq: TaskQueue) {
+    this.tq = tq;
+  }
+
   public attached(): void {
     const getMaxHeight = (items: NavItem[]): number => {
       const visibleItems = items.filter((i: NavItem) => (i as any).nav !== false);
@@ -26,8 +33,10 @@ export class NavMenu {
 
       return maxHeight;
     };
-    const navHeight = getMaxHeight(this.router.navigation) * 40;
-    this.menuContainer.style.height = `${navHeight}px`;
+    this.tq.queueMicroTask(() => {
+      const navHeight = getMaxHeight(this.router.navigation) * 40;
+      this.menuContainer.style.height = `${navHeight}px`;
+    });
   }
 
   private navItemMouseEnter(item: NavItem): void {

@@ -11,7 +11,7 @@
     </div>
     <div class="ui vertical menu" repeat.for="item of hoverPath">
       <template repeat.for="route of item.settings.childRoutes | filter:'nav':true">
-        <a href="${'#/' + route.settings.routerResource.path}" class="item ${route.isActive || (route.navModel && route.navModel.isActive) ? 'active' : ''} ${route.settings.hovering ? 'hovering' : ''}"
+        <a href="${'#/' + route.settings.path}" class="item ${route.isActive || (route.navModel && route.navModel.isActive) ? 'active' : ''} ${route.settings.hovering ? 'hovering' : ''}"
           mouseenter.trigger="navItemMouseEnter(route)">
           ${route.title}
           <i if.bind="route.settings.childRoutes" class="icon chevron right"></i>
