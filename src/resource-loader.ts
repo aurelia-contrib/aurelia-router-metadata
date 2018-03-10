@@ -35,11 +35,11 @@ export class ResourceLoader implements IResourceLoader {
     return resource;
   }
 
-  public async loadModule(moduleId: string): Promise<$Module> {
-    let $module = this.registry.getModule(moduleId);
+  public async loadModule(normalizedId: string): Promise<$Module> {
+    let $module = this.registry.getModule(normalizedId);
     if ($module === undefined) {
-      const moduleInstance = await this.loader.loadModule(moduleId);
-      $module = this.registry.getOrRegisterModule(moduleInstance);
+      const moduleInstance = await this.loader.loadModule(normalizedId);
+      $module = this.registry.registerModule(moduleInstance, normalizedId);
     }
 
     return $module;

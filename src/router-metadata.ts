@@ -1,8 +1,8 @@
-import { metadata } from "aurelia-metadata";
-import { IRouterResourceTarget } from "./interfaces";
+import { IRouterResourceTarget, IRouterResourceTargetProto } from "./interfaces";
 import { RouterResource } from "./router-resource";
 
-const metadataKey: string = "aurelia:router-metadata";
+const key: string = "__routerMetadata__";
+const resourceKey: string = "resource";
 
 /**
  * Helpers for working with router metadata on ViewModels
@@ -29,20 +29,45 @@ export interface IRouterMetadataType {
 }
 
 export const routerMetadata: IRouterMetadataType = {
-  getOwn(target: IRouterResourceTarget): RouterResource {
-    return metadata.getOwn(metadataKey, target) as RouterResource;
+  getOwn(target: IRouterResourceTarget | IRouterResourceTargetProto): RouterResource {
+    const metadata = getMetadataObject(target);
+
+    return metadata[resourceKey];
   },
-  define(resource: RouterResource, target: IRouterResourceTarget): void {
-    metadata.define(metadataKey, resource, target);
+  define(resource: RouterResource, target: IRouterResourceTarget | IRouterResourceTargetProto): void {
+    const metadata = getMetadataObject(target);
+    Object.defineProperty(metadata, resourceKey, {
+      enumerable: false,
+      configurable: false,
+      writable: true,
+      value: resource
+    });
   },
-  getOrCreateOwn(target: IRouterResourceTarget, moduleId?: string): RouterResource {
-    let result = routerMetadata.getOwn(target);
+  getOrCreateOwn(target: IRouterResourceTarget | IRouterResourceTargetProto, moduleId?: string): RouterResource {
+    const metadata = getMetadataObject(target);
+    let result = metadata[resourceKey];
 
     if (result === undefined) {
-      result = new RouterResource(target, moduleId);
-      metadata.define(metadataKey, result, target);
+      result = metadata[resourceKey] = new RouterResource(
+        target instanceof Function ? target : target.constructor,
+        moduleId
+      );
     }
 
     return result;
   }
 };
+
+function getMetadataObject(target: IRouterResourceTarget | IRouterResourceTargetProto): { [key: string]: any } {
+  const proto = target instanceof Function ? target.prototype : target;
+  if (!Object.prototype.hasOwnProperty.call(proto, key)) {
+    Object.defineProperty(proto, key, {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: Object.create(null)
+    });
+  }
+
+  return proto[key];
+}

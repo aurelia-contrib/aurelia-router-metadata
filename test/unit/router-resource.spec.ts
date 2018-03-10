@@ -7,7 +7,7 @@ import { routerMetadata } from "../../src/router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "../../src/router-metadata-configuration";
 import { RouterResource } from "../../src/router-resource";
 import { Registry } from "../../src/registry";
-import { LoaderMock, OriginMock, RouterMetadataMock } from "./mocks";
+import { LoaderMock, PlatformMock, RouterMetadataMock } from "./mocks";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file
@@ -23,7 +23,7 @@ describe("RouterResource", () => {
 
   let registry: Registry;
   let routerMetadataMock: RouterMetadataMock;
-  let originMock: OriginMock;
+  let platformMock: PlatformMock;
   let loaderMock: LoaderMock;
 
   beforeEach(() => {
@@ -34,10 +34,10 @@ describe("RouterResource", () => {
 
     registry = new Registry();
     routerMetadataMock = new RouterMetadataMock().activate();
-    originMock = new OriginMock().activate();
+    platformMock = new PlatformMock().activate();
     loaderMock = new LoaderMock()
       .activate()
-      .link(originMock)
+      .link(platformMock)
       .add(dummy.moduleId, dummy.target);
 
     const resourceLoader = new ResourceLoader(loaderMock as any, registry);
@@ -48,7 +48,7 @@ describe("RouterResource", () => {
 
   afterEach(() => {
     routerMetadataMock.deactivate();
-    originMock.deactivate();
+    platformMock.deactivate();
     loaderMock.deactivate();
   });
 

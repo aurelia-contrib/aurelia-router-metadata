@@ -1,5 +1,5 @@
 import { singleton } from "aurelia-dependency-injection";
-import { Origin } from "aurelia-metadata";
+import { PLATFORM } from "aurelia-pal";
 import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "./model";
 
 @singleton()
@@ -15,21 +15,34 @@ export class Registry {
   }
 
   public getModule(normalizedId: string): $Module | undefined {
-    return this.cache[normalizedId];
+    let $module = this.cache[normalizedId];
+
+    if ($module === undefined) {
+      let moduleExport: any;
+      PLATFORM.eachModule((moduleId: string, value: any) => {
+        if (moduleId === normalizedId) {
+          moduleExport = value;
+
+          return true;
+        } else {
+          return false;
+        }
+      });
+      if (moduleExport !== undefined) {
+        $module = this.registerModule(moduleExport, normalizedId);
+      }
+    }
+
+    return $module;
   }
 
-  public getOrRegisterModule(moduleInstance: Function | { [key: string]: Function }, moduleId?: string): $Module {
-    const normalizedId = moduleId || Origin.get(moduleInstance as any).moduleId;
-
-    if (this.cache[normalizedId]) {
-      return this.cache[normalizedId] as $Module;
-    }
-    this.moduleIds.add(normalizedId);
-    const $module = (this.cache[normalizedId] = new $Module(this.$application, normalizedId, moduleInstance));
+  public registerModule(moduleInstance: Function | { [key: string]: Function }, moduleId: string): $Module {
+    this.moduleIds.add(moduleId);
+    const $module = (this.cache[moduleId] = new $Module(this.$application, moduleId, moduleInstance));
     this.$application.addModule($module);
 
     if (moduleInstance instanceof Function) {
-      this.registerModuleExport($module, "default", moduleInstance);
+      this.registerModuleExport($module, "default", moduleInstance as Function);
     } else {
       for (const exportName of Object.keys(moduleInstance)) {
         const exportValue = moduleInstance[exportName];

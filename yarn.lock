@@ -530,7 +530,7 @@ aurelia-logging@^1.0.0, aurelia-logging@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/aurelia-logging/-/aurelia-logging-1.4.0.tgz#04fb7aa74015593f7a15b225beeba07b7d14dcd5"
 
-aurelia-metadata@^1.0.0, aurelia-metadata@^1.0.2, aurelia-metadata@^1.0.3:
+aurelia-metadata@^1.0.0, aurelia-metadata@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/aurelia-metadata/-/aurelia-metadata-1.0.3.tgz#1e8d59da188e2871a8ad749ba42ca85084a3f30e"
   dependencies:

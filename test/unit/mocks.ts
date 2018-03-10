@@ -1,8 +1,8 @@
 import { Container } from "aurelia-dependency-injection";
 import { Loader } from "aurelia-loader";
-import { metadata, MetadataType, Origin } from "aurelia-metadata";
 import { RouterResource } from "../../src/aurelia-router-metadata";
 import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
+import { PLATFORM } from "aurelia-pal";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file
@@ -61,83 +61,42 @@ export class RouterMetadataMock {
   }
 }
 
-export class MetadataMock {
-  public backup: MetadataType;
-  public getOwn: jasmine.Spy;
-  public define: jasmine.Spy;
-
-  constructor() {
-    this.backup = {} as any;
-
-    this.getOwn = jasmine.createSpy().and.callFake((key: any, target: any) => {
-      if (target.hasOwnProperty("__metadata__")) {
-        return target.__metadata__[key];
-      }
-    });
-    this.define = jasmine.createSpy().and.callFake((key: any, value: any, target: any) => {
-      const container = target.hasOwnProperty("__metadata__") ? target.__metadata__ : (target.__metadata__ = {});
-      container[key] = value;
-    });
-  }
-
-  public activate(): MetadataMock {
-    this.assign(this.backup, metadata);
-    this.assign(metadata, this);
-
-    return this;
-  }
-
-  public deactivate(): MetadataMock {
-    this.assign(metadata, this.backup);
-    this.assign(this.backup);
-
-    return this;
-  }
-
-  private assign(target: any = {}, source: any = {}): void {
-    for (const prop of ["getOwn", "define"]) {
-      target[prop] = source[prop];
-    }
-  }
-}
-
-export class OriginMock {
+export class PlatformMock {
   public map: Map<any, any>;
   public backup: any;
   // tslint:disable-next-line:no-reserved-keywords
-  public get: jasmine.Spy;
+  public eachModule: jasmine.Spy;
   public linkedLoaderMock: LoaderMock;
 
   constructor() {
     this.map = new Map();
     this.backup = {} as any;
-    this.get = jasmine.createSpy().and.callFake((arg: any) => {
-      const val = this.map.get(arg);
-      if (Object.prototype.toString.call(val) === "[object String]") {
-        return { moduleId: val };
-      } else {
-        return val;
+    this.eachModule = jasmine.createSpy().and.callFake((callback: Function) => {
+      for (const [key, value] of this.map.entries()) {
+        if (callback(value, key)) {
+          break;
+        }
       }
     });
     this.linkedLoaderMock = null as any;
   }
 
-  public activate(): OriginMock {
-    this.backup.get = Origin.get;
-    Origin.get = this.get;
+  public activate(): PlatformMock {
+    this.backup.eachModule = PLATFORM.eachModule;
+    PLATFORM.eachModule = this.eachModule;
 
     return this;
   }
 
-  public deactivate(): OriginMock {
-    Origin.get = this.backup.get;
-    this.backup.get = null;
+  public deactivate(): PlatformMock {
+    PLATFORM.eachModule = this.backup.eachModule;
+    this.backup.eachModule = null;
     this.linkedLoaderMock = null as any;
 
     return this;
   }
 
-  public add(key: any, value: any): OriginMock {
+  public add(key: any, value: any): PlatformMock {
     this.map.set(key, value);
     if (this.linkedLoaderMock && !this.linkedLoaderMock.map.has(value)) {
       this.linkedLoaderMock.add(value, key);
@@ -146,7 +105,7 @@ export class OriginMock {
     return this;
   }
 
-  public link(loaderMock: LoaderMock): OriginMock {
+  public link(loaderMock: LoaderMock): PlatformMock {
     this.linkedLoaderMock = loaderMock;
     if (!loaderMock.linkedOriginMock) {
       loaderMock.link(this);
@@ -160,7 +119,7 @@ export class LoaderMock {
   public map: Map<any, any>;
   // tslint:disable-next-line:no-reserved-keywords
   public loadModule: jasmine.Spy;
-  public linkedOriginMock: OriginMock;
+  public linkedOriginMock: PlatformMock;
 
   constructor() {
     this.map = new Map();
@@ -192,7 +151,7 @@ export class LoaderMock {
     return this;
   }
 
-  public link(originMock: OriginMock): LoaderMock {
+  public link(originMock: PlatformMock): LoaderMock {
     this.linkedOriginMock = originMock;
     if (!originMock.linkedLoaderMock) {
       originMock.link(this);
