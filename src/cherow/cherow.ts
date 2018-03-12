@@ -26,14 +26,14 @@ export const pluginClassCache: {
     [key: string]: any
 } = {};
 
-function parse(source: string, context: Context, options: Options | void) {
+function parse(source: string, context: Context, options?: Options | null) {
 
     let sourceFile: string = '';
 
     let Cherow;
     let delegate: Delegate | null = null;
 
-    if (options != null) {
+    if (!!options) {
 
         if (options.source) sourceFile = options.source;
 
@@ -62,13 +62,13 @@ function parse(source: string, context: Context, options: Options | void) {
 
 // https://tc39.github.io/ecma262/#sec-scripts
 
-export const parseScript = (source: string, options?: Options) => {
+export const parseScript = (source: string, options?: Options | null) => {
     return parse(source, Context.TopLevel, options);
 };
 
 // https://tc39.github.io/ecma262/#sec-modules
 
-export const parseModule = (source: string, options?: Options) => {
+export const parseModule = (source: string, options?: Options | null) => {
     return parse(source, Context.Strict | Context.Module | Context.TopLevel, options);
 };
 

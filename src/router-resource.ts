@@ -164,7 +164,6 @@ export class RouterResource {
     return this.container ? (this.container as any).viewModel : null;
   }
 
-
   constructor(target: IRouterResourceTarget, moduleId?: string) {
     this.$module = null;
     this.target = target;

@@ -437,7 +437,7 @@ describe("RouterResource", () => {
 
       for (const c of classes as any[]) {
         delete c.prototype.configureRouter;
-        delete c.__metadata__;
+        delete c.__routerMetadata__;
       }
 
       loaderMock.add("empty", Empty);

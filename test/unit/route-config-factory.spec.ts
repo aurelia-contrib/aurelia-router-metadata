@@ -51,12 +51,12 @@ describe("DefaultRouteConfigFactory", () => {
 
       for (const prop of routeConfigProperies) {
         if (prop.early) {
-          expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
+          expect(actual[prop.targetProp]).toEqual(expected[prop.sourceProp]);
         } else {
           if (prop.targetProp !== "name") {
-            expect(actual[prop.targetProp]).not.toBe(expected[prop.sourceProp]);
+            expect(actual[prop.targetProp]).not.toEqual(expected[prop.sourceProp]);
           } else {
-            expect(actual[prop.targetProp]).not.toBe(expected.name as string);
+            expect(actual[prop.targetProp]).not.toEqual(expected.name as string);
           }
         }
       }
@@ -68,10 +68,10 @@ describe("DefaultRouteConfigFactory", () => {
 
       const actual = (await sut.createRouteConfigs(instruction))[0];
 
-      expect(actual.route).toBe("is-empty");
-      expect(actual.name).toBe("is-empty");
-      expect(actual.title).toBe("Is Empty");
-      expect(actual.moduleId).toBe(instruction.moduleId);
+      expect(actual.route).toEqual("is-empty");
+      expect(actual.name).toEqual("is-empty");
+      expect(actual.title).toEqual("Is Empty");
+      expect(actual.moduleId).toEqual(instruction.moduleId);
     });
 
     it("should return a RouteConfig when called synchronously and the inner transform function is synchronous", () => {
@@ -80,10 +80,10 @@ describe("DefaultRouteConfigFactory", () => {
 
       const actual = (sut.createRouteConfigs(instruction) as ICompleteRouteConfig[])[0];
 
-      expect(actual.route).toBe("is-empty");
-      expect(actual.name).toBe("is-empty");
-      expect(actual.title).toBe("Is Empty");
-      expect(actual.moduleId).toBe(instruction.moduleId);
+      expect(actual.route).toEqual("is-empty");
+      expect(actual.name).toEqual("is-empty");
+      expect(actual.title).toEqual("Is Empty");
+      expect(actual.moduleId).toEqual(instruction.moduleId);
     });
 
     it("should override convention-based defaults with information found on static properties on the class", async () => {
@@ -95,7 +95,7 @@ describe("DefaultRouteConfigFactory", () => {
 
       for (const prop of routeConfigProperies) {
         if (!prop.late) {
-          expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
+          expect(actual[prop.targetProp]).toEqual(expected[prop.sourceProp]);
         }
       }
     });
@@ -110,9 +110,9 @@ describe("DefaultRouteConfigFactory", () => {
       for (const prop of routeConfigProperies) {
         if (!prop.late) {
           if (prop.targetProp !== "name") {
-            expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
+            expect(actual[prop.targetProp]).toEqual(expected[prop.sourceProp]);
           } else {
-            expect(actual[prop.targetProp]).toBe(expected.name as string);
+            expect(actual[prop.targetProp]).toEqual(expected.name as string);
           }
         }
       }
@@ -125,7 +125,7 @@ describe("DefaultRouteConfigFactory", () => {
       const expected = instruction;
       const actual = (await sut.createRouteConfigs(instruction))[0];
 
-      expect(actual.moduleId).toBe(expected.moduleId as string);
+      expect(actual.moduleId).toEqual(expected.moduleId as string);
     });
 
     it("should apply transformRouteConfigs() last", async () => {
@@ -138,9 +138,9 @@ describe("DefaultRouteConfigFactory", () => {
 
       for (const prop of routeConfigProperies) {
         if (prop.targetProp !== "name") {
-          expect(actual[prop.targetProp]).toBe(expected[prop.sourceProp]);
+          expect(actual[prop.targetProp]).toEqual(expected[prop.sourceProp]);
         } else {
-          expect(actual[prop.targetProp]).toBe(expected.name as string);
+          expect(actual[prop.targetProp]).toEqual(expected.name as string);
         }
       }
     });

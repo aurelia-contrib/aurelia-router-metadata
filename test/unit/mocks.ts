@@ -1,8 +1,8 @@
 import { Container } from "aurelia-dependency-injection";
 import { Loader } from "aurelia-loader";
+import { PLATFORM } from "aurelia-pal";
 import { RouterResource } from "../../src/aurelia-router-metadata";
 import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
-import { PLATFORM } from "aurelia-pal";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file
@@ -20,8 +20,8 @@ export class RouterMetadataMock {
     this.backup = {} as any;
 
     this.getOwn = jasmine.createSpy().and.callFake((target: any) => {
-      if (target.hasOwnProperty("__metadata__")) {
-        return target.__metadata__["aurelia:router-metadata"];
+      if (target.hasOwnProperty("__routerMetadata__")) {
+        return target.__routerMetadata__.resource;
       }
     });
     this.getOrCreateOwn = jasmine.createSpy().and.callFake((target: any, moduleId?: string) => {
@@ -35,8 +35,8 @@ export class RouterMetadataMock {
       return result;
     });
     this.define = jasmine.createSpy().and.callFake((value: any, target: any) => {
-      const container = target.hasOwnProperty("__metadata__") ? target.__metadata__ : (target.__metadata__ = {});
-      container["aurelia:router-metadata"] = value;
+      const container = target.hasOwnProperty("__routerMetadata__") ? target.__routerMetadata__ : (target.__routerMetadata__ = {});
+      container.resource = value;
     });
   }
 

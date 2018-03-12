@@ -86,7 +86,7 @@ export class Parser {
     private errorLocation: Location | void;
     private delegate: any;
 
-    constructor(source: string, sourceFile: string, delegate: Delegate | null | void) {
+    constructor(source: string, sourceFile: string, delegate?: Delegate | null) {
         this.source = source;
         this.token = Token.EndOfSource;
         this.flags = Flags.None;
@@ -114,7 +114,7 @@ export class Parser {
 
     // https://tc39.github.io/ecma262/#sec-scripts
     // https://tc39.github.io/ecma262/#sec-modules
-    public parseProgram(context: Context, options: Options | void): ESTree.Program {
+    public parseProgram(context: Context, options?: Options | null): ESTree.Program {
 
         if (options != null) {
             if (options.next) context |= Context.OptionsNext;
@@ -825,7 +825,8 @@ export class Parser {
         }
 
         this.report(Errors.UnterminatedComment);
-        return;
+
+        return undefined;
     }
 
     private skipSingleLineComment(context: Context, state: Scanner): Scanner {
@@ -5481,7 +5482,8 @@ export class Parser {
                 return this.parseJSXElementOrFragment(context & ~Context.Expression);
             default: // ignore
         }
-        return
+
+        return undefined;
     }
 
     public parseJSXSpreadChild(context: Context): ESTree.JSXSpreadChild {
@@ -5598,7 +5600,8 @@ export class Parser {
             default:
                 this.nextToken(context);
         }
-        return;
+
+        return undefined;
     }
 
     public parseJSXSpreadAttribute(context: Context) {

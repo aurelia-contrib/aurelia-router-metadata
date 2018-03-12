@@ -1,23 +1,21 @@
-import { ICompleteRouteConfig, ICreateRouteConfigInstruction, IRouteConfig, IRouterResourceTarget } from "./interfaces";
+import { ICompleteRouteConfig, ICreateRouteConfigInstruction } from "./interfaces";
+import {
+  CompleteRouteConfigCollectionBuilder,
+  ContainerProvider,
+  RouteConfigCollectionBuilder,
+  RouteConfigDefaultsBuilder,
+  RouteConfigOverridesBuilder,
+  RouterMetadataSettingsProvider,
+  RouterResourceProvider,
+  TerminatingBuilder
+} from "./resolution/builders";
+import { BuilderContext, CompositeBuilderNode, FilteringBuilderNode, Postprocessor } from "./resolution/core";
+import { EnsureObjectPropertyFunction } from "./resolution/functions";
+import { IBuilderContext } from "./resolution/interfaces";
+import { CompleteRouteConfigCollectionRequest } from "./resolution/requests";
+import { RouteConfigRequestSpecification } from "./resolution/specifications";
 
-const routeConfigProperties: string[] = [
-  "route",
-  "moduleId",
-  "redirect",
-  "navigationStrategy",
-  "viewPorts",
-  "nav",
-  "href",
-  "generationUsesHref",
-  "title",
-  "settings",
-  "navModel",
-  "caseSensitive",
-  "activationStrategy",
-  "layoutView",
-  "layoutViewModel",
-  "layoutModel"
-];
+// tslint:disable:max-classes-per-file
 
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
@@ -33,6 +31,28 @@ export abstract class RouteConfigFactory {
  * The default RouteConfig factory
  */
 export class DefaultRouteConfigFactory extends RouteConfigFactory {
+  public context: IBuilderContext;
+  constructor() {
+    super();
+    this.context = new BuilderContext(
+      new CompositeBuilderNode(
+        new FilteringBuilderNode(
+          new CompositeBuilderNode(
+            new CompleteRouteConfigCollectionBuilder(),
+            new RouteConfigDefaultsBuilder(),
+            new RouteConfigCollectionBuilder(),
+            new Postprocessor(new RouteConfigOverridesBuilder(), new EnsureObjectPropertyFunction("settings"))
+          ),
+          new RouteConfigRequestSpecification()
+        ),
+        new RouterMetadataSettingsProvider(),
+        new RouterResourceProvider(),
+        new ContainerProvider(),
+        new TerminatingBuilder()
+      )
+    );
+  }
+
   /**
    * Creates `RouteConfig` objects based on the provided instruction
    *
@@ -42,86 +62,16 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
   public createRouteConfigs(
     instruction: ICreateRouteConfigInstruction
   ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
-    const { target, routes, moduleId, settings } = instruction;
-    const configs: ICompleteRouteConfig[] = [];
-
-    const settingsDefaults = { ...(settings.routeConfigDefaults || {}) };
-    const conventionDefaults = { ...getNameConventionDefaults(target) };
-    const prototypeDefaults = getPrototypeDefaults(target);
-    const defaults = { ...settingsDefaults, ...conventionDefaults, ...prototypeDefaults };
-
-    const prototypeRoutes = ensureArray(target.routes);
-    const argumentRoutes = ensureArray(routes);
-    const baseConfigs = [...prototypeRoutes, ...argumentRoutes];
-    if (baseConfigs.length === 0) {
-      baseConfigs.push(defaults);
-    }
-
-    const overrides = { ...(settings.routeConfigOverrides || {}) };
-    for (const baseConfig of baseConfigs) {
-      const config = { ...defaults, ...baseConfig, ...overrides };
-      config.settings = config.settings || {};
-      config.moduleId = moduleId;
-      config.route = ensureArray(config.route);
-      for (const route of config.route) {
-        configs.push({ ...config, route });
-      }
-    }
-
-    return settings.transformRouteConfigs(configs, instruction);
+    return this.context.resolve(new CompleteRouteConfigCollectionRequest(instruction));
   }
 }
 
-function ensureArray<T>(value: T | null | undefined | T[]): T[] {
-  if (value === null || value === undefined) {
-    return [];
+export class SeededInstruction {
+  public input: any;
+  public seed: any;
+
+  constructor(input: any, seed: any) {
+    this.input = input;
+    this.seed = seed;
   }
-
-  return Array.isArray(value) ? value : [value];
-}
-
-function getNameConventionDefaults(target: IRouterResourceTarget): IRouteConfig {
-  const hyphenated = hyphenate(target.name);
-
-  return {
-    route: hyphenated,
-    name: hyphenated,
-    title: toTitle(target.name)
-  };
-}
-
-function getPrototypeDefaults(target: IRouterResourceTarget): IRouteConfig {
-  // start with the first up in the prototype chain and override any properties we come across down the chain
-  if (target === Function.prototype) {
-    return {} as any;
-  }
-  const proto = Object.getPrototypeOf(target);
-  let config = getPrototypeDefaults(proto);
-
-  // first grab any static "RouteConfig-like" properties from the target
-  for (const prop of routeConfigProperties) {
-    if (target.hasOwnProperty(prop)) {
-      config[prop] = target[prop];
-    }
-  }
-  if (target.hasOwnProperty("routeName")) {
-    config.name = target.routeName;
-  }
-  // then override them with any properties on the target's baseRoute property (if present)
-  if (target.hasOwnProperty("baseRoute")) {
-    config = { ...config, ...target.baseRoute };
-  }
-
-  return config;
-}
-
-function hyphenate(value: string): string {
-  return (value.charAt(0).toLowerCase() + value.slice(1)).replace(
-    /([A-Z])/g,
-    (char: string) => `-${char.toLowerCase()}`
-  );
-}
-
-function toTitle(value: string): string {
-  return value.replace(/([A-Z])/g, (char: string) => ` ${char}`).trimLeft();
 }

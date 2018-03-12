@@ -1,6 +1,7 @@
 import { singleton } from "aurelia-dependency-injection";
 import { PLATFORM } from "aurelia-pal";
 import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "./model";
+import { allObjectKeys } from "./util";
 
 @singleton()
 export class Registry {
@@ -92,17 +93,10 @@ export class Registry {
 
   private registerProperties($object: $Constructor | $Prototype): void {
     const obj = $object.raw;
-    for (const key of getAllPropertyKeys(obj)) {
+    for (const key of allObjectKeys(obj)) {
       const descriptor = Object.getOwnPropertyDescriptor(obj, key) as PropertyDescriptor;
       const propertySymbol = new $Property($object, key, descriptor);
       $object.addProperty(propertySymbol);
     }
   }
-}
-
-function getAllPropertyKeys(obj: any): PropertyKey[] {
-  const names = Object.getOwnPropertyNames(obj) as PropertyKey[];
-  const symbols = Object.getOwnPropertySymbols(obj) as PropertyKey[];
-
-  return names.concat(symbols);
 }
