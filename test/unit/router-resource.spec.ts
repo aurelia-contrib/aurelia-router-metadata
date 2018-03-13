@@ -212,13 +212,33 @@ describe("RouterResource", () => {
   });
 
   describe("initialize()", () => {
-    it("should initialize as RouteConfig when no instruction is passed in", () => {
+    it("should initialize as RouteConfig when no instruction is passed in and target has no configureRouter method", () => {
       const sut = new RouterResource(dummy.target, dummy.moduleId);
 
       sut.initialize();
 
       expect(sut.isRouteConfig).toBe(true);
       expect(sut.isConfigureRouter).toBe(false);
+    });
+
+    it("should initialize as ConfigureRouter when no instruction is passed in but target has a configureRouter method", () => {
+      (dummy.target as any).configureRouter = () => {};
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
+
+      sut.initialize();
+
+      expect(sut.isRouteConfig).toBe(false);
+      expect(sut.isConfigureRouter).toBe(true);
+    });
+
+    // tslint:disable-next-line:max-line-length
+    it("should initialize as ConfigureRouter when an instruction with moduleIds is passed in but target has no configureRouter method", () => {
+      const sut = new RouterResource(dummy.target, dummy.moduleId);
+
+      sut.initialize({ routeConfigModuleIds: [], target: dummy.target });
+
+      expect(sut.isRouteConfig).toBe(false);
+      expect(sut.isConfigureRouter).toBe(true);
     });
   });
 
@@ -273,7 +293,7 @@ describe("RouterResource", () => {
       expect(actual[0]).toBe(childResource.ownRoutes[0]);
     });
 
-    it("should set \"areChildRoutesLoaded\" to true", async () => {
+    it('should set "areChildRoutesLoaded" to true', async () => {
       sut.initialize(sutInitInstruction);
 
       sut.areChildRoutesLoaded = false;
@@ -283,7 +303,7 @@ describe("RouterResource", () => {
       expect(sut.areChildRoutesLoaded).toBe(true);
     });
 
-    it("should return its cached childRoutes when \"areChildRoutesLoaded\" is true", async () => {
+    it('should return its cached childRoutes when "areChildRoutesLoaded" is true', async () => {
       const expected: any[] = [];
       sut.childRoutes = expected;
       sut.areChildRoutesLoaded = true;
@@ -304,7 +324,7 @@ describe("RouterResource", () => {
     it("should call config.map() with its own childRoutes", async () => {
       const config: any = { map: jasmine.createSpy() };
 
-      await sut.configureRouter(config, {container: {}} as any);
+      await sut.configureRouter(config, { container: {} } as any);
 
       expect(config.map).toHaveBeenCalledWith(sut.childRoutes);
     });
@@ -346,7 +366,7 @@ describe("RouterResource", () => {
         }
       }
       sut.target = HasConfigureRouter;
-      sut.initialize({target: HasConfigureRouter, routeConfigModuleIds: []});
+      sut.initialize({ target: HasConfigureRouter, routeConfigModuleIds: [] });
       const viewModel = new HasConfigureRouter();
       const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };
       const config = new RouterConfiguration();
@@ -365,7 +385,7 @@ describe("RouterResource", () => {
       }
       class InheritsConfigureRouter extends HasConfigureRouter {}
       sut.target = InheritsConfigureRouter;
-      sut.initialize({target: InheritsConfigureRouter, routeConfigModuleIds: []});
+      sut.initialize({ target: InheritsConfigureRouter, routeConfigModuleIds: [] });
       const viewModel = new InheritsConfigureRouter();
       const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };
       const config = new RouterConfiguration();
@@ -380,7 +400,7 @@ describe("RouterResource", () => {
         public async configureRouter(...args: any[]): Promise<void> {}
       }
       sut.target = HasConfigureRouter;
-      sut.initialize({target: HasConfigureRouter, routeConfigModuleIds: []});
+      sut.initialize({ target: HasConfigureRouter, routeConfigModuleIds: [] });
       routerMetadata.define(sut, HasConfigureRouter);
       const viewModel = new HasConfigureRouter();
       const router: any = { container: { viewModel: viewModel, get: Container.instance.get } };

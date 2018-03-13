@@ -1,8 +1,18 @@
 import { RouteConfig } from "aurelia-router";
-import { ICompleteRouteConfig, ICreateRouteConfigInstruction } from "../../src/interfaces";
+import { ICompleteRouteConfig, ICreateRouteConfigInstruction, IConfigureRouterInstruction } from "../../src/interfaces";
 import { DefaultRouteConfigFactory } from "../../src/route-config-factory";
 import { RouterMetadataSettings } from "../../src/router-metadata-configuration";
-import { HasStaticBaseRoute, HasStaticProperties, IsEmpty, randomRouteConfig1, randomRouteConfig2 } from "./test-data";
+import {
+  HasConfigureRouterWithRoutes,
+  HasStaticBaseRoute,
+  HasStaticProperties,
+  IsEmpty,
+  randomRouteConfig1,
+  randomRouteConfig2
+} from "./test-data";
+import { addAppender } from "aurelia-logging";
+import { routerMetadata } from "../../src/router-metadata";
+import { Registry } from "../../src/registry";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file
@@ -117,6 +127,49 @@ describe("DefaultRouteConfigFactory", () => {
         }
       }
     });
+
+    it("should extract RouteConfigs from the target's configureRouter() method", async () => {
+      const configureInstruction: IConfigureRouterInstruction = {
+        target: HasConfigureRouterWithRoutes
+      };
+      const resource = routerMetadata.getOrCreateOwn(HasConfigureRouterWithRoutes);
+      resource.moduleId = "has/configure-router/with-routes";
+      const reg = new Registry();
+      resource.$module = reg.registerModule(HasConfigureRouterWithRoutes, resource.moduleId);
+
+      const expectedConfigs: any[] = [
+        {
+          route: "",
+          redirect: "foo-bar",
+          nav: true
+        },
+        {
+          route: "baz-qux",
+          redirect: "foo-bar",
+          nav: true
+        },
+        {
+          route: "foo-bar",
+          moduleId: "foo-bar"
+        }
+      ];
+      const actualConfigs = (await sut.createChildRouteConfigs(configureInstruction));
+
+      for (let i = 0; i < 3; i++) {
+        const expected = expectedConfigs[i];
+        const actual = actualConfigs[i];
+        for (const prop of routeConfigProperies) {
+          if (!prop.late) {
+            if (prop.targetProp !== "name") {
+              expect(actual[prop.targetProp]).toEqual(expected[prop.sourceProp]);
+            } else {
+              expect(actual[prop.targetProp]).toEqual(expected.name as string);
+            }
+          }
+        }
+      }
+    });
+
 
     it("should assign the instruction's moduleId after applying settings, convention-based defaults and static properties", async () => {
       instruction.target = HasStaticBaseRoute;

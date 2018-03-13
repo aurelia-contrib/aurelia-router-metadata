@@ -1,3 +1,4 @@
+import { PLATFORM } from "aurelia-pal";
 import { NavigationInstruction, NavModel, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 
 // tslint:disable:function-name
@@ -12,6 +13,21 @@ export class HasConfigureRouter {
 
   public async configureRouter(_config: RouterConfiguration, router: Router): Promise<void> {
     this.router = router;
+  }
+}
+export class HasConfigureRouterWithRoutes {
+  public configureRouter(config: RouterConfiguration, _router: Router): void {
+    config.map([
+      {
+        route: ["", "baz-qux"],
+        redirect: "foo-bar",
+        nav: true
+      },
+      {
+        route: "foo-bar",
+        moduleId: PLATFORM.moduleName("foo-bar")
+      }
+    ]);
   }
 }
 export class HasStaticProperties {

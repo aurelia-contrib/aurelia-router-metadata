@@ -36,7 +36,7 @@ export interface IRouteConfigInstruction extends IRouterResourceInstruction {
  * Instruction that contains information needed to create a @configureRouter
  */
 export interface IConfigureRouterInstruction extends IRouterResourceInstruction {
-  routeConfigModuleIds: string | string[];
+  routeConfigModuleIds?: string | string[];
 }
 
 /**

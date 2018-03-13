@@ -1,13 +1,28 @@
 import { Container } from "aurelia-dependency-injection";
 import { routerMetadata, RouterMetadataSettings, RouterResource } from "../aurelia-router-metadata";
+import {
+  CallExpression,
+  FunctionDeclaration} from "../cherow/estree";
 import { ICompleteRouteConfig, IRouteConfig } from "../interfaces";
+import { $Constructor } from "../model";
+import { Registry } from "../registry";
 import { ensureArray } from "../util";
 import { NoResult } from "./core";
-import { IBuilder, IBuilderContext } from "./interfaces";
+import { IBuilder, IBuilderContext, IPropertyQuery } from "./interfaces";
 import { constructorRouteConfigMapper, objectRouteConfigMapper } from "./mapping";
 import {
+  AnalyzeArrayExpressionPropertyRequest,
+  AnalyzeCallExpressionArgumentRequest,
+  AnalyzeCallExpressionPropertyRequest,
+  AnalyzeLiteralPropertyRequest,
+  AnalyzeObjectExpressionPropertyRequest,
+  AnalyzeObjectExpressionRequest,
+  AnalyzePropertyRequest,
+  ChildRouteConfigCollectionRequest,
+  CompleteChildRouteConfigCollectionRequest,
   CompleteRouteConfigCollectionRequest,
   ContainerRequest,
+  RegisteredConstructorRequest,
   RouteConfigCollectionRequest,
   RouteConfigDefaultsRequest,
   RouteConfigOverridesRequest,
@@ -18,6 +33,10 @@ import {
 
 // tslint:disable:max-classes-per-file
 
+/**
+ * Base builder that provides a simple method to get the appropriate RouterMetadataSettings
+ * for a given instruction
+ */
 export abstract class RouteConfigBuilder implements IBuilder {
   public abstract create(request: RouteConfigRequest, context: IBuilderContext): any;
 
@@ -30,6 +49,10 @@ export abstract class RouteConfigBuilder implements IBuilder {
   }
 }
 
+/**
+ * Builder that aggregates the results from child builders to create fully enriched RouteConfigs
+ * for a given instruction, from the perspective of the target module of a route.
+ */
 export class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
   public create(request: CompleteRouteConfigCollectionRequest, context: IBuilderContext): any {
     if (!(request instanceof CompleteRouteConfigCollectionRequest)) {
@@ -55,6 +78,10 @@ export class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
   }
 }
 
+/**
+ * Builder that retrieves the convention- and property based RouteConfig defaults
+ * for a given instruction, which are used as a seed for building the actual RouteConfigs
+ */
 export class RouteConfigDefaultsBuilder extends RouteConfigBuilder {
   public create(request: RouteConfigDefaultsRequest, context: IBuilderContext): any {
     if (!(request instanceof RouteConfigDefaultsRequest)) {
@@ -80,6 +107,11 @@ export class RouteConfigDefaultsBuilder extends RouteConfigBuilder {
   }
 }
 
+/**
+ * Builder that looks for any user-provided routes via the instruction or static properties
+ * and merges them with the defaults returned from the DefaultsBuilder.
+ * If no routes were specified, simply returns the defaults as a single RouteConfig.
+ */
 export class RouteConfigCollectionBuilder extends RouteConfigBuilder {
   public create(request: RouteConfigCollectionRequest, context: IBuilderContext): any {
     if (!(request instanceof RouteConfigCollectionRequest)) {
@@ -104,6 +136,10 @@ export class RouteConfigCollectionBuilder extends RouteConfigBuilder {
   }
 }
 
+/**
+ * Builder that retrieves the RouteConfigOverrides from the settings as well as
+ * the moduleId from the instruction.
+ */
 export class RouteConfigOverridesBuilder extends RouteConfigBuilder {
   public create(request: RouteConfigOverridesRequest, context: IBuilderContext): any {
     if (!(request instanceof RouteConfigOverridesRequest)) {
@@ -122,6 +158,10 @@ export class RouteConfigOverridesBuilder extends RouteConfigBuilder {
   }
 }
 
+/**
+ * Builder that tries to return the most specific RouterMetadataSettings
+ * for a given instruction.
+ */
 export class RouterMetadataSettingsProvider implements IBuilder {
   public create(request: any, context: IBuilderContext): any {
     let container: Container | undefined;
@@ -142,6 +182,10 @@ export class RouterMetadataSettingsProvider implements IBuilder {
   }
 }
 
+/**
+ * Builder that tries to return the most specific Container
+ * for a given instruction.
+ */
 export class ContainerProvider implements IBuilder {
   public create(request: any, context: IBuilderContext): any {
     if (request === Container) {
@@ -158,16 +202,24 @@ export class ContainerProvider implements IBuilder {
   }
 }
 
+/**
+ * Builder that resolves the RouterResource for a given target.
+ */
 export class RouterResourceProvider implements IBuilder {
   public create(request: RouterResourceRequest, _: IBuilderContext): any {
     if (!(request instanceof RouterResourceRequest)) {
       return new NoResult();
     }
 
-    return routerMetadata.getOwn(request.target);
+    return routerMetadata.getOrCreateOwn(request.target);
   }
 }
 
+/**
+ * Builder that simply forwards a request to the most specific Container available,
+ * but will only do so if that container actually has a resolver.
+ * Otherwise, will return NoResult.
+ */
 export class ContainerRelay implements IBuilder {
   public container: Container | null;
 
@@ -188,20 +240,6 @@ export class ContainerRelay implements IBuilder {
   }
 }
 
-export class TerminatingBuilder implements IBuilder {
-  public create(request: any, _context: IBuilderContext): any {
-    throw new BuilderError("Unable to resolve a request. See the error object for details on the request.", request);
-  }
-}
-
-export class BuilderError extends Error {
-  public request: any;
-  constructor(message: string, request: any) {
-    super(message);
-    this.request = request;
-  }
-}
-
 function hyphenate(value: string): string {
   return (value.charAt(0).toLowerCase() + value.slice(1)).replace(
     /([A-Z])/g,
@@ -211,4 +249,260 @@ function hyphenate(value: string): string {
 
 function toTitle(value: string): string {
   return value.replace(/([A-Z])/g, (char: string) => ` ${char}`).trimLeft();
+}
+
+/**
+ * Builder that aggregates the results from child builders to create fully enriched RouteConfigs
+ * for a given instruction, from the perspective of the module that configures these routes.
+ */
+export class CompleteChildRouteConfigCollectionBuilder extends RouteConfigBuilder {
+  public create(request: CompleteChildRouteConfigCollectionRequest, context: IBuilderContext): any {
+    if (!(request instanceof CompleteChildRouteConfigCollectionRequest)) {
+      return new NoResult();
+    }
+
+    let $constructor = request.$module && request.$module.$defaultExport && request.$module.$defaultExport.$constructor;
+    if (!$constructor) {
+      $constructor = context.resolve(new RegisteredConstructorRequest(request.instruction.target)) as $Constructor;
+    }
+
+    return context.resolve(new ChildRouteConfigCollectionRequest($constructor));
+  }
+}
+
+/**
+ * Builder that looks for childRoutes in any decorator-provided information and inside the function
+ * body of "configureRouter()" (if there is any).
+ */
+export class ChildRouteConfigCollectionBuilder implements IBuilder {
+  public create(request: ChildRouteConfigCollectionRequest, context: IBuilderContext): any {
+    if (!(request instanceof ChildRouteConfigCollectionRequest)) {
+      return new NoResult();
+    }
+
+    return context.resolve(request.$constructor) as FunctionDeclaration;
+
+    //return context.resolve(functionDeclaration);
+  }
+}
+
+/**
+ * Builder that tries to retrieve the registered $Constructor instance associated to the provided
+ * target.
+ */
+export class RegisteredConstructorProvider implements IBuilder {
+  public create(request: RegisteredConstructorRequest, context: IBuilderContext): any {
+    if (!(request instanceof RegisteredConstructorRequest)) {
+      return new NoResult();
+    }
+
+    const resource = context.resolve(new RouterResourceRequest(request.target)) as RouterResource;
+    if (resource) {
+      if (resource.$module && resource.$module.$defaultExport) {
+        return resource.$module.$defaultExport.$constructor;
+      } else if (resource.moduleId) {
+        const registry = context.resolve(Registry) as Registry;
+        const $module = registry.getModule(resource.moduleId);
+        if ($module && $module.$defaultExport) {
+          return $module.$defaultExport.$constructor;
+        }
+      }
+    }
+
+    return new NoResult();
+  }
+}
+
+/**
+ * Builder that forwards the results of running the provided query on the FunctionDeclaration's body
+ * as individual requests, and returns the concatenated results of those requests.
+ */
+export class FunctionDeclarationAnalyzer implements IBuilder {
+  public query: IPropertyQuery;
+  constructor(query: IPropertyQuery) {
+    this.query = query;
+  }
+
+  public create(request: FunctionDeclaration, context: IBuilderContext): any {
+    if (request.type !== "FunctionDeclaration" || request.body.type !== "BlockStatement") {
+      return new NoResult();
+    }
+
+    const results = [];
+    const properties = this.query.selectProperties(request.body);
+    for (const prop of properties) {
+      const result = context.resolve(prop);
+      results.push(result);
+    }
+
+    return results;
+  }
+}
+
+export class CallExpressionAnalyzer implements IBuilder {
+  public argumentQuery: IPropertyQuery;
+  constructor(argumentQuery: IPropertyQuery) {
+    this.argumentQuery = argumentQuery;
+  }
+
+  public create(request: CallExpression, context: IBuilderContext): any {
+    if (request.type !== "CallExpression") {
+      return new NoResult();
+    }
+    const results: any[] = [];
+    const argsToProcess = this.argumentQuery.selectProperties(request);
+
+    for (const arg of argsToProcess) {
+      const result = context.resolve(new AnalyzeCallExpressionArgumentRequest(arg));
+      results.push(result);
+    }
+
+    return results;
+  }
+}
+
+export class CallExpressionArgumentAnalyzer implements IBuilder {
+  public create(request: AnalyzeCallExpressionArgumentRequest, context: IBuilderContext): any {
+    if (!(request instanceof AnalyzeCallExpressionArgumentRequest)) {
+      return new NoResult();
+    }
+
+    const results: any[] = [];
+    const arg = request.expression;
+    switch (arg.type) {
+      case "ArrayExpression": {
+        for (const el of arg.elements) {
+          if (el && el.type === "ObjectExpression") {
+            results.push(context.resolve(new AnalyzeObjectExpressionRequest(el)));
+          }
+        }
+        break;
+      }
+      case "ObjectExpression": {
+        results.push(context.resolve(new AnalyzeObjectExpressionRequest(arg)));
+        break;
+      }
+      default: {
+        // ignore
+      }
+    }
+
+    return results;
+  }
+}
+
+export class PropertyAnalyzeRequestRelay implements IBuilder {
+  public create(request: AnalyzePropertyRequest, context: IBuilderContext): any {
+    if (!(request instanceof AnalyzePropertyRequest)) {
+      return new NoResult();
+    }
+
+    if (request.property.value) {
+      switch (request.property.value.type) {
+        case "Literal": {
+          return context.resolve(new AnalyzeLiteralPropertyRequest(request.property));
+        }
+        case "CallExpression": {
+          return context.resolve(new AnalyzeCallExpressionPropertyRequest(request.property));
+        }
+        case "ArrayExpression": {
+          return context.resolve(new AnalyzeArrayExpressionPropertyRequest(request.property));
+        }
+        case "ObjectExpression": {
+          return context.resolve(new AnalyzeObjectExpressionPropertyRequest(request.property));
+        }
+        default: {
+          return new NoResult();
+        }
+      }
+    }
+
+    return new NoResult();
+  }
+}
+
+export class ObjectExpressionAnalyzer implements IBuilder {
+  public propertyQuery: IPropertyQuery;
+  constructor(propertyQuery: IPropertyQuery) {
+    this.propertyQuery = propertyQuery;
+  }
+
+  public create(request: AnalyzeObjectExpressionRequest, context: IBuilderContext): any {
+    if (!(request instanceof AnalyzeObjectExpressionRequest)) {
+      return new NoResult();
+    }
+
+    const objectResult = Object.create(Object.prototype);
+    const properties = this.propertyQuery.selectProperties(request.expression);
+    for (const prop of properties) {
+      if (prop.type === "Property" && prop.value && prop.key.type === "Identifier") {
+        switch (prop.value.type) {
+          case "Literal":
+          case "CallExpression":
+          case "ArrayExpression":
+          case "ObjectExpression": {
+            const propertyResult = context.resolve(new AnalyzePropertyRequest(prop));
+            objectResult[prop.key.name] = propertyResult;
+          }
+          default: {
+            // ignore
+          }
+        }
+      }
+    }
+
+    return objectResult;
+  }
+}
+
+export class LiteralPropertyAnalyzer implements IBuilder {
+  public create(request: AnalyzeLiteralPropertyRequest): any {
+    if (!(request instanceof AnalyzeLiteralPropertyRequest)) {
+      return new NoResult();
+    }
+
+    return request.value.value;
+  }
+}
+
+export class CallExpressionPropertyAnalyzer implements IBuilder {
+  public query: IPropertyQuery;
+  constructor(query: IPropertyQuery) {
+    this.query = query;
+  }
+
+  public create(request: AnalyzeCallExpressionPropertyRequest): any {
+    if (!(request instanceof AnalyzeCallExpressionPropertyRequest)) {
+      return new NoResult();
+    }
+
+    return this.query.selectProperties(request.value);
+  }
+}
+
+export class ArrayExpressionPropertyAnalyzer implements IBuilder {
+  public create(request: AnalyzeArrayExpressionPropertyRequest): any {
+    if (!(request instanceof AnalyzeArrayExpressionPropertyRequest)) {
+      return new NoResult();
+    }
+
+    const results: any[] = [];
+    for (const el of request.value.elements) {
+      if (el && el.type === "Literal") {
+        results.push(el.value);
+      }
+    }
+
+    return results;
+  }
+}
+
+export class ObjectExpressionPropertyAnalyzer implements IBuilder {
+  public create(request: AnalyzeObjectExpressionPropertyRequest, context: IBuilderContext): any {
+    if (!(request instanceof AnalyzeObjectExpressionPropertyRequest)) {
+      return new NoResult();
+    }
+
+    return context.resolve(new AnalyzeObjectExpressionRequest(request.value));
+  }
 }

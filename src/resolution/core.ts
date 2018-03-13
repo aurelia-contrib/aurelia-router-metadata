@@ -1,8 +1,13 @@
+import { Logger } from "aurelia-logging";
 import { IBuilder, IBuilderContext, IBuilderNode, IFunction, ISpecification } from "./interfaces";
 import { TrueSpecification } from "./specifications";
 
 // tslint:disable:max-classes-per-file
 
+/**
+ * The BuilderContext is a resolution scope for a specific graph of builders.
+ * Does not have to be the root, and can be nested multiple times in a graph to achieve multiple sub-scopes.
+ */
 export class BuilderContext implements IBuilderContext {
   public builder: IBuilder;
 
@@ -18,6 +23,10 @@ export class BuilderContext implements IBuilderContext {
 // tslint:disable-next-line:no-unnecessary-class
 export class NoResult {}
 
+/**
+ * Decorates an IBuilderNode and filters requests so that only certain requests are
+ * passed through to the decorated builder.
+ */
 export class FilteringBuilderNode extends Array<IBuilder> implements IBuilderNode {
   private _builder: IBuilder;
   public get builder(): IBuilder {
@@ -49,6 +58,9 @@ export class FilteringBuilderNode extends Array<IBuilder> implements IBuilderNod
   }
 }
 
+/**
+ * Decorates a list of IBuilderNodes and returns the first result that is not a NoResult
+ */
 export class CompositeBuilderNode extends Array<IBuilder> implements IBuilderNode {
   constructor(...builders: IBuilder[]) {
     super(...builders);
@@ -70,6 +82,10 @@ export class CompositeBuilderNode extends Array<IBuilder> implements IBuilderNod
   }
 }
 
+/**
+ * Decorates an IBuilder and filters requests so that only certain requests are passed through to
+ * the decorated builder. Then invokes the provided IFunction on the result returned from that builder.
+ */
 export class Postprocessor extends Array<IBuilder> implements IBuilderNode {
   public builder: IBuilder;
   public func: IFunction;
@@ -101,25 +117,77 @@ export class Postprocessor extends Array<IBuilder> implements IBuilderNode {
   }
 }
 
-export class SequentialOutputMergingBuilderNode extends Array<IBuilder> implements IBuilderNode {
-  constructor(...builders: IBuilder[]) {
-    super(...builders);
-    Object.setPrototypeOf(this, Object.create(SequentialOutputMergingBuilderNode.prototype));
+/**
+ * Guards against NoResult outputs by always throwing a BuilderError.
+ * This is meant to be the last builder in a chain.
+ */
+export class TerminatingBuilder implements IBuilder {
+  public create(request: any, _context: IBuilderContext): any {
+    throw new BuilderError("Unable to resolve a request. See the error object for details on the request.", request);
   }
+}
+
+export class LoggingBuilder implements IBuilder {
+  public builder: IBuilder;
+
+  protected logger: Logger;
+  protected depth: number = 0;
+
+  constructor(builder: IBuilder, logger: Logger) {
+    this.builder = builder;
+    this.logger = logger;
+  }
+
   public create(request: any, context: IBuilderContext): any {
-    const finalOutput = Object.create(Object.prototype);
+    this.onResultRequested(new RequestTrace(request, ++this.depth));
 
-    for (const builder of this) {
-      const result = builder.create(request, context);
-      if (!(result instanceof NoResult)) {
-        Object.assign(finalOutput, result);
+    let created: boolean = false;
+    let result: any = null;
+    try {
+      result = this.builder.create(request, context);
+      created = true;
+
+      return result;
+    } finally {
+      if (created) {
+        this.onResultCreated(new ResultTrace(request, result, this.depth));
       }
+      this.depth--;
     }
-
-    return finalOutput;
   }
 
-  public compose(builders: IBuilder[]): IBuilderNode {
-    return new SequentialOutputMergingBuilderNode(...builders);
+  protected onResultRequested(trace: RequestTrace): void {
+    this.logger.debug(`${"  ".repeat(trace.depth)}Requested:`, trace.request);
+  }
+
+  protected onResultCreated(trace: ResultTrace): void {
+    this.logger.debug(`${"  ".repeat(trace.depth)}Created:`, trace.result);
+  }
+}
+
+export class RequestTrace {
+  public request: any;
+  public depth: number;
+
+  constructor(request: any, depth: number) {
+    this.depth = depth;
+    this.request = request;
+  }
+}
+
+export class ResultTrace extends RequestTrace {
+  public result: any;
+
+  constructor(request: any, result: any, depth: number) {
+    super(depth, request);
+    this.result = result;
+  }
+}
+
+export class BuilderError extends Error {
+  public request: any;
+  constructor(message: string, request: any) {
+    super(message);
+    this.request = request;
   }
 }

@@ -1,6 +1,5 @@
-
 export interface IBuilder {
-  create(input: any, context: IBuilderContext): any;
+  create(request: any, context: IBuilderContext): any;
 }
 
 export interface IBuilderNode extends IBuilder, Array<IBuilder> {
@@ -8,13 +7,17 @@ export interface IBuilderNode extends IBuilder, Array<IBuilder> {
 }
 
 export interface IBuilderContext {
-  resolve(input: any): any;
+  resolve(request: any): any;
 }
 
 export interface ISpecification {
-  isSatisfiedBy(input: any): boolean;
+  isSatisfiedBy(request: any): boolean;
 }
 
 export interface IFunction {
   execute(result: any, context: IBuilderContext): any;
+}
+
+export interface IPropertyQuery {
+  selectProperties($object: any): any[];
 }

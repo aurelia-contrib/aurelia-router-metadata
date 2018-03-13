@@ -16,7 +16,6 @@ import { RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
 
-const configureRouterSymbol = (Symbol("configureRouter") as any) as string;
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
 
 const logger = getLogger("router-metadata");
@@ -26,6 +25,7 @@ const logger = getLogger("router-metadata");
  * configures a router to navigate to other routes (maps routes)
  */
 export class RouterResource {
+  public static originalConfigureRouterSymbol: any = Symbol("configureRouter");
 
   public $module: $Module | null;
 
@@ -243,7 +243,12 @@ export class RouterResource {
       this.filterChildRoutes = settings.filterChildRoutes;
       this.enableEagerLoading = settings.enableEagerLoading;
 
-      assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
+      assignOrProxyPrototypeProperty(
+        target.prototype,
+        "configureRouter",
+        RouterResource.originalConfigureRouterSymbol,
+        configureRouter
+      );
     } else {
       if (this.isRouteConfig) {
         return; // already configured
@@ -379,14 +384,16 @@ export class RouterResource {
     this.isRouterConfigured = true;
     this.isConfiguringRouter = false;
 
-    const originalConfigureRouter = this.target.prototype[configureRouterSymbol] as ConfigureRouter;
+    const originalConfigureRouter = this.target.prototype[
+      RouterResource.originalConfigureRouterSymbol
+    ] as ConfigureRouter;
     if (originalConfigureRouter !== undefined) {
       return originalConfigureRouter.call(viewModel, config, router);
     }
   }
 
   protected ensureCreateRouteConfigInstruction(): ICreateRouteConfigInstruction {
-    const instruction = this.createRouteConfigInstruction || (this.createRouteConfigInstruction = ({} as any));
+    const instruction = this.createRouteConfigInstruction || (this.createRouteConfigInstruction = {} as any);
     instruction.target = instruction.target || this.target;
     instruction.moduleId = instruction.moduleId || this.moduleId;
     instruction.settings = instruction.settings || this.getSettings(instruction);
@@ -413,7 +420,10 @@ export class RouterResource {
 }
 
 function isConfigureRouterInstruction(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): boolean {
-  return !!(instruction as IConfigureRouterInstruction).routeConfigModuleIds;
+  return (
+    !!(instruction as IConfigureRouterInstruction).routeConfigModuleIds ||
+    Object.prototype.hasOwnProperty.call(instruction.target, "configureRouter")
+  );
 }
 
 function ensureArray<T>(value: T | undefined | T[]): T[] {
@@ -447,7 +457,7 @@ function assignOrProxyPrototypeProperty(
       protoOrBase = Object.getPrototypeOf(protoOrBase);
     }
     const original = protoOrBase[name];
-    proto[refSymbol] = original;
+    Object.defineProperty(proto, refSymbol, { enumerable: false, configurable: true, writable: true, value: original });
   }
   proto[name] = value;
 }
