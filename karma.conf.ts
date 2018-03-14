@@ -13,7 +13,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
 
 export interface IKarmaConfigOptions extends karma.ConfigOptions {
   webpack: webpack.Configuration;
-  coverageIstanbulReporter: any;
+  coverageIstanbulReporter?: any;
   webpackServer: any;
   customLaunchers: any;
 }
@@ -32,9 +32,12 @@ export default (config: IKarmaConfig): void => {
       mode: "development",
       resolve: {
         extensions: [".ts", ".js"],
-        modules: ["src", "node_modules"]
+        modules: ["src", "node_modules"],
+        alias: {
+          src: path.resolve(__dirname, "src")
+        }
       },
-      devtool: config.devtool || "cheap-module-eval-sourcemap",
+      devtool: config.devtool || "cheap-module-eval-source-map",
       module: {
         rules: [
           {
@@ -42,7 +45,7 @@ export default (config: IKarmaConfig): void => {
             loader: "ts-loader",
             exclude: /node_modules/,
             options: {
-              configFile: config.tsconfig,
+              configFile: config.tsconfig || "tsconfig-karma.json",
               transpileOnly: config.transpileOnly
             }
           }
