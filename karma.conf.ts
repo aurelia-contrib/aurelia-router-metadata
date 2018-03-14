@@ -70,7 +70,7 @@ export default (config: IKarmaConfig): void => {
   if (config.coverage) {
     options.webpack.module.rules.push({
       enforce: "post",
-      exclude: /(node_modules|\.spec\.ts$)/,
+      exclude: /(node_modules|\.spec\.ts$|cherow)/,
       loader: "istanbul-instrumenter-loader",
       options: { esModules: true },
       test: /src[\/\\].+\.ts$/
