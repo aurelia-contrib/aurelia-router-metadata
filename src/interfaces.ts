@@ -117,7 +117,7 @@ export interface IRouteConfigSettings {
  * settings property with information relevant to router-metadata
  */
 export interface IRouteConfig extends Partial<RouteConfig> {
-  settings?: IRouteConfigSettings;
+  settings?: Partial<IRouteConfigSettings>;
 }
 
 /**
