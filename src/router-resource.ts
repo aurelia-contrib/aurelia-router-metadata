@@ -578,6 +578,10 @@ function map(this: any, originalConfigs: RouteConfig | RouteConfig[]): RouterCon
   // tslint:disable-next-line:no-parameter-reassignment
   originalConfigs = remainingConfigs;
 
+  if (originalConfigs.length > 0) {
+    this[RouterResource.originalMapSymbol](originalConfigs);
+  }
+
   return this;
 }
 
