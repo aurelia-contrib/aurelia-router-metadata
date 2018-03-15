@@ -373,7 +373,15 @@ function configureRouter(config, router, ...args) {
 }
 // tslint:enable:no-invalid-this
 function map(originalConfigs) {
+    Object.defineProperty(this, "map", {
+        enumerable: false,
+        configurable: true,
+        writable: true,
+        value: this[RouterResource.originalMapSymbol].bind(this)
+    });
+    delete this[RouterResource.originalMapSymbol];
     const resource = this[RouterResource.routerResourceSymbol];
+    delete this[RouterResource.routerResourceSymbol];
     const splittedOriginalConfigs = new functions_1.RouteConfigSplitter().execute(ensureArray(originalConfigs));
     const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
     const remainingConfigs = [];

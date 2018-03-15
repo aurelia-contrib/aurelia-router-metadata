@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.9.3"></a>
+## [0.9.3](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.9.2...v0.9.3) (2018-03-15)
+
+
+### Bug Fixes
+
+* **map:** fix infinite loop issue ([f15930f](https://github.com/fkleuver/aurelia-router-metadata/commit/f15930f))
+
+
+
 <a name="0.9.2"></a>
 ## [0.9.2](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.9.1...v0.9.2) (2018-03-15)
 
