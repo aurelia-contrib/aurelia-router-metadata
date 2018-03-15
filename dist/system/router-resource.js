@@ -63,6 +63,9 @@ System.register(["aurelia-logging", "aurelia-router", "./resolution/functions", 
         }
         // tslint:disable-next-line:no-parameter-reassignment
         originalConfigs = remainingConfigs;
+        if (originalConfigs.length > 0) {
+            this[RouterResource.originalMapSymbol](originalConfigs);
+        }
         return this;
     }
     function mergeRouterConfiguration(target, source) {
