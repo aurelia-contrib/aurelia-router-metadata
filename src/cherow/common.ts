@@ -4,7 +4,7 @@ import { Chars } from './chars';
 import { Token } from './token';
 import { Context, Scanner } from './flags';
 import { isValidIdentifierStart, isValidIdentifierPart, mustEscape } from './unicode';
-import { Statement, CommentType, ExpressionStatement, Literal, Expression, Pattern, Comment } from './estree';
+import { Statement, CommentType, ExpressionStatement, Literal, Expression, Pattern } from './estree';
 
 export const isInOrOfKeyword = (t: Token) => t === Token.InKeyword || t === Token.OfKeyword;
 
