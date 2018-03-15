@@ -1,30 +1,47 @@
-System.register(["aurelia-metadata", "./router-resource"], function (exports_1, context_1) {
+System.register(["@src/router-resource"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var aurelia_metadata_1, router_resource_1, metadataKey, routerMetadata;
+    function getMetadataObject(target) {
+        const proto = target instanceof Function ? target.prototype : target;
+        if (!Object.prototype.hasOwnProperty.call(proto, key)) {
+            Object.defineProperty(proto, key, {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: Object.create(null)
+            });
+        }
+        return proto[key];
+    }
+    var router_resource_1, key, resourceKey, routerMetadata;
     return {
         setters: [
-            function (aurelia_metadata_1_1) {
-                aurelia_metadata_1 = aurelia_metadata_1_1;
-            },
             function (router_resource_1_1) {
                 router_resource_1 = router_resource_1_1;
             }
         ],
         execute: function () {
-            metadataKey = "aurelia:router-metadata";
+            key = "__routerMetadata__";
+            resourceKey = "resource";
             exports_1("routerMetadata", routerMetadata = {
                 getOwn(target) {
-                    return aurelia_metadata_1.metadata.getOwn(metadataKey, target);
+                    const metadata = getMetadataObject(target);
+                    return metadata[resourceKey];
                 },
                 define(resource, target) {
-                    aurelia_metadata_1.metadata.define(metadataKey, resource, target);
+                    const metadata = getMetadataObject(target);
+                    Object.defineProperty(metadata, resourceKey, {
+                        enumerable: false,
+                        configurable: false,
+                        writable: true,
+                        value: resource
+                    });
                 },
                 getOrCreateOwn(target, moduleId) {
-                    let result = routerMetadata.getOwn(target);
+                    const metadata = getMetadataObject(target);
+                    let result = metadata[resourceKey];
                     if (result === undefined) {
-                        result = new router_resource_1.RouterResource(target, moduleId);
-                        aurelia_metadata_1.metadata.define(metadataKey, result, target);
+                        result = metadata[resourceKey] = new router_resource_1.RouterResource(target instanceof Function ? target : target.constructor, moduleId);
                     }
                     return result;
                 }

@@ -1,5 +1,5 @@
-import { IRouterResourceTarget } from "./interfaces";
-import { RouterResource } from "./router-resource";
+import { IRouterResourceTarget } from "@src/interfaces";
+import { RouterResource } from "@src/router-resource";
 /**
  * Helpers for working with router metadata on ViewModels
  */

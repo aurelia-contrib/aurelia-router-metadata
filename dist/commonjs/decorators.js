@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const router_resource_1 = require("./router-resource");
+const router_resource_1 = require("@src/router-resource");
 /**
  * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself
  * @param routesOrInstruction One or more RouteConfig objects whose properties will override the convention defaults,

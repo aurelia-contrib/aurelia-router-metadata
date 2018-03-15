@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.9.0"></a>
+# [0.9.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.8.1...v0.9.0) (2018-03-15)
+
+
+### Bug Fixes
+
+* **cherow:** make cherow compatible with build script ([3e581bf](https://github.com/fkleuver/aurelia-router-metadata/commit/3e581bf))
+* **interfaces:** make the settings object on IRouteConfig partial ([be72e79](https://github.com/fkleuver/aurelia-router-metadata/commit/be72e79))
+
+
+### Code Refactoring
+
+* improve the module model and resource loading ([d43f96c](https://github.com/fkleuver/aurelia-router-metadata/commit/d43f96c))
+
+
+### Features
+
+* implement initial working version of static analysis ([aad828c](https://github.com/fkleuver/aurelia-router-metadata/commit/aad828c))
+* **cherow:** add cherow parser source ([891d9c7](https://github.com/fkleuver/aurelia-router-metadata/commit/891d9c7))
+* **configuration:** semi-working implementation for static configureRouter() method body analysis ([2fff90b](https://github.com/fkleuver/aurelia-router-metadata/commit/2fff90b))
+* **resource-loader:** first stab at general purpose dynamic+static code analysis ([1a45f3c](https://github.com/fkleuver/aurelia-router-metadata/commit/1a45f3c))
+
+
+### BREAKING CHANGES
+
+* Initializing the plugin via au.use.plugin("aurelia-router-metadata") is mandatory now.
+* routerResource.path is removed, use routeConfig.settings.path instead
+
+
+
 <a name="0.8.1"></a>
 ## [0.8.1](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.8.0...v0.8.1) (2018-03-03)
 

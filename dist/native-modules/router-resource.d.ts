@@ -1,13 +1,20 @@
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfigInstruction, IRouterResourceTarget, IRouterResourceTargetProto } from "@src/interfaces";
+import { $Module } from "@src/model";
+import { Registry } from "@src/registry";
+import { RouteConfigFactory } from "@src/route-config-factory";
+import { RouterMetadataSettings } from "@src/router-metadata-configuration";
 import { Container } from "aurelia-dependency-injection";
 import { Router, RouterConfiguration } from "aurelia-router";
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfigInstruction, IRouterResourceTarget, IRouterResourceTargetProto } from "./interfaces";
-import { RouteConfigFactory } from "./route-config-factory";
-import { RouterMetadataSettings } from "./router-metadata-configuration";
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or
  * configures a router to navigate to other routes (maps routes)
  */
 export declare class RouterResource {
+    static originalConfigureRouterSymbol: any;
+    static originalMapSymbol: any;
+    static viewModelSymbol: any;
+    static routerResourceSymbol: any;
+    $module: $Module | null;
     /**
      * The target ("constructor Function") of the class this resource applies to
      */
@@ -38,6 +45,15 @@ export declare class RouterResource {
      */
     enableEagerLoading: boolean;
     /**
+     * Only applicable when `isConfigureRouter`
+     *
+     * If true: will look for `RouteConfig` objects in the `configureRouter()` method of the target class and treat them as if
+     * they were defined in decorators.
+     * Currently only works on non-async methods and the moduleId must be either a pure string or a `PLATFORM.moduleName` call.
+     * Other properties will only be included if they are "hard-coded".
+     */
+    enableStaticAnalysis: boolean;
+    /**
      * Only applicable when `isRouteConfig`
      *
      * The `RouteConfig` objects with which the target's class is mapped in parent `@configureRouter`
@@ -54,14 +70,14 @@ export declare class RouterResource {
      *
      * Filter function to determine which `RouteConfig` objects to exclude from mapping on the target class' router
      */
-    filterChildRoutes: (config: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean | Promise<boolean> | PromiseLike<boolean>;
+    filterChildRoutes: ((config: ICompleteRouteConfig, allConfigs: ICompleteRouteConfig[], configureInstruction: IConfigureRouterInstruction) => boolean | Promise<boolean> | PromiseLike<boolean>) | null;
     /**
      * Only applicable when `isRouteConfig`
      *
      * Instruction that describes how the RouteConfigs (ownRoutes) should be created when the routes
      * are requested to be loaded.
      */
-    createRouteConfigInstruction: ICreateRouteConfigInstruction;
+    createRouteConfigInstruction: ICreateRouteConfigInstruction | null;
     /**
      * Only applicable when `isConfigureRouter`
      *
@@ -87,33 +103,32 @@ export declare class RouterResource {
      */
     isRouterConfigured: boolean;
     /**
-     * The parent route
+     * All parents of this route
      */
-    parent: RouterResource;
+    parents: Set<RouterResource>;
+    /**
+     * The first (primary) parent of this route
+     */
+    readonly parent: RouterResource | null;
     /**
      * Only applicable when `isConfigureRouter`
      *
      * The router that was passed to the target class' `configureRouter()` method
      */
-    router: Router;
+    router: Router | null;
     /**
      * Only applicable when `isConfigureRouter`
      *
      * A convenience property which returns `router.container`, or `null` if the router is not set
      */
-    readonly container: Container;
+    readonly container: Container | null;
     /**
      * Only applicable when `isConfigureRouter`
      *
      * A convenience property which returns `router.container.viewModel`, or `null` if the router is not set
      * This is an instance of the target class
      */
-    readonly instance: IRouterResourceTargetProto;
-    /**
-     * Returns a concatenation separated by '/' of the name of the first of `ownRoutes` of this instance,
-     * together with the parents up to the root
-     */
-    readonly path: string;
+    readonly instance: IRouterResourceTargetProto | null;
     constructor(target: IRouterResourceTarget, moduleId?: string);
     /**
      * Creates a `@routeConfig` based on the provided instruction.
@@ -134,13 +149,16 @@ export declare class RouterResource {
     /**
      * Initializes this resource based on the provided instruction.
      *
-     * This method is called by the static `ROUTE_CONFIG` and `CONFIGURE_ROUTER` methods, and can be used instead of those
-     * to achieve the same effect. If there is a `routeConfigModuleIds` property present on the instruction, it will
-     * be initialized as `configureRouter`, otherwise as `routeConfig`
+     * If there is a `routeConfigModuleIds` property present on the instruction,
+     * or the target has a `configureRouter()` method, it will be initialized as `configureRouter`, otherwise as `routeConfig`
      * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
      */
-    initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): void;
-    loadOwnRoutes(router?: Router): Promise<ICompleteRouteConfig[]>;
+    initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction | null): void;
+    /**
+     * Ensures that the module for this resources is loaded and registered so that its routing information can be queried.
+     */
+    load(): Promise<void>;
+    loadOwnRoutes(): Promise<ICompleteRouteConfig[]>;
     /**
      * Retrieves the `RouteConfig` objects which were generated by all referenced moduleIds
      * and assigns them to `childRoutes`
@@ -164,7 +182,9 @@ export declare class RouterResource {
      * and called at the end of this `configureRouter()` method.
      */
     configureRouter(config: RouterConfiguration, router: Router, ...args: any[]): Promise<void>;
+    protected ensureCreateRouteConfigInstruction(): ICreateRouteConfigInstruction;
     protected getSettings(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction): RouterMetadataSettings;
     protected getConfigFactory(): RouteConfigFactory;
     protected getResourceLoader(): IResourceLoader;
+    protected getRegistry(): Registry;
 }

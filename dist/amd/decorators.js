@@ -1,4 +1,4 @@
-define(["require", "exports", "./router-resource"], function (require, exports, router_resource_1) {
+define(["require", "exports", "@src/router-resource"], function (require, exports, router_resource_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**

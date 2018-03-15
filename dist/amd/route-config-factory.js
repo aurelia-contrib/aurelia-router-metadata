@@ -1,6 +1,15 @@
-define(["require", "exports"], function (require, exports) {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+define(["require", "exports", "@src/resolution/builders", "@src/resolution/core", "@src/resolution/functions", "@src/resolution/queries", "@src/resolution/requests", "@src/resolution/specifications", "@src/router-metadata"], function (require, exports, builders_1, core_1, functions_1, queries_1, requests_1, specifications_1, router_metadata_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // tslint:disable:max-classes-per-file
     /**
      * Class that creates RouteConfigs for the @routeConfig() decorator
      */
@@ -11,97 +20,39 @@ define(["require", "exports"], function (require, exports) {
      * The default RouteConfig factory
      */
     class DefaultRouteConfigFactory extends RouteConfigFactory {
+        constructor() {
+            super();
+            const commonParts = new core_1.CompositeBuilderNode(new builders_1.RouterMetadataSettingsProvider(), new builders_1.RouterResourceProvider(), new builders_1.ContainerProvider(), new core_1.FilteringBuilderNode(new builders_1.ContainerRelay(), new specifications_1.InverseSpecification(new specifications_1.ModuleModelClassSpecification())));
+            const dynamicRouteConfigBuilder = new core_1.FilteringBuilderNode(new core_1.CompositeBuilderNode(new builders_1.CompleteRouteConfigCollectionBuilder(), new builders_1.RouteConfigDefaultsBuilder(), new builders_1.RouteConfigCollectionBuilder(), new core_1.Postprocessor(new builders_1.RouteConfigOverridesBuilder(), new functions_1.EnsureObjectPropertyFunction("settings"))), new specifications_1.RouteConfigRequestSpecification());
+            const staticRouteConfigBuilder = new core_1.CompositeBuilderNode(new core_1.Postprocessor(new builders_1.CompleteChildRouteConfigCollectionBuilder(), new functions_1.RouteConfigSplitter()), new builders_1.ChildRouteConfigCollectionBuilder(), new core_1.Postprocessor(new builders_1.RegisteredConstructorProvider(), new functions_1.FunctionBodyParser(new queries_1.ConfigureRouterMethodQuery())), new core_1.FilteringBuilderNode(new builders_1.FunctionDeclarationAnalyzer(new queries_1.BlockStatementCallExpressionCalleePropertyNameQuery("map")), new specifications_1.ConfigureRouterFunctionDeclarationSpecification()), new builders_1.CallExpressionAnalyzer(new queries_1.CallExpressionArgumentTypeQuery(["ArrayExpression", "ObjectExpression"])), new builders_1.CallExpressionArgumentAnalyzer(), new builders_1.ObjectExpressionAnalyzer(new queries_1.RouteConfigPropertyQuery()), new builders_1.PropertyAnalyzeRequestRelay(), new builders_1.LiteralPropertyAnalyzer(), new core_1.FilteringBuilderNode(new builders_1.CallExpressionPropertyAnalyzer(new queries_1.LiteralArgumentValueCallExpressionQuery()), new specifications_1.CallExpressionCalleePropertyNameSpecification("moduleName")), new builders_1.ArrayExpressionPropertyAnalyzer(), new builders_1.ObjectExpressionPropertyAnalyzer());
+            this.context = new core_1.BuilderContext(new core_1.CompositeBuilderNode(commonParts, dynamicRouteConfigBuilder, staticRouteConfigBuilder, new core_1.TerminatingBuilder()));
+        }
         /**
-         * Creates `RouteConfig` objects based on the provided instruction
+         * Creates `RouteConfig` objects based an instruction for a class that can be navigated to
          *
          * @param instruction Instruction containing all information based on which the `RouteConfig` objects
          * will be created
          */
         createRouteConfigs(instruction) {
-            const { target, routes, moduleId, settings } = instruction;
-            const configs = [];
-            const settingsDefaults = Object.assign({}, (settings.routeConfigDefaults || {}));
-            const conventionDefaults = Object.assign({}, getNameConventionDefaults(target));
-            const prototypeDefaults = getPrototypeDefaults(target);
-            const defaults = Object.assign({}, settingsDefaults, conventionDefaults, prototypeDefaults);
-            const prototypeRoutes = ensureArray(target.routes);
-            const argumentRoutes = ensureArray(routes);
-            const baseConfigs = [...prototypeRoutes, ...argumentRoutes];
-            if (baseConfigs.length === 0) {
-                baseConfigs.push(defaults);
-            }
-            const overrides = Object.assign({}, (settings.routeConfigOverrides || {}));
-            for (const baseConfig of baseConfigs) {
-                const config = Object.assign({}, defaults, baseConfig, overrides);
-                config.settings = config.settings || {};
-                config.moduleId = moduleId;
-                config.route = ensureArray(config.route);
-                for (const route of config.route) {
-                    configs.push(Object.assign({}, config, { route }));
-                }
-            }
-            return settings.transformRouteConfigs(configs, instruction);
+            return __awaiter(this, void 0, void 0, function* () {
+                const resource = router_metadata_1.routerMetadata.getOrCreateOwn(instruction.target);
+                yield resource.load();
+                return this.context.resolve(new requests_1.CompleteRouteConfigCollectionRequest(instruction));
+            });
+        }
+        /**
+         * Creates `RouteConfig` objects based an instruction for a class that can navigate to others
+         *
+         * @param instruction Instruction containing all information based on which the `RouteConfig` objects
+         * will be created
+         */
+        createChildRouteConfigs(instruction) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const resource = router_metadata_1.routerMetadata.getOrCreateOwn(instruction.target);
+                yield resource.load();
+                return this.context.resolve(new requests_1.CompleteChildRouteConfigCollectionRequest(instruction));
+            });
         }
     }
     exports.DefaultRouteConfigFactory = DefaultRouteConfigFactory;
-    function ensureArray(value) {
-        if (value === undefined) {
-            return [];
-        }
-        return Array.isArray(value) ? value : [value];
-    }
-    function getNameConventionDefaults(target) {
-        const hyphenated = hyphenate(target.name);
-        return {
-            route: hyphenated,
-            name: hyphenated,
-            title: toTitle(target.name)
-        };
-    }
-    function getPrototypeDefaults(target) {
-        // start with the first up in the prototype chain and override any properties we come across down the chain
-        if (target === Function.prototype) {
-            return {};
-        }
-        const proto = Object.getPrototypeOf(target);
-        let config = getPrototypeDefaults(proto);
-        // first grab any static "RouteConfig-like" properties from the target
-        for (const prop of routeConfigProperies) {
-            if (target.hasOwnProperty(prop)) {
-                config[prop] = target[prop];
-            }
-        }
-        if (target.hasOwnProperty("routeName")) {
-            config.name = target.routeName;
-        }
-        // then override them with any properties on the target's baseRoute property (if present)
-        if (target.hasOwnProperty("baseRoute")) {
-            config = Object.assign({}, config, target.baseRoute);
-        }
-        return config;
-    }
-    function hyphenate(value) {
-        return (value.charAt(0).toLowerCase() + value.slice(1)).replace(/([A-Z])/g, (char) => `-${char.toLowerCase()}`);
-    }
-    function toTitle(value) {
-        return value.replace(/([A-Z])/g, (char) => ` ${char}`).trimLeft();
-    }
-    const routeConfigProperies = [
-        "route",
-        "moduleId",
-        "redirect",
-        "navigationStrategy",
-        "viewPorts",
-        "nav",
-        "href",
-        "generationUsesHref",
-        "title",
-        "settings",
-        "navModel",
-        "caseSensitive",
-        "activationStrategy",
-        "layoutView",
-        "layoutViewModel",
-        "layoutModel"
-    ];
 });

@@ -1,9 +1,12 @@
+import { IResourceLoader } from "@src/interfaces";
+import { $Module } from "@src/model";
+import { Registry } from "@src/registry";
+import { RouterResource } from "@src/router-resource";
 import { Loader } from "aurelia-loader";
-import { IResourceLoader } from "./interfaces";
-import { RouterResource } from "./router-resource";
 export declare class ResourceLoader implements IResourceLoader {
-    private cache;
     private loader;
-    constructor(loader: Loader);
-    loadRouterResource(moduleId: string, resourceTarget?: Function): Promise<RouterResource>;
+    private registry;
+    constructor(loader: Loader, registry: Registry);
+    loadRouterResource(moduleId: string): Promise<RouterResource>;
+    loadModule(normalizedId: string): Promise<$Module>;
 }

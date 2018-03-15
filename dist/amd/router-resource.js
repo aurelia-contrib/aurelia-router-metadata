@@ -6,16 +6,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-metadata", "./router-metadata-configuration"], function (require, exports, aurelia_logging_1, aurelia_router_1, router_metadata_1, router_metadata_configuration_1) {
+define(["require", "exports", "@src/resolution/functions", "@src/router-metadata", "@src/router-metadata-configuration", "aurelia-logging", "aurelia-router"], function (require, exports, functions_1, router_metadata_1, router_metadata_configuration_1, aurelia_logging_1, aurelia_router_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const configureRouterSymbol = Symbol("configureRouter");
     const logger = aurelia_logging_1.getLogger("router-metadata");
     /**
      * Identifies a class as a resource that can be navigated to (has routes) and/or
      * configures a router to navigate to other routes (maps routes)
      */
     class RouterResource {
+        constructor(target, moduleId) {
+            this.$module = null;
+            this.target = target;
+            this.moduleId = moduleId;
+            this.isRouteConfig = false;
+            this.isConfigureRouter = false;
+            this.routeConfigModuleIds = [];
+            this.enableEagerLoading = false;
+            this.enableStaticAnalysis = false;
+            this.createRouteConfigInstruction = null;
+            this.ownRoutes = [];
+            this.childRoutes = [];
+            this.filterChildRoutes = null;
+            this.areChildRoutesLoaded = false;
+            this.areOwnRoutesLoaded = false;
+            this.isConfiguringRouter = false;
+            this.isRouterConfigured = false;
+            this.parents = new Set();
+            this.router = null;
+        }
+        /**
+         * The first (primary) parent of this route
+         */
+        get parent() {
+            return this.parents.keys().next().value || null;
+        }
         /**
          * Only applicable when `isConfigureRouter`
          *
@@ -32,33 +57,6 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
          */
         get instance() {
             return this.container ? this.container.viewModel : null;
-        }
-        /**
-         * Returns a concatenation separated by '/' of the name of the first of `ownRoutes` of this instance,
-         * together with the parents up to the root
-         */
-        get path() {
-            const ownName = this.ownRoutes.length > 0 ? this.ownRoutes[0].name : "";
-            const parentPath = this.parent ? this.parent.path : null;
-            return parentPath ? `${parentPath}/${ownName}` : ownName;
-        }
-        constructor(target, moduleId) {
-            this.target = target;
-            this.moduleId = moduleId;
-            this.isRouteConfig = false;
-            this.isConfigureRouter = false;
-            this.routeConfigModuleIds = [];
-            this.enableEagerLoading = false;
-            this.createRouteConfigInstruction = null;
-            this.ownRoutes = [];
-            this.childRoutes = [];
-            this.filterChildRoutes = null;
-            this.areChildRoutesLoaded = false;
-            this.areOwnRoutesLoaded = false;
-            this.isConfiguringRouter = false;
-            this.isRouterConfigured = false;
-            this.parent = null;
-            this.router = null;
         }
         /**
          * Creates a `@routeConfig` based on the provided instruction.
@@ -87,48 +85,68 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
         /**
          * Initializes this resource based on the provided instruction.
          *
-         * This method is called by the static `ROUTE_CONFIG` and `CONFIGURE_ROUTER` methods, and can be used instead of those
-         * to achieve the same effect. If there is a `routeConfigModuleIds` property present on the instruction, it will
-         * be initialized as `configureRouter`, otherwise as `routeConfig`
+         * If there is a `routeConfigModuleIds` property present on the instruction,
+         * or the target has a `configureRouter()` method, it will be initialized as `configureRouter`, otherwise as `routeConfig`
          * @param instruction Instruction containing the parameters passed to the `@configureRouter` decorator
          */
         initialize(instruction) {
             if (!instruction) {
+                if (this.isRouteConfig && this.isConfigureRouter) {
+                    return; // already configured
+                }
                 // We're not being called from a decorator, so just apply defaults as if we're a @routeConfig
                 // tslint:disable-next-line:no-parameter-reassignment
-                instruction = { target: this.target };
+                instruction = this.ensureCreateRouteConfigInstruction();
             }
             const settings = this.getSettings(instruction);
             const target = instruction.target;
             if (isConfigureRouterInstruction(instruction)) {
+                if (this.isConfigureRouter) {
+                    return; // already configured
+                }
                 logger.debug(`initializing @configureRouter for ${target.name}`);
                 this.isConfigureRouter = true;
                 const configureInstruction = instruction;
                 this.routeConfigModuleIds = ensureArray(configureInstruction.routeConfigModuleIds);
                 this.filterChildRoutes = settings.filterChildRoutes;
                 this.enableEagerLoading = settings.enableEagerLoading;
-                assignOrProxyPrototypeProperty(target.prototype, "configureRouter", configureRouterSymbol, configureRouter);
+                this.enableStaticAnalysis = settings.enableStaticAnalysis;
+                assignOrProxyPrototypeProperty(target.prototype, "configureRouter", RouterResource.originalConfigureRouterSymbol, configureRouter);
             }
             else {
+                if (this.isRouteConfig) {
+                    return; // already configured
+                }
                 logger.debug(`initializing @routeConfig for ${target.name}`);
                 this.isRouteConfig = true;
                 const configInstruction = instruction;
                 this.createRouteConfigInstruction = Object.assign({}, configInstruction, { settings });
             }
         }
-        loadOwnRoutes(router) {
+        /**
+         * Ensures that the module for this resources is loaded and registered so that its routing information can be queried.
+         */
+        load() {
             return __awaiter(this, void 0, void 0, function* () {
-                this.router = router || null;
+                const registry = this.getRegistry();
+                const loader = this.getResourceLoader();
+                if (!this.moduleId) {
+                    this.moduleId = registry.registerModuleViaConstructor(this.target).moduleId;
+                }
+                yield loader.loadRouterResource(this.moduleId);
+            });
+        }
+        loadOwnRoutes() {
+            return __awaiter(this, void 0, void 0, function* () {
                 if (this.areOwnRoutesLoaded) {
                     return this.ownRoutes;
                 }
                 // If we're in this method then it can never be the root, so it's always safe to apply @routeConfig initialization
                 if (!this.isRouteConfig) {
                     this.isRouteConfig = true;
-                    this.initialize(this.createRouteConfigInstruction);
+                    this.initialize();
                 }
-                const instruction = this.createRouteConfigInstruction;
-                instruction.moduleId = instruction.moduleId || this.moduleId;
+                const instruction = this.ensureCreateRouteConfigInstruction();
                 const configs = yield this.getConfigFactory().createRouteConfigs(instruction);
                 for (const config of configs) {
                     config.settings.routerResource = this;
@@ -152,21 +170,49 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
          */
         loadChildRoutes(router) {
             return __awaiter(this, void 0, void 0, function* () {
-                this.router = router || null;
+                this.router = router !== undefined ? router : null;
                 if (this.areChildRoutesLoaded) {
                     return this.childRoutes;
                 }
                 logger.debug(`loading childRoutes for ${this.target.name}`);
                 const loader = this.getResourceLoader();
+                let extractedChildRoutes;
+                if (this.enableStaticAnalysis) {
+                    extractedChildRoutes = yield this.getConfigFactory().createChildRouteConfigs({ target: this.target });
+                    for (const extracted of extractedChildRoutes) {
+                        if (extracted.moduleId) {
+                            if (this.routeConfigModuleIds.indexOf(extracted.moduleId) === -1) {
+                                this.routeConfigModuleIds.push(extracted.moduleId);
+                            }
+                            yield loader.loadRouterResource(extracted.moduleId);
+                        }
+                    }
+                }
                 for (const moduleId of this.routeConfigModuleIds) {
                     const resource = yield loader.loadRouterResource(moduleId);
                     const childRoutes = yield resource.loadOwnRoutes();
-                    resource.parent = this;
+                    resource.parents.add(this);
                     if (resource.isConfigureRouter && this.enableEagerLoading) {
                         yield resource.loadChildRoutes();
                     }
-                    for (const childRoute of childRoutes) {
-                        if (yield this.filterChildRoutes(childRoute, childRoutes, this)) {
+                    const childRoutesToProcess = [];
+                    if (this.enableStaticAnalysis) {
+                        const couples = alignRouteConfigs(childRoutes, extractedChildRoutes);
+                        for (const couple of couples) {
+                            if (couple.left) {
+                                const childRoute = couple.left;
+                                if (couple.right) {
+                                    Object.assign(childRoute, Object.assign({}, couple.right, { settings: Object.assign({}, childRoute.settings, couple.right.settings) }));
+                                }
+                                childRoutesToProcess.push(childRoute);
+                            }
+                        }
+                    }
+                    else {
+                        childRoutesToProcess.push(...childRoutes);
+                    }
+                    for (const childRoute of childRoutesToProcess) {
+                        if (!this.filterChildRoutes || (yield this.filterChildRoutes(childRoute, childRoutes, this))) {
                             if (this.ownRoutes.length > 0) {
                                 childRoute.settings.parentRoute = this.ownRoutes[0];
                             }
@@ -195,6 +241,7 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
          */
         configureRouter(config, router, ...args) {
             return __awaiter(this, void 0, void 0, function* () {
+                yield this.load();
                 const viewModel = router.container.viewModel;
                 const settings = this.getSettings();
                 if (typeof settings.onBeforeLoadChildRoutes === "function") {
@@ -227,11 +274,38 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
                 }
                 this.isRouterConfigured = true;
                 this.isConfiguringRouter = false;
-                const originalConfigureRouter = this.target.prototype[configureRouterSymbol];
+                const originalConfigureRouter = this.target.prototype[RouterResource.originalConfigureRouterSymbol];
                 if (originalConfigureRouter !== undefined) {
+                    if (this.enableStaticAnalysis) {
+                        Object.defineProperty(config, RouterResource.routerResourceSymbol, {
+                            enumerable: false,
+                            configurable: true,
+                            writable: true,
+                            value: this
+                        });
+                        Object.defineProperty(config, RouterResource.originalMapSymbol, {
+                            enumerable: false,
+                            configurable: true,
+                            writable: true,
+                            value: config.map
+                        });
+                        Object.defineProperty(config, "map", {
+                            enumerable: true,
+                            configurable: true,
+                            writable: true,
+                            value: map.bind(config)
+                        });
+                    }
                     return originalConfigureRouter.call(viewModel, config, router);
                 }
             });
+        }
+        ensureCreateRouteConfigInstruction() {
+            const instruction = this.createRouteConfigInstruction || (this.createRouteConfigInstruction = {});
+            instruction.target = instruction.target || this.target;
+            instruction.moduleId = instruction.moduleId || this.moduleId;
+            instruction.settings = instruction.settings || this.getSettings(instruction);
+            return instruction;
         }
         getSettings(instruction) {
             const settings = router_metadata_configuration_1.RouterMetadataConfiguration.INSTANCE.getSettings(this.container);
@@ -246,10 +320,18 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
         getResourceLoader() {
             return router_metadata_configuration_1.RouterMetadataConfiguration.INSTANCE.getResourceLoader(this.container);
         }
+        getRegistry() {
+            return router_metadata_configuration_1.RouterMetadataConfiguration.INSTANCE.getRegistry(this.container);
+        }
     }
+    RouterResource.originalConfigureRouterSymbol = Symbol("configureRouter");
+    RouterResource.originalMapSymbol = Symbol("map");
+    RouterResource.viewModelSymbol = Symbol("viewModel");
+    RouterResource.routerResourceSymbol = Symbol("routerResource");
     exports.RouterResource = RouterResource;
     function isConfigureRouterInstruction(instruction) {
-        return !!instruction.routeConfigModuleIds;
+        return (!!instruction.routeConfigModuleIds ||
+            Object.prototype.hasOwnProperty.call(instruction.target.prototype, "configureRouter"));
     }
     function ensureArray(value) {
         if (value === undefined) {
@@ -258,11 +340,11 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
         return Array.isArray(value) ? value : [value];
     }
     function assignPaths(routes) {
-        for (const route of routes) {
+        for (const route of routes.filter((r) => !r.settings.path)) {
             const parentPath = route.settings.parentRoute ? route.settings.parentRoute.settings.path : "";
             const pathProperty = route.settings.pathProperty || "route";
             const path = route[pathProperty];
-            route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/");
+            route.settings.path = `${parentPath}/${path}`.replace(/\/\//g, "/").replace(/^\//, "");
             assignPaths(route.settings.childRoutes || []);
         }
     }
@@ -273,7 +355,7 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
                 protoOrBase = Object.getPrototypeOf(protoOrBase);
             }
             const original = protoOrBase[name];
-            proto[refSymbol] = original;
+            Object.defineProperty(proto, refSymbol, { enumerable: false, configurable: true, writable: true, value: original });
         }
         proto[name] = value;
     }
@@ -286,6 +368,23 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
         });
     }
     // tslint:enable:no-invalid-this
+    function map(originalConfigs) {
+        const resource = this[RouterResource.routerResourceSymbol];
+        const splittedOriginalConfigs = new functions_1.RouteConfigSplitter().execute(ensureArray(originalConfigs));
+        const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
+        const remainingConfigs = [];
+        for (const couple of couples) {
+            if (couple.left && couple.right) {
+                Object.assign(couple.left, Object.assign({}, couple.right, { settings: Object.assign({}, couple.left.settings, couple.right.settings) }));
+            }
+            else if (couple.right) {
+                remainingConfigs.push(couple.right);
+            }
+        }
+        // tslint:disable-next-line:no-parameter-reassignment
+        originalConfigs = remainingConfigs;
+        return this;
+    }
     function mergeRouterConfiguration(target, source) {
         target.instructions = (target.instructions || []).concat(source.instructions || []);
         target.options = Object.assign({}, (target.options || {}), (source.options || {}));
@@ -294,5 +393,37 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./router-met
         target.unknownRouteConfig = source.unknownRouteConfig;
         target.viewPortDefaults = Object.assign({}, (target.viewPortDefaults || {}), (source.viewPortDefaults || {}));
         return target;
+    }
+    function alignRouteConfigs(leftList, rightList) {
+        // we're essentially doing an OUTER JOIN here
+        const couples = leftList.map(left => {
+            const couple = {
+                left
+            };
+            let rightMatches = rightList.filter(r => r.moduleId === left.moduleId);
+            if (rightMatches.length > 1) {
+                rightMatches = rightMatches.filter(r => r.route === left.route);
+                if (rightMatches.length > 1) {
+                    rightMatches = rightMatches.filter(r => r.name === left.name);
+                    if (rightMatches.length > 1) {
+                        rightMatches = rightMatches.filter(r => r.href === left.href);
+                    }
+                }
+            }
+            if (rightMatches.length > 1) {
+                // really shouldn't be possible
+                throw new Error(`Probable duplicate routes found: ${JSON.stringify(rightMatches)}`);
+            }
+            if (rightMatches.length === 1) {
+                couple.right = rightMatches[0];
+            }
+            return couple;
+        });
+        for (const right of rightList) {
+            if (!couples.some(c => c.right === right)) {
+                couples.push({ right });
+            }
+        }
+        return couples;
     }
 });

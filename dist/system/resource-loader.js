@@ -1,14 +1,5 @@
-System.register(["aurelia-dependency-injection", "aurelia-loader", "aurelia-metadata", "./router-metadata"], function (exports_1, context_1) {
+System.register(["@src/router-metadata"], function (exports_1, context_1) {
     "use strict";
-    var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-        return c > 3 && r && Object.defineProperty(target, key, r), r;
-    };
-    var __metadata = (this && this.__metadata) || function (k, v) {
-        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-    };
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -18,65 +9,45 @@ System.register(["aurelia-dependency-injection", "aurelia-loader", "aurelia-meta
         });
     };
     var __moduleName = context_1 && context_1.id;
-    function getFirstExportedFunction(moduleInstance) {
-        for (const key of Object.keys(moduleInstance)) {
-            const value = moduleInstance[key];
-            if (typeof value === "function") {
-                return value;
-            }
-        }
-        if (typeof moduleInstance === "function") {
-            return moduleInstance;
-        }
-        return undefined;
-    }
-    var aurelia_dependency_injection_1, aurelia_loader_1, aurelia_metadata_1, router_metadata_1, ResourceLoader;
+    var router_metadata_1, ResourceLoader;
     return {
         setters: [
-            function (aurelia_dependency_injection_1_1) {
-                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
-            },
-            function (aurelia_loader_1_1) {
-                aurelia_loader_1 = aurelia_loader_1_1;
-            },
-            function (aurelia_metadata_1_1) {
-                aurelia_metadata_1 = aurelia_metadata_1_1;
-            },
             function (router_metadata_1_1) {
                 router_metadata_1 = router_metadata_1_1;
             }
         ],
         execute: function () {
             ResourceLoader = class ResourceLoader {
-                constructor(loader) {
-                    this.cache = Object.create(null);
+                constructor(loader, registry) {
                     this.loader = loader;
+                    this.registry = registry;
                 }
-                loadRouterResource(moduleId, resourceTarget) {
+                loadRouterResource(moduleId) {
                     return __awaiter(this, void 0, void 0, function* () {
-                        const moduleInstance = yield this.loader.loadModule(moduleId);
-                        const normalizedId = aurelia_metadata_1.Origin.get(moduleInstance).moduleId;
-                        let resource = this.cache[normalizedId];
-                        if (!resource) {
-                            const target = resourceTarget || getFirstExportedFunction(moduleInstance);
-                            if (!target) {
-                                throw new Error(`Unable to resolve RouterResource for ${normalizedId}.
-              Routes registered through @configureRouter must have a corresponding @routeConfig on the referenced component.`);
-                            }
-                            resource = router_metadata_1.routerMetadata.getOrCreateOwn(target, normalizedId);
-                            this.cache[normalizedId] = resource;
+                        const $module = yield this.loadModule(moduleId);
+                        if (!$module.$defaultExport) {
+                            throw new Error(`Unable to resolve RouterResource for ${$module.moduleId}.
+            Module appears to have no exported classes.`);
                         }
+                        const resource = router_metadata_1.routerMetadata.getOrCreateOwn($module.$defaultExport.$constructor.raw, $module.moduleId);
                         // The decorators don't have access to their own module in aurelia-cli projects,
                         // so we set the moduleId now (only used by @routeConfig resources)
-                        resource.moduleId = resource.moduleId || normalizedId;
+                        resource.moduleId = $module.moduleId;
+                        resource.$module = $module;
                         return resource;
                     });
                 }
+                loadModule(normalizedId) {
+                    return __awaiter(this, void 0, void 0, function* () {
+                        let $module = this.registry.getModule(normalizedId);
+                        if ($module === undefined) {
+                            const moduleInstance = yield this.loader.loadModule(normalizedId);
+                            $module = this.registry.registerModule(moduleInstance, normalizedId);
+                        }
+                        return $module;
+                    });
+                }
             };
-            ResourceLoader = __decorate([
-                aurelia_dependency_injection_1.autoinject(),
-                __metadata("design:paramtypes", [aurelia_loader_1.Loader])
-            ], ResourceLoader);
             exports_1("ResourceLoader", ResourceLoader);
         }
     };

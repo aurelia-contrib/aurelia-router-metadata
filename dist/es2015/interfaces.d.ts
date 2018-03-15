@@ -1,6 +1,6 @@
+import { RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { RouterResource } from "@src/router-resource";
 import { NavigationInstruction, NavModel, PipelineStep, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
-import { RouterMetadataSettings } from "./router-metadata-configuration";
-import { RouterResource } from "./router-resource";
 /**
  * Instruction that contains basic information common to all RouterResource types
  */
@@ -25,7 +25,7 @@ export interface IRouteConfigInstruction extends IRouterResourceInstruction {
  * Instruction that contains information needed to create a @configureRouter
  */
 export interface IConfigureRouterInstruction extends IRouterResourceInstruction {
-    routeConfigModuleIds: string | string[];
+    routeConfigModuleIds?: string | string[];
 }
 /**
  * Instruction that contains information needed to create the RouteConfigs for a @routeConfig
@@ -74,7 +74,7 @@ export interface IModuleLoader {
     loadAllModules(moduleIds: string[]): Promise<any[]>;
 }
 export interface IResourceLoader {
-    loadRouterResource(moduleId: string, resourceTarget?: Function): Promise<RouterResource>;
+    loadRouterResource(moduleId: string): Promise<RouterResource>;
 }
 /**
  * Interface that describes the properties that are set on RouteConfig.settings by
@@ -82,6 +82,7 @@ export interface IResourceLoader {
  */
 export interface IRouteConfigSettings {
     [key: string]: any;
+    routerResource: RouterResource;
     childRoutes: ICompleteRouteConfig[];
     parentRoute?: ICompleteRouteConfig;
     /**
@@ -98,7 +99,7 @@ export interface IRouteConfigSettings {
  * settings property with information relevant to router-metadata
  */
 export interface IRouteConfig extends Partial<RouteConfig> {
-    settings?: IRouteConfigSettings;
+    settings?: Partial<IRouteConfigSettings>;
 }
 /**
  * Output version of the IRouteConfig interface that is guaranteed to have certain properties assigned
