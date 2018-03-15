@@ -378,6 +378,7 @@ function map(originalConfigs) {
     });
     delete this[RouterResource.originalMapSymbol];
     const resource = this[RouterResource.routerResourceSymbol];
+    delete this[RouterResource.routerResourceSymbol];
     const splittedOriginalConfigs = new RouteConfigSplitter().execute(ensureArray(originalConfigs));
     const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
     const remainingConfigs = [];
@@ -391,10 +392,8 @@ function map(originalConfigs) {
     }
     // tslint:disable-next-line:no-parameter-reassignment
     originalConfigs = remainingConfigs;
-    const original = this[RouterResource.routerResourceSymbol].bind(this);
-    delete this[RouterResource.routerResourceSymbol];
     if (originalConfigs.length > 0) {
-        original(originalConfigs);
+        this.map(originalConfigs);
     }
     return this;
 }
