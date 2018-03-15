@@ -6,7 +6,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define(["require", "exports", "@src/resolution/builders", "@src/resolution/core", "@src/resolution/functions", "@src/resolution/queries", "@src/resolution/requests", "@src/resolution/specifications", "@src/router-metadata"], function (require, exports, builders_1, core_1, functions_1, queries_1, requests_1, specifications_1, router_metadata_1) {
+define(["require", "exports", "./resolution/builders", "./resolution/core", "./resolution/functions", "./resolution/queries", "./resolution/requests", "./resolution/specifications", "./router-metadata"], function (require, exports, builders_1, core_1, functions_1, queries_1, requests_1, specifications_1, router_metadata_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // tslint:disable:max-classes-per-file

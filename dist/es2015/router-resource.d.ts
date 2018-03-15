@@ -1,10 +1,10 @@
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfigInstruction, IRouterResourceTarget, IRouterResourceTargetProto } from "@src/interfaces";
-import { $Module } from "@src/model";
-import { Registry } from "@src/registry";
-import { RouteConfigFactory } from "@src/route-config-factory";
-import { RouterMetadataSettings } from "@src/router-metadata-configuration";
 import { Container } from "aurelia-dependency-injection";
 import { Router, RouterConfiguration } from "aurelia-router";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfigInstruction, IRouterResourceTarget, IRouterResourceTargetProto } from "./interfaces";
+import { $Module } from "./model";
+import { Registry } from "./registry";
+import { RouteConfigFactory } from "./route-config-factory";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or
  * configures a router to navigate to other routes (maps routes)

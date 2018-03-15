@@ -1,4 +1,4 @@
-define(["require", "exports", "@src/model", "@src/util", "aurelia-pal"], function (require, exports, model_1, util_1, aurelia_pal_1) {
+define(["require", "exports", "aurelia-pal", "./model", "./util"], function (require, exports, aurelia_pal_1, model_1, util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class Registry {

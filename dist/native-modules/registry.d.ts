@@ -1,4 +1,4 @@
-import { $Module } from "@src/model";
+import { $Module } from "./model";
 export declare class Registry {
     private cache;
     private moduleIds;

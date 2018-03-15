@@ -1,17 +1,17 @@
-System.register(["@src/model", "@src/util", "aurelia-pal"], function (exports_1, context_1) {
+System.register(["aurelia-pal", "./model", "./util"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var model_1, util_1, aurelia_pal_1, Registry;
+    var aurelia_pal_1, model_1, util_1, Registry;
     return {
         setters: [
+            function (aurelia_pal_1_1) {
+                aurelia_pal_1 = aurelia_pal_1_1;
+            },
             function (model_1_1) {
                 model_1 = model_1_1;
             },
             function (util_1_1) {
                 util_1 = util_1_1;
-            },
-            function (aurelia_pal_1_1) {
-                aurelia_pal_1 = aurelia_pal_1_1;
             }
         ],
         execute: function () {

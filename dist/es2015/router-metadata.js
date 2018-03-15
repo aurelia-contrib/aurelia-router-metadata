@@ -1,4 +1,4 @@
-import { RouterResource } from "@src/router-resource";
+import { RouterResource } from "./router-resource";
 const key = "__routerMetadata__";
 const resourceKey = "resource";
 export const routerMetadata = {

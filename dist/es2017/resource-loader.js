@@ -1,4 +1,4 @@
-import { routerMetadata } from "@src/router-metadata";
+import { routerMetadata } from "./router-metadata";
 export class ResourceLoader {
     constructor(loader, registry) {
         this.loader = loader;

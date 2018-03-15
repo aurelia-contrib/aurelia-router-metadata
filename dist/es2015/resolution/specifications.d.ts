@@ -1,5 +1,5 @@
-import { CallExpression, FunctionDeclaration, Node } from "@src/cherow/estree";
-import { ISpecification } from "@src/resolution/interfaces";
+import { CallExpression, FunctionDeclaration, Node } from "../cherow/estree";
+import { ISpecification } from "./interfaces";
 /**
  * Specification that matches any request derived from the base RouteConfigRequest.
  */

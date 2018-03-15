@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = require("@src/resolution/core");
+const core_1 = require("./core");
 // tslint:disable:max-classes-per-file
 /**
  * Base RouteConfig request with the common ICreateRouteConfigInstruction property

@@ -1,5 +1,5 @@
-import { IConfigureRouterInstruction, IRouteConfig, IRouteConfigInstruction } from "@src/interfaces";
-import { RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { IConfigureRouterInstruction, IRouteConfig, IRouteConfigInstruction } from "./interfaces";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
 /**
  * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself
  * @param routesOrInstruction One or more RouteConfig objects whose properties will override the convention defaults,

@@ -3,13 +3,13 @@ function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-const registry_1 = require("@src/registry");
-const resource_loader_1 = require("@src/resource-loader");
-const router_metadata_1 = require("@src/router-metadata");
-const router_metadata_configuration_1 = require("@src/router-metadata-configuration");
-const router_resource_1 = require("@src/router-resource");
 const aurelia_dependency_injection_1 = require("aurelia-dependency-injection");
 const aurelia_loader_1 = require("aurelia-loader");
+const registry_1 = require("./registry");
+const resource_loader_1 = require("./resource-loader");
+const router_metadata_1 = require("./router-metadata");
+const router_metadata_configuration_1 = require("./router-metadata-configuration");
+const router_resource_1 = require("./router-resource");
 // tslint:disable:no-invalid-this
 function configure(fxconfig, configureSettings) {
     const settings = new router_metadata_configuration_1.RouterMetadataSettings();
@@ -43,18 +43,18 @@ function configure(fxconfig, configureSettings) {
     });
 }
 exports.configure = configure;
-__export(require("@src/resolution/builders"));
-__export(require("@src/resolution/core"));
-__export(require("@src/resolution/functions"));
-__export(require("@src/resolution/mapping"));
-__export(require("@src/resolution/queries"));
-__export(require("@src/resolution/requests"));
-__export(require("@src/resolution/specifications"));
-__export(require("@src/decorators"));
-__export(require("@src/model"));
-__export(require("@src/registry"));
-__export(require("@src/resource-loader"));
-__export(require("@src/route-config-factory"));
-__export(require("@src/router-metadata-configuration"));
-__export(require("@src/router-metadata"));
-__export(require("@src/router-resource"));
+__export(require("./resolution/builders"));
+__export(require("./resolution/core"));
+__export(require("./resolution/functions"));
+__export(require("./resolution/mapping"));
+__export(require("./resolution/queries"));
+__export(require("./resolution/requests"));
+__export(require("./resolution/specifications"));
+__export(require("./decorators"));
+__export(require("./model"));
+__export(require("./registry"));
+__export(require("./resource-loader"));
+__export(require("./route-config-factory"));
+__export(require("./router-metadata-configuration"));
+__export(require("./router-metadata"));
+__export(require("./router-resource"));

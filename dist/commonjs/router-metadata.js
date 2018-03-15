@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const router_resource_1 = require("@src/router-resource");
+const router_resource_1 = require("./router-resource");
 const key = "__routerMetadata__";
 const resourceKey = "resource";
 exports.routerMetadata = {

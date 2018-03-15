@@ -1,9 +1,9 @@
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfig, IRouterConfiguration } from "@src/interfaces";
-import { Registry } from "@src/registry";
-import { RouteConfigFactory } from "@src/route-config-factory";
-import { RouterResource } from "@src/router-resource";
 import { Container } from "aurelia-dependency-injection";
 import { Router, RouterConfiguration } from "aurelia-router";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IResourceLoader, IRouteConfig, IRouterConfiguration } from "./interfaces";
+import { Registry } from "./registry";
+import { RouteConfigFactory } from "./route-config-factory";
+import { RouterResource } from "./router-resource";
 /**
  * All available aurelia-router-metadata settings
  */

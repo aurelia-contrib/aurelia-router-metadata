@@ -1,4 +1,4 @@
-System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mapping", "@src/resolution/requests", "@src/router-metadata", "@src/router-metadata-configuration", "@src/util", "aurelia-dependency-injection"], function (exports_1, context_1) {
+System.register(["aurelia-dependency-injection", "../registry", "../router-metadata", "../router-metadata-configuration", "../util", "./core", "./mapping", "./requests"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     function hyphenate(value) {
@@ -7,20 +7,14 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
     function toTitle(value) {
         return value.replace(/([A-Z])/g, (char) => ` ${char}`).trimLeft();
     }
-    var registry_1, core_1, mapping_1, requests_1, router_metadata_1, router_metadata_configuration_1, util_1, aurelia_dependency_injection_1, RouteConfigBuilder, CompleteRouteConfigCollectionBuilder, RouteConfigDefaultsBuilder, RouteConfigCollectionBuilder, RouteConfigOverridesBuilder, RouterMetadataSettingsProvider, ContainerProvider, RouterResourceProvider, ContainerRelay, CompleteChildRouteConfigCollectionBuilder, ChildRouteConfigCollectionBuilder, RegisteredConstructorProvider, FunctionDeclarationAnalyzer, CallExpressionAnalyzer, CallExpressionArgumentAnalyzer, PropertyAnalyzeRequestRelay, ObjectExpressionAnalyzer, LiteralPropertyAnalyzer, CallExpressionPropertyAnalyzer, ArrayExpressionPropertyAnalyzer, ObjectExpressionPropertyAnalyzer;
+    var aurelia_dependency_injection_1, registry_1, router_metadata_1, router_metadata_configuration_1, util_1, core_1, mapping_1, R, RouteConfigBuilder, CompleteRouteConfigCollectionBuilder, RouteConfigDefaultsBuilder, RouteConfigCollectionBuilder, RouteConfigOverridesBuilder, RouterMetadataSettingsProvider, ContainerProvider, RouterResourceProvider, ContainerRelay, CompleteChildRouteConfigCollectionBuilder, ChildRouteConfigCollectionBuilder, RegisteredConstructorProvider, FunctionDeclarationAnalyzer, CallExpressionAnalyzer, CallExpressionArgumentAnalyzer, PropertyAnalyzeRequestRelay, ObjectExpressionAnalyzer, LiteralPropertyAnalyzer, CallExpressionPropertyAnalyzer, ArrayExpressionPropertyAnalyzer, ObjectExpressionPropertyAnalyzer;
     return {
         setters: [
+            function (aurelia_dependency_injection_1_1) {
+                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            },
             function (registry_1_1) {
                 registry_1 = registry_1_1;
-            },
-            function (core_1_1) {
-                core_1 = core_1_1;
-            },
-            function (mapping_1_1) {
-                mapping_1 = mapping_1_1;
-            },
-            function (requests_1_1) {
-                requests_1 = requests_1_1;
             },
             function (router_metadata_1_1) {
                 router_metadata_1 = router_metadata_1_1;
@@ -31,8 +25,14 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             function (util_1_1) {
                 util_1 = util_1_1;
             },
-            function (aurelia_dependency_injection_1_1) {
-                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            function (core_1_1) {
+                core_1 = core_1_1;
+            },
+            function (mapping_1_1) {
+                mapping_1 = mapping_1_1;
+            },
+            function (R_1) {
+                R = R_1;
             }
         ],
         execute: function () {
@@ -46,7 +46,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     if (request.instruction.settings) {
                         return request.instruction.settings;
                     }
-                    return context.resolve(new requests_1.RouterMetadataSettingsRequest(request.instruction.target));
+                    return context.resolve(new R.RouterMetadataSettingsRequest(request.instruction.target));
                 }
             };
             exports_1("RouteConfigBuilder", RouteConfigBuilder);
@@ -56,13 +56,13 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             CompleteRouteConfigCollectionBuilder = class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.CompleteRouteConfigCollectionRequest)) {
+                    if (!(request instanceof R.CompleteRouteConfigCollectionRequest)) {
                         return new core_1.NoResult();
                     }
                     const instruction = request.instruction;
                     const result = [];
-                    const overrides = context.resolve(new requests_1.RouteConfigOverridesRequest(instruction));
-                    const configCollection = context.resolve(new requests_1.RouteConfigCollectionRequest(instruction));
+                    const overrides = context.resolve(new R.RouteConfigOverridesRequest(instruction));
+                    const configCollection = context.resolve(new R.RouteConfigCollectionRequest(instruction));
                     for (const config of configCollection) {
                         config.route = util_1.ensureArray(config.route);
                         for (const route of config.route) {
@@ -80,7 +80,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             RouteConfigDefaultsBuilder = class RouteConfigDefaultsBuilder extends RouteConfigBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.RouteConfigDefaultsRequest)) {
+                    if (!(request instanceof R.RouteConfigDefaultsRequest)) {
                         return new core_1.NoResult();
                     }
                     const instruction = request.instruction;
@@ -104,12 +104,12 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             RouteConfigCollectionBuilder = class RouteConfigCollectionBuilder extends RouteConfigBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.RouteConfigCollectionRequest)) {
+                    if (!(request instanceof R.RouteConfigCollectionRequest)) {
                         return new core_1.NoResult();
                     }
                     const instruction = request.instruction;
                     const result = [];
-                    const defaults = context.resolve(new requests_1.RouteConfigDefaultsRequest(instruction));
+                    const defaults = context.resolve(new R.RouteConfigDefaultsRequest(instruction));
                     const propertyConfigs = util_1.ensureArray(instruction.target.routes);
                     const instructionConfigs = util_1.ensureArray(instruction.routes);
                     const configs = [...propertyConfigs, ...instructionConfigs];
@@ -129,7 +129,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             RouteConfigOverridesBuilder = class RouteConfigOverridesBuilder extends RouteConfigBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.RouteConfigOverridesRequest)) {
+                    if (!(request instanceof R.RouteConfigOverridesRequest)) {
                         return new core_1.NoResult();
                     }
                     const instruction = request.instruction;
@@ -151,8 +151,8 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     if (request === router_metadata_configuration_1.RouterMetadataSettings) {
                         container = context.resolve(aurelia_dependency_injection_1.Container);
                     }
-                    if (request instanceof requests_1.RouterMetadataSettingsRequest) {
-                        container = context.resolve(new requests_1.ContainerRequest(request.target));
+                    if (request instanceof R.RouterMetadataSettingsRequest) {
+                        container = context.resolve(new R.ContainerRequest(request.target));
                     }
                     if (!container) {
                         return new core_1.NoResult();
@@ -170,8 +170,8 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     if (request === aurelia_dependency_injection_1.Container) {
                         return aurelia_dependency_injection_1.Container.instance;
                     }
-                    if (request instanceof requests_1.ContainerRequest) {
-                        const resource = context.resolve(new requests_1.RouterResourceRequest(request.target));
+                    if (request instanceof R.ContainerRequest) {
+                        const resource = context.resolve(new R.RouterResourceRequest(request.target));
                         return (resource && resource.container) || aurelia_dependency_injection_1.Container.instance;
                     }
                     return new core_1.NoResult();
@@ -183,7 +183,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             RouterResourceProvider = class RouterResourceProvider {
                 create(request, _) {
-                    if (!(request instanceof requests_1.RouterResourceRequest)) {
+                    if (!(request instanceof R.RouterResourceRequest)) {
                         return new core_1.NoResult();
                     }
                     return router_metadata_1.routerMetadata.getOrCreateOwn(request.target);
@@ -217,14 +217,14 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             CompleteChildRouteConfigCollectionBuilder = class CompleteChildRouteConfigCollectionBuilder extends RouteConfigBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.CompleteChildRouteConfigCollectionRequest)) {
+                    if (!(request instanceof R.CompleteChildRouteConfigCollectionRequest)) {
                         return new core_1.NoResult();
                     }
                     let $constructor = request.$module && request.$module.$defaultExport && request.$module.$defaultExport.$constructor;
                     if (!$constructor) {
-                        $constructor = context.resolve(new requests_1.RegisteredConstructorRequest(request.instruction.target));
+                        $constructor = context.resolve(new R.RegisteredConstructorRequest(request.instruction.target));
                     }
-                    return context.resolve(new requests_1.ChildRouteConfigCollectionRequest($constructor));
+                    return context.resolve(new R.ChildRouteConfigCollectionRequest($constructor));
                 }
             };
             exports_1("CompleteChildRouteConfigCollectionBuilder", CompleteChildRouteConfigCollectionBuilder);
@@ -234,7 +234,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             ChildRouteConfigCollectionBuilder = class ChildRouteConfigCollectionBuilder {
                 create(request, context) {
-                    if (!(request instanceof requests_1.ChildRouteConfigCollectionRequest)) {
+                    if (!(request instanceof R.ChildRouteConfigCollectionRequest)) {
                         return new core_1.NoResult();
                     }
                     const results = [];
@@ -260,10 +260,10 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
              */
             RegisteredConstructorProvider = class RegisteredConstructorProvider {
                 create(request, context) {
-                    if (!(request instanceof requests_1.RegisteredConstructorRequest)) {
+                    if (!(request instanceof R.RegisteredConstructorRequest)) {
                         return new core_1.NoResult();
                     }
-                    const resource = context.resolve(new requests_1.RouterResourceRequest(request.target));
+                    const resource = context.resolve(new R.RouterResourceRequest(request.target));
                     if (resource) {
                         if (resource.$module && resource.$module.$defaultExport) {
                             return resource.$module.$defaultExport.$constructor;
@@ -320,7 +320,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     const results = [];
                     const argsToProcess = this.argumentQuery.selectProperties(request);
                     for (const arg of argsToProcess) {
-                        const result = context.resolve(new requests_1.AnalyzeCallExpressionArgumentRequest(arg));
+                        const result = context.resolve(new R.AnalyzeCallExpressionArgumentRequest(arg));
                         if (Array.isArray(result)) {
                             for (const item of result) {
                                 results.push(item);
@@ -336,7 +336,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             exports_1("CallExpressionAnalyzer", CallExpressionAnalyzer);
             CallExpressionArgumentAnalyzer = class CallExpressionArgumentAnalyzer {
                 create(request, context) {
-                    if (!(request instanceof requests_1.AnalyzeCallExpressionArgumentRequest)) {
+                    if (!(request instanceof R.AnalyzeCallExpressionArgumentRequest)) {
                         return new core_1.NoResult();
                     }
                     const results = [];
@@ -345,13 +345,13 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                         case "ArrayExpression": {
                             for (const el of arg.elements) {
                                 if (el && el.type === "ObjectExpression") {
-                                    results.push(context.resolve(new requests_1.AnalyzeObjectExpressionRequest(el)));
+                                    results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(el)));
                                 }
                             }
                             break;
                         }
                         case "ObjectExpression": {
-                            results.push(context.resolve(new requests_1.AnalyzeObjectExpressionRequest(arg)));
+                            results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(arg)));
                             break;
                         }
                         default: {
@@ -364,22 +364,22 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             exports_1("CallExpressionArgumentAnalyzer", CallExpressionArgumentAnalyzer);
             PropertyAnalyzeRequestRelay = class PropertyAnalyzeRequestRelay {
                 create(request, context) {
-                    if (!(request instanceof requests_1.AnalyzePropertyRequest)) {
+                    if (!(request instanceof R.AnalyzePropertyRequest)) {
                         return new core_1.NoResult();
                     }
                     if (request.property.value) {
                         switch (request.property.value.type) {
                             case "Literal": {
-                                return context.resolve(new requests_1.AnalyzeLiteralPropertyRequest(request.property));
+                                return context.resolve(new R.AnalyzeLiteralPropertyRequest(request.property));
                             }
                             case "CallExpression": {
-                                return context.resolve(new requests_1.AnalyzeCallExpressionPropertyRequest(request.property));
+                                return context.resolve(new R.AnalyzeCallExpressionPropertyRequest(request.property));
                             }
                             case "ArrayExpression": {
-                                return context.resolve(new requests_1.AnalyzeArrayExpressionPropertyRequest(request.property));
+                                return context.resolve(new R.AnalyzeArrayExpressionPropertyRequest(request.property));
                             }
                             case "ObjectExpression": {
-                                return context.resolve(new requests_1.AnalyzeObjectExpressionPropertyRequest(request.property));
+                                return context.resolve(new R.AnalyzeObjectExpressionPropertyRequest(request.property));
                             }
                             default: {
                                 return new core_1.NoResult();
@@ -395,7 +395,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     this.propertyQuery = propertyQuery;
                 }
                 create(request, context) {
-                    if (!(request instanceof requests_1.AnalyzeObjectExpressionRequest)) {
+                    if (!(request instanceof R.AnalyzeObjectExpressionRequest)) {
                         return new core_1.NoResult();
                     }
                     const objectResult = Object.create(Object.prototype);
@@ -407,7 +407,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                                 case "CallExpression":
                                 case "ArrayExpression":
                                 case "ObjectExpression": {
-                                    const propertyResult = context.resolve(new requests_1.AnalyzePropertyRequest(prop));
+                                    const propertyResult = context.resolve(new R.AnalyzePropertyRequest(prop));
                                     objectResult[prop.key.name] = propertyResult;
                                 }
                                 default: {
@@ -422,7 +422,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             exports_1("ObjectExpressionAnalyzer", ObjectExpressionAnalyzer);
             LiteralPropertyAnalyzer = class LiteralPropertyAnalyzer {
                 create(request) {
-                    if (!(request instanceof requests_1.AnalyzeLiteralPropertyRequest)) {
+                    if (!(request instanceof R.AnalyzeLiteralPropertyRequest)) {
                         return new core_1.NoResult();
                     }
                     return request.value.value;
@@ -434,7 +434,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
                     this.query = query;
                 }
                 create(request) {
-                    if (!(request instanceof requests_1.AnalyzeCallExpressionPropertyRequest)) {
+                    if (!(request instanceof R.AnalyzeCallExpressionPropertyRequest)) {
                         return new core_1.NoResult();
                     }
                     return this.query.selectProperties(request.value);
@@ -443,7 +443,7 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             exports_1("CallExpressionPropertyAnalyzer", CallExpressionPropertyAnalyzer);
             ArrayExpressionPropertyAnalyzer = class ArrayExpressionPropertyAnalyzer {
                 create(request) {
-                    if (!(request instanceof requests_1.AnalyzeArrayExpressionPropertyRequest)) {
+                    if (!(request instanceof R.AnalyzeArrayExpressionPropertyRequest)) {
                         return new core_1.NoResult();
                     }
                     const results = [];
@@ -458,10 +458,10 @@ System.register(["@src/registry", "@src/resolution/core", "@src/resolution/mappi
             exports_1("ArrayExpressionPropertyAnalyzer", ArrayExpressionPropertyAnalyzer);
             ObjectExpressionPropertyAnalyzer = class ObjectExpressionPropertyAnalyzer {
                 create(request, context) {
-                    if (!(request instanceof requests_1.AnalyzeObjectExpressionPropertyRequest)) {
+                    if (!(request instanceof R.AnalyzeObjectExpressionPropertyRequest)) {
                         return new core_1.NoResult();
                     }
-                    return context.resolve(new requests_1.AnalyzeObjectExpressionRequest(request.value));
+                    return context.resolve(new R.AnalyzeObjectExpressionRequest(request.value));
                 }
             };
             exports_1("ObjectExpressionPropertyAnalyzer", ObjectExpressionPropertyAnalyzer);

@@ -1,8 +1,8 @@
-import { RouteConfigSplitter } from "@src/resolution/functions";
-import { routerMetadata } from "@src/router-metadata";
-import { RouterMetadataConfiguration } from "@src/router-metadata-configuration";
 import { getLogger } from "aurelia-logging";
 import { AppRouter } from "aurelia-router";
+import { RouteConfigSplitter } from "./resolution/functions";
+import { routerMetadata } from "./router-metadata";
+import { RouterMetadataConfiguration } from "./router-metadata-configuration";
 const logger = getLogger("router-metadata");
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or

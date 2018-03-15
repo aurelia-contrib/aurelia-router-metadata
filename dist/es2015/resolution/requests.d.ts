@@ -1,6 +1,6 @@
-import { ArrayExpression, BigIntLiteral, CallExpression, Expression, Identifier, Literal, ObjectExpression, Property, RegExpLiteral } from "@src/cherow/estree";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "@src/interfaces";
-import { $Constructor, $Module } from "@src/model";
+import { ArrayExpression, BigIntLiteral, CallExpression, Expression, Identifier, Literal, ObjectExpression, Property, RegExpLiteral } from "../cherow/estree";
+import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "../interfaces";
+import { $Constructor, $Module } from "../model";
 /**
  * Base RouteConfig request with the common ICreateRouteConfigInstruction property
  * needed by most RouteConfig-related builders.

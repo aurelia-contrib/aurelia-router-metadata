@@ -1,5 +1,5 @@
-import { IBuilder, IBuilderContext, IBuilderNode, IFunction, ISpecification } from "@src/resolution/interfaces";
 import { Logger } from "aurelia-logging";
+import { IBuilder, IBuilderContext, IBuilderNode, IFunction, ISpecification } from "./interfaces";
 /**
  * The BuilderContext is a resolution scope for a specific graph of builders.
  * Does not have to be the root, and can be nested multiple times in a graph to achieve multiple sub-scopes.

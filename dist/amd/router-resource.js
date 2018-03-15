@@ -6,7 +6,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define(["require", "exports", "@src/resolution/functions", "@src/router-metadata", "@src/router-metadata-configuration", "aurelia-logging", "aurelia-router"], function (require, exports, functions_1, router_metadata_1, router_metadata_configuration_1, aurelia_logging_1, aurelia_router_1) {
+define(["require", "exports", "aurelia-logging", "aurelia-router", "./resolution/functions", "./router-metadata", "./router-metadata-configuration"], function (require, exports, aurelia_logging_1, aurelia_router_1, functions_1, router_metadata_1, router_metadata_configuration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const logger = aurelia_logging_1.getLogger("router-metadata");

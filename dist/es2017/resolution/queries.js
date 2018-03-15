@@ -1,7 +1,7 @@
-import { $Constructor } from "@src/model";
-import { BuilderError, NoResult } from "@src/resolution/core";
-import { objectRouteConfigMapper } from "@src/resolution/mapping";
-import { RouterResource } from "@src/router-resource";
+import { $Constructor } from "../model";
+import { RouterResource } from "../router-resource";
+import { BuilderError, NoResult } from "./core";
+import { objectRouteConfigMapper } from "./mapping";
 // tslint:disable:max-classes-per-file
 /**
  * Returns the "configureRouter" method from a class constructor or, if it's stored in a Symbol-keyed property

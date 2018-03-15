@@ -1,4 +1,4 @@
-System.register(["@src/resolution/functions", "@src/router-metadata", "@src/router-metadata-configuration", "aurelia-logging", "aurelia-router"], function (exports_1, context_1) {
+System.register(["aurelia-logging", "aurelia-router", "./resolution/functions", "./router-metadata", "./router-metadata-configuration"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -106,9 +106,15 @@ System.register(["@src/resolution/functions", "@src/router-metadata", "@src/rout
         }
         return couples;
     }
-    var functions_1, router_metadata_1, router_metadata_configuration_1, aurelia_logging_1, aurelia_router_1, logger, RouterResource;
+    var aurelia_logging_1, aurelia_router_1, functions_1, router_metadata_1, router_metadata_configuration_1, logger, RouterResource;
     return {
         setters: [
+            function (aurelia_logging_1_1) {
+                aurelia_logging_1 = aurelia_logging_1_1;
+            },
+            function (aurelia_router_1_1) {
+                aurelia_router_1 = aurelia_router_1_1;
+            },
             function (functions_1_1) {
                 functions_1 = functions_1_1;
             },
@@ -117,12 +123,6 @@ System.register(["@src/resolution/functions", "@src/router-metadata", "@src/rout
             },
             function (router_metadata_configuration_1_1) {
                 router_metadata_configuration_1 = router_metadata_configuration_1_1;
-            },
-            function (aurelia_logging_1_1) {
-                aurelia_logging_1 = aurelia_logging_1_1;
-            },
-            function (aurelia_router_1_1) {
-                aurelia_router_1 = aurelia_router_1_1;
             }
         ],
         execute: function () {

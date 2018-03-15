@@ -1,6 +1,6 @@
-import { IRouteConfig } from "@src/interfaces";
-import { $Constructor } from "@src/model";
-import { IBuilderContext, IFunction, IPropertyQuery } from "@src/resolution/interfaces";
+import { IRouteConfig } from "../interfaces";
+import { $Constructor } from "../model";
+import { IBuilderContext, IFunction, IPropertyQuery } from "./interfaces";
 /**
  * Function that simply wraps the provided value in a promise.
  */

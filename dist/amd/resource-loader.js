@@ -6,7 +6,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-define(["require", "exports", "@src/router-metadata"], function (require, exports, router_metadata_1) {
+define(["require", "exports", "./router-metadata"], function (require, exports, router_metadata_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class ResourceLoader {

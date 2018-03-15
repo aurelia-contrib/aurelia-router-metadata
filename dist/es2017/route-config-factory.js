@@ -1,10 +1,10 @@
-import { ArrayExpressionPropertyAnalyzer, CallExpressionAnalyzer, CallExpressionArgumentAnalyzer, CallExpressionPropertyAnalyzer, ChildRouteConfigCollectionBuilder, CompleteChildRouteConfigCollectionBuilder, CompleteRouteConfigCollectionBuilder, ContainerProvider, ContainerRelay, FunctionDeclarationAnalyzer, LiteralPropertyAnalyzer, ObjectExpressionAnalyzer, ObjectExpressionPropertyAnalyzer, PropertyAnalyzeRequestRelay, RegisteredConstructorProvider, RouteConfigCollectionBuilder, RouteConfigDefaultsBuilder, RouteConfigOverridesBuilder, RouterMetadataSettingsProvider, RouterResourceProvider } from "@src/resolution/builders";
-import { BuilderContext, CompositeBuilderNode, FilteringBuilderNode, Postprocessor, TerminatingBuilder } from "@src/resolution/core";
-import { EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter } from "@src/resolution/functions";
-import { BlockStatementCallExpressionCalleePropertyNameQuery, CallExpressionArgumentTypeQuery, ConfigureRouterMethodQuery, LiteralArgumentValueCallExpressionQuery, RouteConfigPropertyQuery } from "@src/resolution/queries";
-import { CompleteChildRouteConfigCollectionRequest, CompleteRouteConfigCollectionRequest } from "@src/resolution/requests";
-import { CallExpressionCalleePropertyNameSpecification, ConfigureRouterFunctionDeclarationSpecification, InverseSpecification, ModuleModelClassSpecification, RouteConfigRequestSpecification } from "@src/resolution/specifications";
-import { routerMetadata } from "@src/router-metadata";
+import { ArrayExpressionPropertyAnalyzer, CallExpressionAnalyzer, CallExpressionArgumentAnalyzer, CallExpressionPropertyAnalyzer, ChildRouteConfigCollectionBuilder, CompleteChildRouteConfigCollectionBuilder, CompleteRouteConfigCollectionBuilder, ContainerProvider, ContainerRelay, FunctionDeclarationAnalyzer, LiteralPropertyAnalyzer, ObjectExpressionAnalyzer, ObjectExpressionPropertyAnalyzer, PropertyAnalyzeRequestRelay, RegisteredConstructorProvider, RouteConfigCollectionBuilder, RouteConfigDefaultsBuilder, RouteConfigOverridesBuilder, RouterMetadataSettingsProvider, RouterResourceProvider } from "./resolution/builders";
+import { BuilderContext, CompositeBuilderNode, FilteringBuilderNode, Postprocessor, TerminatingBuilder } from "./resolution/core";
+import { EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter } from "./resolution/functions";
+import { BlockStatementCallExpressionCalleePropertyNameQuery, CallExpressionArgumentTypeQuery, ConfigureRouterMethodQuery, LiteralArgumentValueCallExpressionQuery, RouteConfigPropertyQuery } from "./resolution/queries";
+import { CompleteChildRouteConfigCollectionRequest, CompleteRouteConfigCollectionRequest } from "./resolution/requests";
+import { CallExpressionCalleePropertyNameSpecification, ConfigureRouterFunctionDeclarationSpecification, InverseSpecification, ModuleModelClassSpecification, RouteConfigRequestSpecification } from "./resolution/specifications";
+import { routerMetadata } from "./router-metadata";
 // tslint:disable:max-classes-per-file
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator

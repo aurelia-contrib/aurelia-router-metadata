@@ -1,4 +1,4 @@
-define(["require", "exports", "@src/registry", "@src/resource-loader", "@src/route-config-factory", "aurelia-dependency-injection", "aurelia-router"], function (require, exports, registry_1, resource_loader_1, route_config_factory_1, aurelia_dependency_injection_1, aurelia_router_1) {
+define(["require", "exports", "aurelia-dependency-injection", "aurelia-router", "./registry", "./resource-loader", "./route-config-factory"], function (require, exports, aurelia_dependency_injection_1, aurelia_router_1, registry_1, resource_loader_1, route_config_factory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const noTransform = (configs) => configs;

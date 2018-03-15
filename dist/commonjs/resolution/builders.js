@@ -1,13 +1,20 @@
 "use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+}
 Object.defineProperty(exports, "__esModule", { value: true });
-const registry_1 = require("@src/registry");
-const core_1 = require("@src/resolution/core");
-const mapping_1 = require("@src/resolution/mapping");
-const requests_1 = require("@src/resolution/requests");
-const router_metadata_1 = require("@src/router-metadata");
-const router_metadata_configuration_1 = require("@src/router-metadata-configuration");
-const util_1 = require("@src/util");
 const aurelia_dependency_injection_1 = require("aurelia-dependency-injection");
+const registry_1 = require("../registry");
+const router_metadata_1 = require("../router-metadata");
+const router_metadata_configuration_1 = require("../router-metadata-configuration");
+const util_1 = require("../util");
+const core_1 = require("./core");
+const mapping_1 = require("./mapping");
+const R = __importStar(require("./requests"));
 // tslint:disable:max-classes-per-file
 /**
  * Base builder that provides a simple method to get the appropriate RouterMetadataSettings
@@ -18,7 +25,7 @@ class RouteConfigBuilder {
         if (request.instruction.settings) {
             return request.instruction.settings;
         }
-        return context.resolve(new requests_1.RouterMetadataSettingsRequest(request.instruction.target));
+        return context.resolve(new R.RouterMetadataSettingsRequest(request.instruction.target));
     }
 }
 exports.RouteConfigBuilder = RouteConfigBuilder;
@@ -28,13 +35,13 @@ exports.RouteConfigBuilder = RouteConfigBuilder;
  */
 class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.CompleteRouteConfigCollectionRequest)) {
+        if (!(request instanceof R.CompleteRouteConfigCollectionRequest)) {
             return new core_1.NoResult();
         }
         const instruction = request.instruction;
         const result = [];
-        const overrides = context.resolve(new requests_1.RouteConfigOverridesRequest(instruction));
-        const configCollection = context.resolve(new requests_1.RouteConfigCollectionRequest(instruction));
+        const overrides = context.resolve(new R.RouteConfigOverridesRequest(instruction));
+        const configCollection = context.resolve(new R.RouteConfigCollectionRequest(instruction));
         for (const config of configCollection) {
             config.route = util_1.ensureArray(config.route);
             for (const route of config.route) {
@@ -52,7 +59,7 @@ exports.CompleteRouteConfigCollectionBuilder = CompleteRouteConfigCollectionBuil
  */
 class RouteConfigDefaultsBuilder extends RouteConfigBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.RouteConfigDefaultsRequest)) {
+        if (!(request instanceof R.RouteConfigDefaultsRequest)) {
             return new core_1.NoResult();
         }
         const instruction = request.instruction;
@@ -76,12 +83,12 @@ exports.RouteConfigDefaultsBuilder = RouteConfigDefaultsBuilder;
  */
 class RouteConfigCollectionBuilder extends RouteConfigBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.RouteConfigCollectionRequest)) {
+        if (!(request instanceof R.RouteConfigCollectionRequest)) {
             return new core_1.NoResult();
         }
         const instruction = request.instruction;
         const result = [];
-        const defaults = context.resolve(new requests_1.RouteConfigDefaultsRequest(instruction));
+        const defaults = context.resolve(new R.RouteConfigDefaultsRequest(instruction));
         const propertyConfigs = util_1.ensureArray(instruction.target.routes);
         const instructionConfigs = util_1.ensureArray(instruction.routes);
         const configs = [...propertyConfigs, ...instructionConfigs];
@@ -101,7 +108,7 @@ exports.RouteConfigCollectionBuilder = RouteConfigCollectionBuilder;
  */
 class RouteConfigOverridesBuilder extends RouteConfigBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.RouteConfigOverridesRequest)) {
+        if (!(request instanceof R.RouteConfigOverridesRequest)) {
             return new core_1.NoResult();
         }
         const instruction = request.instruction;
@@ -123,8 +130,8 @@ class RouterMetadataSettingsProvider {
         if (request === router_metadata_configuration_1.RouterMetadataSettings) {
             container = context.resolve(aurelia_dependency_injection_1.Container);
         }
-        if (request instanceof requests_1.RouterMetadataSettingsRequest) {
-            container = context.resolve(new requests_1.ContainerRequest(request.target));
+        if (request instanceof R.RouterMetadataSettingsRequest) {
+            container = context.resolve(new R.ContainerRequest(request.target));
         }
         if (!container) {
             return new core_1.NoResult();
@@ -142,8 +149,8 @@ class ContainerProvider {
         if (request === aurelia_dependency_injection_1.Container) {
             return aurelia_dependency_injection_1.Container.instance;
         }
-        if (request instanceof requests_1.ContainerRequest) {
-            const resource = context.resolve(new requests_1.RouterResourceRequest(request.target));
+        if (request instanceof R.ContainerRequest) {
+            const resource = context.resolve(new R.RouterResourceRequest(request.target));
             return (resource && resource.container) || aurelia_dependency_injection_1.Container.instance;
         }
         return new core_1.NoResult();
@@ -155,7 +162,7 @@ exports.ContainerProvider = ContainerProvider;
  */
 class RouterResourceProvider {
     create(request, _) {
-        if (!(request instanceof requests_1.RouterResourceRequest)) {
+        if (!(request instanceof R.RouterResourceRequest)) {
             return new core_1.NoResult();
         }
         return router_metadata_1.routerMetadata.getOrCreateOwn(request.target);
@@ -195,14 +202,14 @@ function toTitle(value) {
  */
 class CompleteChildRouteConfigCollectionBuilder extends RouteConfigBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.CompleteChildRouteConfigCollectionRequest)) {
+        if (!(request instanceof R.CompleteChildRouteConfigCollectionRequest)) {
             return new core_1.NoResult();
         }
         let $constructor = request.$module && request.$module.$defaultExport && request.$module.$defaultExport.$constructor;
         if (!$constructor) {
-            $constructor = context.resolve(new requests_1.RegisteredConstructorRequest(request.instruction.target));
+            $constructor = context.resolve(new R.RegisteredConstructorRequest(request.instruction.target));
         }
-        return context.resolve(new requests_1.ChildRouteConfigCollectionRequest($constructor));
+        return context.resolve(new R.ChildRouteConfigCollectionRequest($constructor));
     }
 }
 exports.CompleteChildRouteConfigCollectionBuilder = CompleteChildRouteConfigCollectionBuilder;
@@ -212,7 +219,7 @@ exports.CompleteChildRouteConfigCollectionBuilder = CompleteChildRouteConfigColl
  */
 class ChildRouteConfigCollectionBuilder {
     create(request, context) {
-        if (!(request instanceof requests_1.ChildRouteConfigCollectionRequest)) {
+        if (!(request instanceof R.ChildRouteConfigCollectionRequest)) {
             return new core_1.NoResult();
         }
         const results = [];
@@ -238,10 +245,10 @@ exports.ChildRouteConfigCollectionBuilder = ChildRouteConfigCollectionBuilder;
  */
 class RegisteredConstructorProvider {
     create(request, context) {
-        if (!(request instanceof requests_1.RegisteredConstructorRequest)) {
+        if (!(request instanceof R.RegisteredConstructorRequest)) {
             return new core_1.NoResult();
         }
-        const resource = context.resolve(new requests_1.RouterResourceRequest(request.target));
+        const resource = context.resolve(new R.RouterResourceRequest(request.target));
         if (resource) {
             if (resource.$module && resource.$module.$defaultExport) {
                 return resource.$module.$defaultExport.$constructor;
@@ -298,7 +305,7 @@ class CallExpressionAnalyzer {
         const results = [];
         const argsToProcess = this.argumentQuery.selectProperties(request);
         for (const arg of argsToProcess) {
-            const result = context.resolve(new requests_1.AnalyzeCallExpressionArgumentRequest(arg));
+            const result = context.resolve(new R.AnalyzeCallExpressionArgumentRequest(arg));
             if (Array.isArray(result)) {
                 for (const item of result) {
                     results.push(item);
@@ -314,7 +321,7 @@ class CallExpressionAnalyzer {
 exports.CallExpressionAnalyzer = CallExpressionAnalyzer;
 class CallExpressionArgumentAnalyzer {
     create(request, context) {
-        if (!(request instanceof requests_1.AnalyzeCallExpressionArgumentRequest)) {
+        if (!(request instanceof R.AnalyzeCallExpressionArgumentRequest)) {
             return new core_1.NoResult();
         }
         const results = [];
@@ -323,13 +330,13 @@ class CallExpressionArgumentAnalyzer {
             case "ArrayExpression": {
                 for (const el of arg.elements) {
                     if (el && el.type === "ObjectExpression") {
-                        results.push(context.resolve(new requests_1.AnalyzeObjectExpressionRequest(el)));
+                        results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(el)));
                     }
                 }
                 break;
             }
             case "ObjectExpression": {
-                results.push(context.resolve(new requests_1.AnalyzeObjectExpressionRequest(arg)));
+                results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(arg)));
                 break;
             }
             default: {
@@ -342,22 +349,22 @@ class CallExpressionArgumentAnalyzer {
 exports.CallExpressionArgumentAnalyzer = CallExpressionArgumentAnalyzer;
 class PropertyAnalyzeRequestRelay {
     create(request, context) {
-        if (!(request instanceof requests_1.AnalyzePropertyRequest)) {
+        if (!(request instanceof R.AnalyzePropertyRequest)) {
             return new core_1.NoResult();
         }
         if (request.property.value) {
             switch (request.property.value.type) {
                 case "Literal": {
-                    return context.resolve(new requests_1.AnalyzeLiteralPropertyRequest(request.property));
+                    return context.resolve(new R.AnalyzeLiteralPropertyRequest(request.property));
                 }
                 case "CallExpression": {
-                    return context.resolve(new requests_1.AnalyzeCallExpressionPropertyRequest(request.property));
+                    return context.resolve(new R.AnalyzeCallExpressionPropertyRequest(request.property));
                 }
                 case "ArrayExpression": {
-                    return context.resolve(new requests_1.AnalyzeArrayExpressionPropertyRequest(request.property));
+                    return context.resolve(new R.AnalyzeArrayExpressionPropertyRequest(request.property));
                 }
                 case "ObjectExpression": {
-                    return context.resolve(new requests_1.AnalyzeObjectExpressionPropertyRequest(request.property));
+                    return context.resolve(new R.AnalyzeObjectExpressionPropertyRequest(request.property));
                 }
                 default: {
                     return new core_1.NoResult();
@@ -373,7 +380,7 @@ class ObjectExpressionAnalyzer {
         this.propertyQuery = propertyQuery;
     }
     create(request, context) {
-        if (!(request instanceof requests_1.AnalyzeObjectExpressionRequest)) {
+        if (!(request instanceof R.AnalyzeObjectExpressionRequest)) {
             return new core_1.NoResult();
         }
         const objectResult = Object.create(Object.prototype);
@@ -385,7 +392,7 @@ class ObjectExpressionAnalyzer {
                     case "CallExpression":
                     case "ArrayExpression":
                     case "ObjectExpression": {
-                        const propertyResult = context.resolve(new requests_1.AnalyzePropertyRequest(prop));
+                        const propertyResult = context.resolve(new R.AnalyzePropertyRequest(prop));
                         objectResult[prop.key.name] = propertyResult;
                     }
                     default: {
@@ -400,7 +407,7 @@ class ObjectExpressionAnalyzer {
 exports.ObjectExpressionAnalyzer = ObjectExpressionAnalyzer;
 class LiteralPropertyAnalyzer {
     create(request) {
-        if (!(request instanceof requests_1.AnalyzeLiteralPropertyRequest)) {
+        if (!(request instanceof R.AnalyzeLiteralPropertyRequest)) {
             return new core_1.NoResult();
         }
         return request.value.value;
@@ -412,7 +419,7 @@ class CallExpressionPropertyAnalyzer {
         this.query = query;
     }
     create(request) {
-        if (!(request instanceof requests_1.AnalyzeCallExpressionPropertyRequest)) {
+        if (!(request instanceof R.AnalyzeCallExpressionPropertyRequest)) {
             return new core_1.NoResult();
         }
         return this.query.selectProperties(request.value);
@@ -421,7 +428,7 @@ class CallExpressionPropertyAnalyzer {
 exports.CallExpressionPropertyAnalyzer = CallExpressionPropertyAnalyzer;
 class ArrayExpressionPropertyAnalyzer {
     create(request) {
-        if (!(request instanceof requests_1.AnalyzeArrayExpressionPropertyRequest)) {
+        if (!(request instanceof R.AnalyzeArrayExpressionPropertyRequest)) {
             return new core_1.NoResult();
         }
         const results = [];
@@ -436,10 +443,10 @@ class ArrayExpressionPropertyAnalyzer {
 exports.ArrayExpressionPropertyAnalyzer = ArrayExpressionPropertyAnalyzer;
 class ObjectExpressionPropertyAnalyzer {
     create(request, context) {
-        if (!(request instanceof requests_1.AnalyzeObjectExpressionPropertyRequest)) {
+        if (!(request instanceof R.AnalyzeObjectExpressionPropertyRequest)) {
             return new core_1.NoResult();
         }
-        return context.resolve(new requests_1.AnalyzeObjectExpressionRequest(request.value));
+        return context.resolve(new R.AnalyzeObjectExpressionRequest(request.value));
     }
 }
 exports.ObjectExpressionPropertyAnalyzer = ObjectExpressionPropertyAnalyzer;

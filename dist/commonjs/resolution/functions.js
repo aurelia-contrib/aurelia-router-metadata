@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const cherow_1 = require("@src/cherow/cherow");
+const cherow_1 = require("../cherow/cherow");
 // tslint:disable:max-classes-per-file
 /**
  * Function that simply wraps the provided value in a promise.

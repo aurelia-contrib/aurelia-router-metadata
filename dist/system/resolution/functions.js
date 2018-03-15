@@ -1,4 +1,4 @@
-System.register(["@src/cherow/cherow"], function (exports_1, context_1) {
+System.register(["../cherow/cherow"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var cherow_1, PromisifyFunction, EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter;

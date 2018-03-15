@@ -1,10 +1,10 @@
-import { Registry } from "@src/registry";
-import { ResourceLoader } from "@src/resource-loader";
-import { routerMetadata } from "@src/router-metadata";
-import { RouterMetadataConfiguration, RouterMetadataSettings } from "@src/router-metadata-configuration";
-import { RouterResource } from "@src/router-resource";
 import { Container } from "aurelia-dependency-injection";
 import { Loader } from "aurelia-loader";
+import { Registry } from "./registry";
+import { ResourceLoader } from "./resource-loader";
+import { routerMetadata } from "./router-metadata";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterResource } from "./router-resource";
 // tslint:disable:no-invalid-this
 export function configure(fxconfig, configureSettings) {
     const settings = new RouterMetadataSettings();
@@ -37,18 +37,18 @@ export function configure(fxconfig, configureSettings) {
         }
     });
 }
-export * from "@src/resolution/builders";
-export * from "@src/resolution/core";
-export * from "@src/resolution/functions";
-export * from "@src/resolution/mapping";
-export * from "@src/resolution/queries";
-export * from "@src/resolution/requests";
-export * from "@src/resolution/specifications";
-export * from "@src/decorators";
-export * from "@src/model";
-export * from "@src/registry";
-export * from "@src/resource-loader";
-export * from "@src/route-config-factory";
-export * from "@src/router-metadata-configuration";
-export * from "@src/router-metadata";
-export * from "@src/router-resource";
+export * from "./resolution/builders";
+export * from "./resolution/core";
+export * from "./resolution/functions";
+export * from "./resolution/mapping";
+export * from "./resolution/queries";
+export * from "./resolution/requests";
+export * from "./resolution/specifications";
+export * from "./decorators";
+export * from "./model";
+export * from "./registry";
+export * from "./resource-loader";
+export * from "./route-config-factory";
+export * from "./router-metadata-configuration";
+export * from "./router-metadata";
+export * from "./router-resource";

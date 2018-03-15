@@ -1,4 +1,4 @@
-System.register(["@src/resolution/builders", "@src/resolution/core", "@src/resolution/functions", "@src/resolution/queries", "@src/resolution/requests", "@src/resolution/specifications", "@src/router-metadata"], function (exports_1, context_1) {
+System.register(["./resolution/builders", "./resolution/core", "./resolution/functions", "./resolution/queries", "./resolution/requests", "./resolution/specifications", "./router-metadata"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {

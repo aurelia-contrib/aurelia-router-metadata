@@ -1,6 +1,6 @@
-import { BlockStatement, CallExpression, ObjectExpression } from "@src/cherow/estree";
-import { $Constructor } from "@src/model";
-import { IPropertyQuery } from "@src/resolution/interfaces";
+import { BlockStatement, CallExpression, ObjectExpression } from "../cherow/estree";
+import { $Constructor } from "../model";
+import { IPropertyQuery } from "./interfaces";
 /**
  * Returns the "configureRouter" method from a class constructor or, if it's stored in a Symbol-keyed property
  * (meaning it's wrapped by a RouterResource), will return that Symbol-keyed backup instead (since that's where

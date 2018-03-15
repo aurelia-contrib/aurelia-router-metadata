@@ -1,5 +1,5 @@
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "@src/interfaces";
-import { IBuilderContext } from "@src/resolution/interfaces";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "./interfaces";
+import { IBuilderContext } from "./resolution/interfaces";
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator
  */

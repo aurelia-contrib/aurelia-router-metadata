@@ -1,20 +1,20 @@
-System.register(["@src/model", "@src/resolution/core", "@src/resolution/mapping", "@src/router-resource"], function (exports_1, context_1) {
+System.register(["../model", "../router-resource", "./core", "./mapping"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var model_1, core_1, mapping_1, router_resource_1, ConfigureRouterMethodQuery, BlockStatementCallExpressionCalleePropertyNameQuery, CallExpressionArgumentTypeQuery, RouteConfigPropertyQuery, LiteralArgumentValueCallExpressionQuery;
+    var model_1, router_resource_1, core_1, mapping_1, ConfigureRouterMethodQuery, BlockStatementCallExpressionCalleePropertyNameQuery, CallExpressionArgumentTypeQuery, RouteConfigPropertyQuery, LiteralArgumentValueCallExpressionQuery;
     return {
         setters: [
             function (model_1_1) {
                 model_1 = model_1_1;
+            },
+            function (router_resource_1_1) {
+                router_resource_1 = router_resource_1_1;
             },
             function (core_1_1) {
                 core_1 = core_1_1;
             },
             function (mapping_1_1) {
                 mapping_1 = mapping_1_1;
-            },
-            function (router_resource_1_1) {
-                router_resource_1 = router_resource_1_1;
             }
         ],
         execute: function () {

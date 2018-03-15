@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const model_1 = require("@src/model");
-const util_1 = require("@src/util");
 const aurelia_pal_1 = require("aurelia-pal");
+const model_1 = require("./model");
+const util_1 = require("./util");
 class Registry {
     constructor() {
         this.cache = Object.create(null);

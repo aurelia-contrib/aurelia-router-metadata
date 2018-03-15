@@ -1,4 +1,4 @@
-import { BuilderError } from "@src/resolution/core";
+import { BuilderError } from "./core";
 // tslint:disable:max-classes-per-file
 /**
  * Base RouteConfig request with the common ICreateRouteConfigInstruction property

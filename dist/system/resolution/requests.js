@@ -1,4 +1,4 @@
-System.register(["@src/resolution/core"], function (exports_1, context_1) {
+System.register(["./core"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var core_1, RouteConfigRequest, CompleteRouteConfigCollectionRequest, CompleteChildRouteConfigCollectionRequest, ChildRouteConfigCollectionRequest, RouteConfigDefaultsRequest, RouteConfigCollectionRequest, RouteConfigOverridesRequest, RouterMetadataSettingsRequest, RouterResourceRequest, ContainerRequest, RegisteredConstructorRequest, AnalyzeCallExpressionArgumentRequest, AnalyzeObjectExpressionRequest, AnalyzePropertyRequest, AnalyzeLiteralPropertyRequest, AnalyzeCallExpressionPropertyRequest, AnalyzeArrayExpressionPropertyRequest, AnalyzeObjectExpressionPropertyRequest;

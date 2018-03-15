@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const registry_1 = require("@src/registry");
-const resource_loader_1 = require("@src/resource-loader");
-const route_config_factory_1 = require("@src/route-config-factory");
 const aurelia_dependency_injection_1 = require("aurelia-dependency-injection");
 const aurelia_router_1 = require("aurelia-router");
+const registry_1 = require("./registry");
+const resource_loader_1 = require("./resource-loader");
+const route_config_factory_1 = require("./route-config-factory");
 const noTransform = (configs) => configs;
 const noFilter = () => true;
 // tslint:disable-next-line:no-empty

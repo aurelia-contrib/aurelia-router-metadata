@@ -1,8 +1,8 @@
-import { Registry } from "@src/registry";
-import { ResourceLoader } from "@src/resource-loader";
-import { DefaultRouteConfigFactory, RouteConfigFactory } from "@src/route-config-factory";
 import { Container } from "aurelia-dependency-injection";
 import { RouterConfiguration } from "aurelia-router";
+import { Registry } from "./registry";
+import { ResourceLoader } from "./resource-loader";
+import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
 const noTransform = (configs) => configs;
 const noFilter = () => true;
 // tslint:disable-next-line:no-empty

@@ -1,4 +1,4 @@
-define(["require", "exports", "@src/model", "@src/resolution/core", "@src/resolution/mapping", "@src/router-resource"], function (require, exports, model_1, core_1, mapping_1, router_resource_1) {
+define(["require", "exports", "../model", "../router-resource", "./core", "./mapping"], function (require, exports, model_1, router_resource_1, core_1, mapping_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // tslint:disable:max-classes-per-file

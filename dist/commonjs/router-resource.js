@@ -8,11 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const functions_1 = require("@src/resolution/functions");
-const router_metadata_1 = require("@src/router-metadata");
-const router_metadata_configuration_1 = require("@src/router-metadata-configuration");
 const aurelia_logging_1 = require("aurelia-logging");
 const aurelia_router_1 = require("aurelia-router");
+const functions_1 = require("./resolution/functions");
+const router_metadata_1 = require("./router-metadata");
+const router_metadata_configuration_1 = require("./router-metadata-configuration");
 const logger = aurelia_logging_1.getLogger("router-metadata");
 /**
  * Identifies a class as a resource that can be navigated to (has routes) and/or

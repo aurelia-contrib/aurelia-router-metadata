@@ -1,4 +1,4 @@
-define(["require", "exports", "@src/cherow/cherow"], function (require, exports, cherow_1) {
+define(["require", "exports", "../cherow/cherow"], function (require, exports, cherow_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // tslint:disable:max-classes-per-file

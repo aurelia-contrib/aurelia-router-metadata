@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const model_1 = require("@src/model");
-const requests_1 = require("@src/resolution/requests");
-const router_resource_1 = require("@src/router-resource");
+const model_1 = require("../model");
+const router_resource_1 = require("../router-resource");
+const requests_1 = require("./requests");
 // tslint:disable:max-classes-per-file
 /**
  * Specification that matches any request derived from the base RouteConfigRequest.

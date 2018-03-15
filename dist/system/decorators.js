@@ -1,4 +1,4 @@
-System.register(["@src/router-resource"], function (exports_1, context_1) {
+System.register(["./router-resource"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     /**

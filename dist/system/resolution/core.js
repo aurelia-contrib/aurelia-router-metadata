@@ -1,4 +1,4 @@
-System.register(["@src/resolution/specifications"], function (exports_1, context_1) {
+System.register(["./specifications"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var specifications_1, BuilderContext, NoResult, FilteringBuilderNode, CompositeBuilderNode, Postprocessor, TerminatingBuilder, LoggingBuilder, RequestTrace, ResultTrace, BuilderError;

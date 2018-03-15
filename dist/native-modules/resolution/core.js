@@ -1,4 +1,4 @@
-import { TrueSpecification } from "@src/resolution/specifications";
+import { TrueSpecification } from "./specifications";
 // tslint:disable:max-classes-per-file
 /**
  * The BuilderContext is a resolution scope for a specific graph of builders.

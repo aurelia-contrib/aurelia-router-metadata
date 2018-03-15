@@ -1,4 +1,4 @@
-System.register(["@src/registry", "@src/resource-loader", "@src/router-metadata", "@src/router-metadata-configuration", "@src/router-resource", "aurelia-dependency-injection", "aurelia-loader", "@src/resolution/builders", "@src/resolution/core", "@src/resolution/functions", "@src/resolution/mapping", "@src/resolution/queries", "@src/resolution/requests", "@src/resolution/specifications", "@src/decorators", "@src/model", "@src/route-config-factory"], function (exports_1, context_1) {
+System.register(["aurelia-dependency-injection", "aurelia-loader", "./registry", "./resource-loader", "./router-metadata", "./router-metadata-configuration", "./router-resource", "./resolution/builders", "./resolution/core", "./resolution/functions", "./resolution/mapping", "./resolution/queries", "./resolution/requests", "./resolution/specifications", "./decorators", "./model", "./route-config-factory"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     // tslint:disable:no-invalid-this
@@ -34,7 +34,7 @@ System.register(["@src/registry", "@src/resource-loader", "@src/router-metadata"
         });
     }
     exports_1("configure", configure);
-    var registry_1, resource_loader_1, router_metadata_1, router_metadata_configuration_1, router_resource_1, aurelia_dependency_injection_1, aurelia_loader_1;
+    var aurelia_dependency_injection_1, aurelia_loader_1, registry_1, resource_loader_1, router_metadata_1, router_metadata_configuration_1, router_resource_1;
     var exportedNames_1 = {
         "configure": true
     };
@@ -47,6 +47,12 @@ System.register(["@src/registry", "@src/resource-loader", "@src/router-metadata"
     }
     return {
         setters: [
+            function (aurelia_dependency_injection_1_1) {
+                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
+            },
+            function (aurelia_loader_1_1) {
+                aurelia_loader_1 = aurelia_loader_1_1;
+            },
             function (registry_1_1) {
                 registry_1 = registry_1_1;
                 exportStar_1(registry_1_1);
@@ -66,12 +72,6 @@ System.register(["@src/registry", "@src/resource-loader", "@src/router-metadata"
             function (router_resource_1_1) {
                 router_resource_1 = router_resource_1_1;
                 exportStar_1(router_resource_1_1);
-            },
-            function (aurelia_dependency_injection_1_1) {
-                aurelia_dependency_injection_1 = aurelia_dependency_injection_1_1;
-            },
-            function (aurelia_loader_1_1) {
-                aurelia_loader_1 = aurelia_loader_1_1;
             },
             function (builders_1_1) {
                 exportStar_1(builders_1_1);

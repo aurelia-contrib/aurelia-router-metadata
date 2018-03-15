@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const specifications_1 = require("@src/resolution/specifications");
+const specifications_1 = require("./specifications");
 // tslint:disable:max-classes-per-file
 /**
  * The BuilderContext is a resolution scope for a specific graph of builders.

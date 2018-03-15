@@ -8,13 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const builders_1 = require("@src/resolution/builders");
-const core_1 = require("@src/resolution/core");
-const functions_1 = require("@src/resolution/functions");
-const queries_1 = require("@src/resolution/queries");
-const requests_1 = require("@src/resolution/requests");
-const specifications_1 = require("@src/resolution/specifications");
-const router_metadata_1 = require("@src/router-metadata");
+const builders_1 = require("./resolution/builders");
+const core_1 = require("./resolution/core");
+const functions_1 = require("./resolution/functions");
+const queries_1 = require("./resolution/queries");
+const requests_1 = require("./resolution/requests");
+const specifications_1 = require("./resolution/specifications");
+const router_metadata_1 = require("./router-metadata");
 // tslint:disable:max-classes-per-file
 /**
  * Class that creates RouteConfigs for the @routeConfig() decorator

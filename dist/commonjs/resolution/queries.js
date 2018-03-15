@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const model_1 = require("@src/model");
-const core_1 = require("@src/resolution/core");
-const mapping_1 = require("@src/resolution/mapping");
-const router_resource_1 = require("@src/router-resource");
+const model_1 = require("../model");
+const router_resource_1 = require("../router-resource");
+const core_1 = require("./core");
+const mapping_1 = require("./mapping");
 // tslint:disable:max-classes-per-file
 /**
  * Returns the "configureRouter" method from a class constructor or, if it's stored in a Symbol-keyed property

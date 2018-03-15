@@ -1,6 +1,6 @@
-import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "@src/model";
-import { RouteConfigRequest } from "@src/resolution/requests";
-import { RouterResource } from "@src/router-resource";
+import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "../model";
+import { RouterResource } from "../router-resource";
+import { RouteConfigRequest } from "./requests";
 // tslint:disable:max-classes-per-file
 /**
  * Specification that matches any request derived from the base RouteConfigRequest.

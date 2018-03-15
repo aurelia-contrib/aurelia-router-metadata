@@ -1,17 +1,17 @@
-System.register(["@src/model", "@src/resolution/requests", "@src/router-resource"], function (exports_1, context_1) {
+System.register(["../model", "../router-resource", "./requests"], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
-    var model_1, requests_1, router_resource_1, RouteConfigRequestSpecification, TrueSpecification, InverseSpecification, ConfigureRouterFunctionDeclarationSpecification, ModuleModelClassSpecification, CallExpressionCalleePropertyNameSpecification, SyntaxNodeSpecification;
+    var model_1, router_resource_1, requests_1, RouteConfigRequestSpecification, TrueSpecification, InverseSpecification, ConfigureRouterFunctionDeclarationSpecification, ModuleModelClassSpecification, CallExpressionCalleePropertyNameSpecification, SyntaxNodeSpecification;
     return {
         setters: [
             function (model_1_1) {
                 model_1 = model_1_1;
             },
-            function (requests_1_1) {
-                requests_1 = requests_1_1;
-            },
             function (router_resource_1_1) {
                 router_resource_1 = router_resource_1_1;
+            },
+            function (requests_1_1) {
+                requests_1 = requests_1_1;
             }
         ],
         execute: function () {

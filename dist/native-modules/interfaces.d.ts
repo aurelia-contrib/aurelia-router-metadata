@@ -1,6 +1,6 @@
-import { RouterMetadataSettings } from "@src/router-metadata-configuration";
-import { RouterResource } from "@src/router-resource";
 import { NavigationInstruction, NavModel, PipelineStep, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterResource } from "./router-resource";
 /**
  * Instruction that contains basic information common to all RouterResource types
  */

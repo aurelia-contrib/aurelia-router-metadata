@@ -1,4 +1,4 @@
-import { parseScript } from "@src/cherow/cherow";
+import { parseScript } from "../cherow/cherow";
 // tslint:disable:max-classes-per-file
 /**
  * Function that simply wraps the provided value in a promise.

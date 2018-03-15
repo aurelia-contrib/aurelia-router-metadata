@@ -1,4 +1,4 @@
-define(["require", "exports", "@src/resolution/core"], function (require, exports, core_1) {
+define(["require", "exports", "./core"], function (require, exports, core_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // tslint:disable:max-classes-per-file

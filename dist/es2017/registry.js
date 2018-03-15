@@ -1,6 +1,6 @@
-import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "@src/model";
-import { allObjectKeys } from "@src/util";
 import { PLATFORM } from "aurelia-pal";
+import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "./model";
+import { allObjectKeys } from "./util";
 export class Registry {
     constructor() {
         this.cache = Object.create(null);

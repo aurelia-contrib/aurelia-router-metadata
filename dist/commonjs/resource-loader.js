@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const router_metadata_1 = require("@src/router-metadata");
+const router_metadata_1 = require("./router-metadata");
 class ResourceLoader {
     constructor(loader, registry) {
         this.loader = loader;

@@ -1,4 +1,4 @@
-System.register(["@src/router-metadata"], function (exports_1, context_1) {
+System.register(["./router-metadata"], function (exports_1, context_1) {
     "use strict";
     var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
