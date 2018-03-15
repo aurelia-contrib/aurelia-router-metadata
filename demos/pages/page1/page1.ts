@@ -1,8 +1,14 @@
 // tslint:disable:no-implicit-dependencies
 // tslint:disable:no-unnecessary-class
+import { Router, RouterConfiguration } from "aurelia-router";
 import { useView } from "aurelia-templating";
-import { configureRouter } from "../../../src/aurelia-router-metadata";
 
 @useView("pages/default-parent.html")
-@configureRouter(["pages/page1/page1/page1", "pages/page1/page1/page2"])
-export class Page1 {}
+export class Page1 {
+  public configureRouter(config: RouterConfiguration, router: Router): void {
+    config.map([
+      { moduleId: "pages/page1/page1/page1" },
+      { moduleId: "pages/page1/page1/page2" }
+     ] as any);
+  }
+}

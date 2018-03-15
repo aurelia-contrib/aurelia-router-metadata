@@ -1,13 +1,17 @@
 // tslint:disable:no-implicit-dependencies
 import { PLATFORM } from "aurelia-pal";
-import { Router, RouterConfiguration } from "aurelia-router";
-import { configureRouter } from "../src/aurelia-router-metadata";
+import { AppRouter, Router, RouterConfiguration } from "aurelia-router";
 
-@configureRouter(["pages/page1", "pages/page2", "pages/page3"])
 export class App {
   public router: Router;
 
-  public configureRouter(config: RouterConfiguration, router: Router): void {
+  public configureRouter(config: RouterConfiguration, router: AppRouter): void {
     this.router = router;
+
+    config.map([
+      { moduleId: "pages/page1" },
+      { moduleId: "pages/page2" },
+      { moduleId: "pages/page3" }
+    ] as any);
   }
 }

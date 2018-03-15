@@ -1,6 +1,7 @@
 // tslint:disable:no-implicit-dependencies
+import { routerMetadata } from "@src/router-metadata";
+import { RouterResource } from "@src/router-resource";
 import { customElement } from "aurelia-templating";
-import { routerMetadata, RouterResource } from "../../../src/aurelia-router-metadata";
 
 @customElement("print-page-info")
 export class PrintPageInfo {

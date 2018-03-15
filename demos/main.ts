@@ -2,19 +2,15 @@
 // tslint:disable:import-name
 // tslint:disable:no-import-side-effect
 // tslint:disable:no-submodule-imports
+;
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "@src/interfaces";
+import { routerMetadata } from "@src/router-metadata";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "@src/router-metadata-configuration";
 import { Aurelia } from "aurelia-framework";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
 import * as Bluebird from "bluebird";
 import "pages/imports";
-import {
-  ICompleteRouteConfig,
-  IConfigureRouterInstruction,
-  ICreateRouteConfigInstruction,
-  routerMetadata,
-  RouterMetadataConfiguration,
-  RouterMetadataSettings
-} from "../src/aurelia-router-metadata";
 import env from "./environment";
 
 Promise.config({ warnings: { wForgottenReturn: false } });
