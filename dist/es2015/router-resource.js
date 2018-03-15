@@ -104,6 +104,14 @@ export class RouterResource {
         const target = instruction.target;
         if (isConfigureRouterInstruction(instruction)) {
             if (this.isConfigureRouter) {
+                const moduleIds = instruction.routeConfigModuleIds;
+                if (moduleIds && moduleIds.length) {
+                    for (const moduleId of moduleIds) {
+                        if (this.routeConfigModuleIds.indexOf(moduleId) > -1) {
+                            this.routeConfigModuleIds.push(moduleId);
+                        }
+                    }
+                }
                 return; // already configured
             }
             logger.debug(`initializing @configureRouter for ${target.name}`);
