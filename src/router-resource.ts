@@ -1,20 +1,23 @@
-import { Container } from "aurelia-dependency-injection";
-import { getLogger } from "aurelia-logging";
-import { AppRouter, Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
   ICreateRouteConfigInstruction,
   IResourceLoader,
+  IRouteConfig,
   IRouteConfigInstruction,
   IRouterConfiguration,
   IRouterResourceTarget,
   IRouterResourceTargetProto
-} from "./interfaces";
-import { $Module } from "./model";
-import { RouteConfigFactory } from "./route-config-factory";
-import { routerMetadata } from "./router-metadata";
-import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
+} from "@src/interfaces";
+import { $Module } from "@src/model";
+import { Registry } from "@src/registry";
+import { RouteConfigSplitter } from "@src/resolution/functions";
+import { RouteConfigFactory } from "@src/route-config-factory";
+import { routerMetadata } from "@src/router-metadata";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { Container } from "aurelia-dependency-injection";
+import { getLogger } from "aurelia-logging";
+import { AppRouter, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
 
@@ -26,6 +29,9 @@ const logger = getLogger("router-metadata");
  */
 export class RouterResource {
   public static originalConfigureRouterSymbol: any = Symbol("configureRouter");
+  public static originalMapSymbol: any = Symbol("map");
+  public static viewModelSymbol: any = Symbol("viewModel");
+  public static routerResourceSymbol: any = Symbol("routerResource");
 
   public $module: $Module | null;
 
@@ -63,6 +69,16 @@ export class RouterResource {
    * associated with the `routeConfigModuleIds` set on this instance (if they are also `@configureRouter`)
    */
   public enableEagerLoading: boolean;
+
+  /**
+   * Only applicable when `isConfigureRouter`
+   *
+   * If true: will look for `RouteConfig` objects in the `configureRouter()` method of the target class and treat them as if
+   * they were defined in decorators.
+   * Currently only works on non-async methods and the moduleId must be either a pure string or a `PLATFORM.moduleName` call.
+   * Other properties will only be included if they are "hard-coded".
+   */
+  public enableStaticAnalysis: boolean;
 
   /**
    * Only applicable when `isRouteConfig`
@@ -172,6 +188,7 @@ export class RouterResource {
     this.isConfigureRouter = false;
     this.routeConfigModuleIds = [];
     this.enableEagerLoading = false;
+    this.enableStaticAnalysis = false;
     this.createRouteConfigInstruction = null;
     this.ownRoutes = [];
     this.childRoutes = [];
@@ -221,7 +238,7 @@ export class RouterResource {
    */
   public initialize(instruction?: IRouteConfigInstruction | IConfigureRouterInstruction | null): void {
     if (!instruction) {
-      if (this.isRouteConfig) {
+      if (this.isRouteConfig && this.isConfigureRouter) {
         return; // already configured
       }
       // We're not being called from a decorator, so just apply defaults as if we're a @routeConfig
@@ -242,6 +259,7 @@ export class RouterResource {
       this.routeConfigModuleIds = ensureArray(configureInstruction.routeConfigModuleIds);
       this.filterChildRoutes = settings.filterChildRoutes;
       this.enableEagerLoading = settings.enableEagerLoading;
+      this.enableStaticAnalysis = settings.enableStaticAnalysis;
 
       assignOrProxyPrototypeProperty(
         target.prototype,
@@ -260,6 +278,18 @@ export class RouterResource {
 
       this.createRouteConfigInstruction = { ...configInstruction, settings };
     }
+  }
+
+  /**
+   * Ensures that the module for this resources is loaded and registered so that its routing information can be queried.
+   */
+  public async load(): Promise<void> {
+    const registry = this.getRegistry();
+    const loader = this.getResourceLoader();
+    if (!this.moduleId) {
+      this.moduleId = registry.registerModuleViaConstructor(this.target).moduleId;
+    }
+    await loader.loadRouterResource(this.moduleId);
   }
 
   public async loadOwnRoutes(): Promise<ICompleteRouteConfig[]> {
@@ -307,6 +337,19 @@ export class RouterResource {
 
     const loader = this.getResourceLoader();
 
+    let extractedChildRoutes: ICompleteRouteConfig[] | undefined;
+    if (this.enableStaticAnalysis) {
+      extractedChildRoutes = await this.getConfigFactory().createChildRouteConfigs({ target: this.target });
+      for (const extracted of extractedChildRoutes) {
+        if (extracted.moduleId) {
+          if (this.routeConfigModuleIds.indexOf(extracted.moduleId) === -1) {
+            this.routeConfigModuleIds.push(extracted.moduleId);
+          }
+          await loader.loadRouterResource(extracted.moduleId);
+        }
+      }
+    }
+
     for (const moduleId of this.routeConfigModuleIds) {
       const resource = await loader.loadRouterResource(moduleId);
       const childRoutes = await resource.loadOwnRoutes();
@@ -314,7 +357,26 @@ export class RouterResource {
       if (resource.isConfigureRouter && this.enableEagerLoading) {
         await resource.loadChildRoutes();
       }
-      for (const childRoute of childRoutes) {
+      const childRoutesToProcess: ICompleteRouteConfig[] = [];
+      if (this.enableStaticAnalysis) {
+        const couples = alignRouteConfigs(childRoutes, extractedChildRoutes as any);
+        for (const couple of couples) {
+          if (couple.left) {
+            const childRoute = couple.left as ICompleteRouteConfig;
+            if (couple.right) {
+              Object.assign(childRoute, {
+                ...couple.right,
+                settings: { ...childRoute.settings, ...couple.right.settings }
+              });
+            }
+            childRoutesToProcess.push(childRoute);
+          }
+        }
+      } else {
+        childRoutesToProcess.push(...childRoutes);
+      }
+
+      for (const childRoute of childRoutesToProcess) {
         if (!this.filterChildRoutes || (await this.filterChildRoutes(childRoute, childRoutes, this))) {
           if (this.ownRoutes.length > 0) {
             childRoute.settings.parentRoute = this.ownRoutes[0];
@@ -346,6 +408,8 @@ export class RouterResource {
    * and called at the end of this `configureRouter()` method.
    */
   public async configureRouter(config: RouterConfiguration, router: Router, ...args: any[]): Promise<void> {
+    await this.load();
+
     const viewModel = (router.container as any).viewModel;
     const settings = this.getSettings();
 
@@ -388,6 +452,27 @@ export class RouterResource {
       RouterResource.originalConfigureRouterSymbol
     ] as ConfigureRouter;
     if (originalConfigureRouter !== undefined) {
+      if (this.enableStaticAnalysis) {
+        Object.defineProperty(config, RouterResource.routerResourceSymbol, {
+          enumerable: false,
+          configurable: true,
+          writable: true,
+          value: this
+        });
+        Object.defineProperty(config, RouterResource.originalMapSymbol, {
+          enumerable: false,
+          configurable: true,
+          writable: true,
+          value: config.map
+        });
+        Object.defineProperty(config, "map", {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: map.bind(config)
+        });
+      }
+
       return originalConfigureRouter.call(viewModel, config, router);
     }
   }
@@ -417,12 +502,16 @@ export class RouterResource {
   protected getResourceLoader(): IResourceLoader {
     return RouterMetadataConfiguration.INSTANCE.getResourceLoader(this.container);
   }
+
+  protected getRegistry(): Registry {
+    return RouterMetadataConfiguration.INSTANCE.getRegistry(this.container);
+  }
 }
 
 function isConfigureRouterInstruction(instruction: IRouteConfigInstruction | IConfigureRouterInstruction): boolean {
   return (
     !!(instruction as IConfigureRouterInstruction).routeConfigModuleIds ||
-    Object.prototype.hasOwnProperty.call(instruction.target, "configureRouter")
+    Object.prototype.hasOwnProperty.call(instruction.target.prototype, "configureRouter")
   );
 }
 
@@ -470,6 +559,28 @@ async function configureRouter(this: any, config: RouterConfiguration, router: R
 }
 // tslint:enable:no-invalid-this
 
+function map(this: any, originalConfigs: RouteConfig | RouteConfig[]): RouterConfiguration {
+  const resource = this[RouterResource.routerResourceSymbol] as RouterResource;
+  const splittedOriginalConfigs: RouteConfig[] = new RouteConfigSplitter().execute(ensureArray(originalConfigs)) as any;
+  const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
+  const remainingConfigs: RouteConfig[] = [];
+  for (const couple of couples) {
+    if (couple.left && couple.right) {
+      Object.assign(couple.left, {
+        ...couple.right,
+        settings: { ...couple.left.settings, ...couple.right.settings }
+      });
+    } else if (couple.right) {
+      remainingConfigs.push(couple.right as any);
+    }
+  }
+
+  // tslint:disable-next-line:no-parameter-reassignment
+  originalConfigs = remainingConfigs;
+
+  return this;
+}
+
 function mergeRouterConfiguration(target: RouterConfiguration, source: IRouterConfiguration): RouterConfiguration {
   target.instructions = (target.instructions || []).concat(source.instructions || []);
   target.options = { ...(target.options || {}), ...(source.options || {}) };
@@ -479,4 +590,44 @@ function mergeRouterConfiguration(target: RouterConfiguration, source: IRouterCo
   target.viewPortDefaults = { ...(target.viewPortDefaults || {}), ...(source.viewPortDefaults || {}) };
 
   return target;
+}
+
+interface IRouteConfigCouple {
+  left?: IRouteConfig;
+  right?: IRouteConfig;
+}
+
+function alignRouteConfigs(leftList: IRouteConfig[], rightList: IRouteConfig[]): IRouteConfigCouple[] {
+  // we're essentially doing an OUTER JOIN here
+  const couples: IRouteConfigCouple[] = leftList.map(left => {
+    const couple: IRouteConfigCouple = {
+      left
+    };
+    let rightMatches = rightList.filter(r => r.moduleId === left.moduleId);
+    if (rightMatches.length > 1) {
+      rightMatches = rightMatches.filter(r => r.route === left.route);
+      if (rightMatches.length > 1) {
+        rightMatches = rightMatches.filter(r => r.name === left.name);
+        if (rightMatches.length > 1) {
+          rightMatches = rightMatches.filter(r => r.href === left.href);
+        }
+      }
+    }
+    if (rightMatches.length > 1) {
+      // really shouldn't be possible
+      throw new Error(`Probable duplicate routes found: ${JSON.stringify(rightMatches)}`);
+    }
+    if (rightMatches.length === 1) {
+      couple.right = rightMatches[0];
+    }
+
+    return couple;
+  });
+  for (const right of rightList) {
+    if (!couples.some(c => c.right === right)) {
+      couples.push({ right });
+    }
+  }
+
+  return couples;
 }

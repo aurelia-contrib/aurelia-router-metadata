@@ -108,13 +108,10 @@ export class $Export {
     return this.$constructor.hasBase;
   }
   public get $base(): $Export | null {
-    return this.$constructor.$base && this.$constructor.$base.$export || null;
+    return (this.$constructor.$base && this.$constructor.$base.$export) || null;
   }
 
-  constructor(
-    $module: $Module,
-    name: string
-  ) {
+  constructor($module: $Module, name: string) {
     this._module = $module;
     this._name = name;
   }
@@ -172,11 +169,7 @@ export class $Constructor {
     this._base = value;
   }
 
-  constructor(
-    $export: $Export,
-    name: string,
-    raw: { [key: string]: any } & Function
-  ) {
+  constructor($export: $Export, name: string, raw: { [key: string]: any } & Function) {
     this._export = $export;
     this._name = name;
     this._raw = raw;
@@ -240,11 +233,7 @@ export class $Prototype {
     this._base = value;
   }
 
-  constructor(
-    $export: $Export,
-    name: string,
-    raw: { [key: string]: any } & Object
-  ) {
+  constructor($export: $Export, name: string, raw: { [key: string]: any } & Object) {
     this._export = $export;
     this._name = name;
     this._raw = raw;

@@ -1,8 +1,8 @@
-import { getLogger } from "aurelia-logging";
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "./interfaces";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "@src/interfaces";
 import {
   ArrayExpressionPropertyAnalyzer,
   CallExpressionAnalyzer,
+  CallExpressionArgumentAnalyzer,
   CallExpressionPropertyAnalyzer,
   ChildRouteConfigCollectionBuilder,
   CompleteChildRouteConfigCollectionBuilder,
@@ -19,35 +19,36 @@ import {
   RouteConfigDefaultsBuilder,
   RouteConfigOverridesBuilder,
   RouterMetadataSettingsProvider,
-  RouterResourceProvider,
-  CallExpressionArgumentAnalyzer
-} from "./resolution/builders";
+  RouterResourceProvider
+} from "@src/resolution/builders";
 import {
   BuilderContext,
   CompositeBuilderNode,
   FilteringBuilderNode,
-  LoggingBuilder,
   Postprocessor,
   TerminatingBuilder
-} from "./resolution/core";
-import { EnsureObjectPropertyFunction, FunctionBodyParser } from "./resolution/functions";
-import { IBuilderContext } from "./resolution/interfaces";
+} from "@src/resolution/core";
+import { EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter } from "@src/resolution/functions";
+import { IBuilderContext } from "@src/resolution/interfaces";
 import {
   BlockStatementCallExpressionCalleePropertyNameQuery,
   CallExpressionArgumentTypeQuery,
   ConfigureRouterMethodQuery,
   LiteralArgumentValueCallExpressionQuery,
   RouteConfigPropertyQuery
-} from "./resolution/queries";
-import { CompleteChildRouteConfigCollectionRequest, CompleteRouteConfigCollectionRequest } from "./resolution/requests";
+} from "@src/resolution/queries";
+import {
+  CompleteChildRouteConfigCollectionRequest,
+  CompleteRouteConfigCollectionRequest
+} from "@src/resolution/requests";
 import {
   CallExpressionCalleePropertyNameSpecification,
   ConfigureRouterFunctionDeclarationSpecification,
   InverseSpecification,
   ModuleModelClassSpecification,
-  RouteConfigRequestSpecification,
-  SyntaxNodeSpecification
-} from "./resolution/specifications";
+  RouteConfigRequestSpecification
+} from "@src/resolution/specifications";
+import { routerMetadata } from "@src/router-metadata";
 
 // tslint:disable:max-classes-per-file
 
@@ -58,6 +59,11 @@ export abstract class RouteConfigFactory {
   public abstract createRouteConfigs(
     // tslint:disable-next-line:variable-name
     _instruction: ICreateRouteConfigInstruction
+  ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]>;
+
+  public abstract createChildRouteConfigs(
+    // tslint:disable-next-line:variable-name
+    _instruction: IConfigureRouterInstruction
   ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]>;
 }
 
@@ -88,7 +94,9 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
       new RouteConfigRequestSpecification());
 
     const staticRouteConfigBuilder = new CompositeBuilderNode(
-      new CompleteChildRouteConfigCollectionBuilder(),
+      new Postprocessor(
+        new CompleteChildRouteConfigCollectionBuilder(),
+        new RouteConfigSplitter()),
       new ChildRouteConfigCollectionBuilder(),
       new Postprocessor(
         new RegisteredConstructorProvider(),
@@ -127,9 +135,10 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * @param instruction Instruction containing all information based on which the `RouteConfig` objects
    * will be created
    */
-  public createRouteConfigs(
-    instruction: ICreateRouteConfigInstruction
-  ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
+  public async createRouteConfigs(instruction: ICreateRouteConfigInstruction): Promise<ICompleteRouteConfig[]> {
+    const resource = routerMetadata.getOrCreateOwn(instruction.target);
+    await resource.load();
+
     return this.context.resolve(new CompleteRouteConfigCollectionRequest(instruction));
   }
 
@@ -139,19 +148,10 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
    * @param instruction Instruction containing all information based on which the `RouteConfig` objects
    * will be created
    */
-  public createChildRouteConfigs(
-    instruction: IConfigureRouterInstruction
-  ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
+  public async createChildRouteConfigs(instruction: IConfigureRouterInstruction): Promise<ICompleteRouteConfig[]> {
+    const resource = routerMetadata.getOrCreateOwn(instruction.target);
+    await resource.load();
+
     return this.context.resolve(new CompleteChildRouteConfigCollectionRequest(instruction));
-  }
-}
-
-export class SeededInstruction {
-  public input: any;
-  public seed: any;
-
-  constructor(input: any, seed: any) {
-    this.input = input;
-    this.seed = seed;
   }
 }

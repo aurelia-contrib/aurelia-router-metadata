@@ -1,12 +1,10 @@
-import { autoinject } from "aurelia-dependency-injection";
+import { IResourceLoader } from "@src/interfaces";
+import { $Module } from "@src/model";
+import { Registry } from "@src/registry";
+import { routerMetadata } from "@src/router-metadata";
+import { RouterResource } from "@src/router-resource";
 import { Loader } from "aurelia-loader";
-import { IResourceLoader } from "./interfaces";
-import { $Module } from "./model";
-import { Registry } from "./registry";
-import { routerMetadata } from "./router-metadata";
-import { RouterResource } from "./router-resource";
 
-@autoinject()
 export class ResourceLoader implements IResourceLoader {
   private loader: Loader;
   private registry: Registry;

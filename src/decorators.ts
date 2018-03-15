@@ -1,6 +1,11 @@
-import { RouterMetadataSettings } from "./aurelia-router-metadata";
-import { IConfigureRouterInstruction, IRouteConfig, IRouteConfigInstruction, IRouterResourceTarget } from "./interfaces";
-import { RouterResource } from "./router-resource";
+import {
+  IConfigureRouterInstruction,
+  IRouteConfig,
+  IRouteConfigInstruction,
+  IRouterResourceTarget
+} from "@src/interfaces";
+import { RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { RouterResource } from "@src/router-resource";
 
 /**
  * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself

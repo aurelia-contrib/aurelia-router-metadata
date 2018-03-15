@@ -8,12 +8,12 @@ import {
   ObjectExpression,
   Property,
   SpreadElement
-} from "../cherow/estree";
-import { $Constructor, $Property } from "../model";
-import { RouterResource } from "../router-resource";
-import { BuilderError, NoResult } from "./core";
-import { IPropertyQuery } from "./interfaces";
-import { objectRouteConfigMapper } from "./mapping";
+} from "@src/cherow/estree";
+import { $Constructor, $Property } from "@src/model";
+import { BuilderError, NoResult } from "@src/resolution/core";
+import { IPropertyQuery } from "@src/resolution/interfaces";
+import { objectRouteConfigMapper } from "@src/resolution/mapping";
+import { RouterResource } from "@src/router-resource";
 
 // tslint:disable:max-classes-per-file
 

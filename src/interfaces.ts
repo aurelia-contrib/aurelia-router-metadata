@@ -1,3 +1,5 @@
+import { RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { RouterResource } from "@src/router-resource";
 import {
   NavigationInstruction,
   NavModel,
@@ -6,8 +8,6 @@ import {
   Router,
   RouterConfiguration
 } from "aurelia-router";
-import { RouterMetadataSettings } from "./router-metadata-configuration";
-import { RouterResource } from "./router-resource";
 
 /**
  * Instruction that contains basic information common to all RouterResource types
@@ -90,7 +90,7 @@ export interface IModuleLoader {
 }
 
 export interface IResourceLoader {
-  loadRouterResource(moduleId: string, resourceTarget?: Function): Promise<RouterResource>;
+  loadRouterResource(moduleId: string): Promise<RouterResource>;
 }
 
 /**

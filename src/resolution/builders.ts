@@ -1,15 +1,10 @@
-import { Container } from "aurelia-dependency-injection";
-import { routerMetadata, RouterMetadataSettings, RouterResource } from "../aurelia-router-metadata";
-import {
-  CallExpression,
-  FunctionDeclaration} from "../cherow/estree";
-import { ICompleteRouteConfig, IRouteConfig } from "../interfaces";
-import { $Constructor } from "../model";
-import { Registry } from "../registry";
-import { ensureArray } from "../util";
-import { NoResult } from "./core";
-import { IBuilder, IBuilderContext, IPropertyQuery } from "./interfaces";
-import { constructorRouteConfigMapper, objectRouteConfigMapper } from "./mapping";
+import { CallExpression, FunctionDeclaration } from "@src/cherow/estree";
+import { ICompleteRouteConfig, IRouteConfig } from "@src/interfaces";
+import { $Constructor } from "@src/model";
+import { Registry } from "@src/registry";
+import { NoResult } from "@src/resolution/core";
+import { IBuilder, IBuilderContext, IPropertyQuery } from "@src/resolution/interfaces";
+import { constructorRouteConfigMapper, objectRouteConfigMapper } from "@src/resolution/mapping";
 import {
   AnalyzeArrayExpressionPropertyRequest,
   AnalyzeCallExpressionArgumentRequest,
@@ -29,7 +24,12 @@ import {
   RouteConfigRequest,
   RouterMetadataSettingsRequest,
   RouterResourceRequest
-} from "./requests";
+} from "@src/resolution/requests";
+import { routerMetadata } from "@src/router-metadata";
+import { RouterMetadataSettings } from "@src/router-metadata-configuration";
+import { RouterResource } from "@src/router-resource";
+import { ensureArray } from "@src/util";
+import { Container } from "aurelia-dependency-injection";
 
 // tslint:disable:max-classes-per-file
 
@@ -280,9 +280,20 @@ export class ChildRouteConfigCollectionBuilder implements IBuilder {
       return new NoResult();
     }
 
-    return context.resolve(request.$constructor) as FunctionDeclaration;
+    const results: IRouteConfig[] = [];
+    const configCollection = context.resolve(request.$constructor) as IRouteConfig[];
+    for (const config of configCollection) {
+      config.route = ensureArray(config.route);
+      if (config.route.length === 0) {
+        results.push({ ...config });
+      } else {
+        for (const route of config.route) {
+          results.push({ ...config, route });
+        }
+      }
+    }
 
-    //return context.resolve(functionDeclaration);
+    return results;
   }
 }
 
@@ -332,7 +343,13 @@ export class FunctionDeclarationAnalyzer implements IBuilder {
     const properties = this.query.selectProperties(request.body);
     for (const prop of properties) {
       const result = context.resolve(prop);
-      results.push(result);
+      if (Array.isArray(result)) {
+        for (const item of result) {
+          results.push(item);
+        }
+      } else {
+        results.push(result);
+      }
     }
 
     return results;
@@ -354,7 +371,13 @@ export class CallExpressionAnalyzer implements IBuilder {
 
     for (const arg of argsToProcess) {
       const result = context.resolve(new AnalyzeCallExpressionArgumentRequest(arg));
-      results.push(result);
+      if (Array.isArray(result)) {
+        for (const item of result) {
+          results.push(item);
+        }
+      } else {
+        results.push(result);
+      }
     }
 
     return results;

@@ -21,7 +21,7 @@ export class RouteConfigPropertyMapper {
 
   public map(targetObj: any, sourceObj: any): void {
     const target = targetObj;
-    const source = {...sourceObj};
+    const source = { ...sourceObj };
     for (const mapping of this.mappings) {
       const { targetName, sourceName } = mapping;
       if (source[sourceName] === undefined) {
@@ -99,14 +99,10 @@ const commonRouteConfigMapper = new RouteConfigPropertyMapper()
   .addMapping("layoutViewModel", "layoutViewModel", MapStrategy.overwrite)
   .addMapping("layoutModel", "layoutModel", MapStrategy.overwrite);
 
-export const constructorRouteConfigMapper = commonRouteConfigMapper.clone().addMapping(
-  "routeName",
-  "name",
-  MapStrategy.overwrite
-);
+export const constructorRouteConfigMapper = commonRouteConfigMapper
+  .clone()
+  .addMapping("routeName", "name", MapStrategy.overwrite);
 
-export const objectRouteConfigMapper = commonRouteConfigMapper.clone().addMapping(
-  "name",
-  "name",
-  MapStrategy.overwrite
-);
+export const objectRouteConfigMapper = commonRouteConfigMapper
+  .clone()
+  .addMapping("name", "name", MapStrategy.overwrite);

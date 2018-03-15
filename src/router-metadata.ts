@@ -1,5 +1,5 @@
-import { IRouterResourceTarget, IRouterResourceTargetProto } from "./interfaces";
-import { RouterResource } from "./router-resource";
+import { IRouterResourceTarget, IRouterResourceTargetProto } from "@src/interfaces";
+import { RouterResource } from "@src/router-resource";
 
 const key: string = "__routerMetadata__";
 const resourceKey: string = "resource";

@@ -1,5 +1,3 @@
-import { Container } from "aurelia-dependency-injection";
-import { Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
@@ -7,10 +5,13 @@ import {
   IResourceLoader,
   IRouteConfig,
   IRouterConfiguration
-} from "./interfaces";
-import { ResourceLoader } from "./resource-loader";
-import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
-import { RouterResource } from "./router-resource";
+} from "@src/interfaces";
+import { Registry } from "@src/registry";
+import { ResourceLoader } from "@src/resource-loader";
+import { DefaultRouteConfigFactory, RouteConfigFactory } from "@src/route-config-factory";
+import { RouterResource } from "@src/router-resource";
+import { Container } from "aurelia-dependency-injection";
+import { Router, RouterConfiguration } from "aurelia-router";
 
 const noTransform = (configs: ICompleteRouteConfig[]): ICompleteRouteConfig[] => configs;
 const noFilter = (): boolean => true;
@@ -60,6 +61,11 @@ export class RouterMetadataSettings {
    * Enable/disable eager loading by default
    */
   public enableEagerLoading: boolean;
+
+  /**
+   * Enable/disable static code analysis to extract RouteConfigs from `configureRouter` methods
+   */
+  public enableStaticAnalysis: boolean;
 
   /**
    * Specify RouterConfiguration properties that need to be set on the AppRouter
@@ -128,6 +134,7 @@ export class RouterMetadataSettings {
     this.transformRouteConfigs = noTransform;
     this.filterChildRoutes = noFilter;
     this.enableEagerLoading = true;
+    this.enableStaticAnalysis = true;
 
     this.routerConfiguration = new RouterConfiguration() as any;
     this.onBeforeLoadChildRoutes = noAction;
@@ -172,6 +179,15 @@ export class RouterMetadataConfiguration {
   }
 
   /**
+   * Makes this configuration instance globally reachable through RouterMetadataConfiguration.INSTANCE
+   */
+  public makeGlobal(): RouterMetadataConfiguration {
+    RouterMetadataConfiguration.INSTANCE = this;
+
+    return this;
+  }
+
+  /**
    * Gets the RouteConfigFactory that is registered with DI, or defaults to
    * [[DefaultRouteConfigFactory]] if its not registered.
    * @param container Optionally pass in a container to use for resolving this dependency.
@@ -208,5 +224,11 @@ export class RouterMetadataConfiguration {
     const c = container || this.container;
 
     return c.get(ResourceLoader);
+  }
+
+  public getRegistry(container?: Container | null): Registry {
+    const c = container || this.container;
+
+    return c.get(Registry);
   }
 }

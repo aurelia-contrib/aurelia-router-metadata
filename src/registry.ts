@@ -1,9 +1,7 @@
-import { singleton } from "aurelia-dependency-injection";
+import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "@src/model";
+import { allObjectKeys } from "@src/util";
 import { PLATFORM } from "aurelia-pal";
-import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "./model";
-import { allObjectKeys } from "./util";
 
-@singleton()
 export class Registry {
   private cache: { [key: string]: $Module | undefined };
   private moduleIds: Set<string>;
@@ -35,6 +33,37 @@ export class Registry {
     }
 
     return $module;
+  }
+
+  public registerModuleViaConstructor($constructor: Function): $Module {
+    let moduleInstance: Function | { [key: string]: Function } | undefined;
+    let moduleId: string | undefined;
+    PLATFORM.eachModule((key: string, value: any) => {
+      if (typeof value === "object") {
+        for (const name of Object.keys(value)) {
+          if (value[name] === $constructor) {
+            moduleInstance = value;
+            moduleId = key;
+
+            return true;
+          }
+        }
+      }
+
+      if (value === $constructor) {
+        moduleInstance = value;
+        moduleId = key;
+
+        return true;
+      } else {
+        return false;
+      }
+    });
+    if (!moduleInstance || !moduleId) {
+      throw new Error(`No module could be found for constructor ${$constructor}`);
+    }
+
+    return this.registerModule(moduleInstance, moduleId);
   }
 
   public registerModule(moduleInstance: Function | { [key: string]: Function }, moduleId: string): $Module {
