@@ -1,5 +1,6 @@
+import { configure } from "@src/aurelia-router-metadata";
+import { RouterMetadataConfiguration } from "@src/router-metadata-configuration";
 import { Container } from "aurelia-dependency-injection";
-import { configure, RouterMetadataConfiguration } from "../../src/aurelia-router-metadata";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file

@@ -1,5 +1,5 @@
-import { configureRouter, routeConfig } from "../../src/decorators";
-import { RouterResource } from "../../src/router-resource";
+import { configureRouter, routeConfig } from "@src/decorators";
+import { RouterResource } from "@src/router-resource";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file

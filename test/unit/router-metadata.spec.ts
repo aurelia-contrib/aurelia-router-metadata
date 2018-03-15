@@ -1,5 +1,5 @@
-import { IRouterMetadataType, routerMetadata } from "../../src/router-metadata";
-import { RouterResource } from "../../src/router-resource";
+import { IRouterMetadataType, routerMetadata } from "@src/router-metadata";
+import { RouterResource } from "@src/router-resource";
 
 // tslint:disable:function-name
 // tslint:disable:max-classes-per-file

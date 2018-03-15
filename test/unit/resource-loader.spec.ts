@@ -1,5 +1,5 @@
-import { ResourceLoader } from "../../src/aurelia-router-metadata";
-import { Registry } from "../../src/registry";
+import { Registry } from "@src/registry";
+import { ResourceLoader } from "@src/resource-loader";
 import { LoaderMock, PlatformMock, RouterMetadataMock } from "./mocks";
 
 // tslint:disable:function-name
