@@ -1,4 +1,4 @@
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "@src/interfaces";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "./interfaces";
 import {
   ArrayExpressionPropertyAnalyzer,
   CallExpressionAnalyzer,
@@ -20,35 +20,35 @@ import {
   RouteConfigOverridesBuilder,
   RouterMetadataSettingsProvider,
   RouterResourceProvider
-} from "@src/resolution/builders";
+} from "./resolution/builders";
 import {
   BuilderContext,
   CompositeBuilderNode,
   FilteringBuilderNode,
   Postprocessor,
   TerminatingBuilder
-} from "@src/resolution/core";
-import { EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter } from "@src/resolution/functions";
-import { IBuilderContext } from "@src/resolution/interfaces";
+} from "./resolution/core";
+import { EnsureObjectPropertyFunction, FunctionBodyParser, RouteConfigSplitter } from "./resolution/functions";
+import { IBuilderContext } from "./resolution/interfaces";
 import {
   BlockStatementCallExpressionCalleePropertyNameQuery,
   CallExpressionArgumentTypeQuery,
   ConfigureRouterMethodQuery,
   LiteralArgumentValueCallExpressionQuery,
   RouteConfigPropertyQuery
-} from "@src/resolution/queries";
+} from "./resolution/queries";
 import {
   CompleteChildRouteConfigCollectionRequest,
   CompleteRouteConfigCollectionRequest
-} from "@src/resolution/requests";
+} from "./resolution/requests";
 import {
   CallExpressionCalleePropertyNameSpecification,
   ConfigureRouterFunctionDeclarationSpecification,
   InverseSpecification,
   ModuleModelClassSpecification,
   RouteConfigRequestSpecification
-} from "@src/resolution/specifications";
-import { routerMetadata } from "@src/router-metadata";
+} from "./resolution/specifications";
+import { routerMetadata } from "./router-metadata";
 
 // tslint:disable:max-classes-per-file
 

@@ -1,3 +1,6 @@
+import { Container } from "aurelia-dependency-injection";
+import { getLogger } from "aurelia-logging";
+import { AppRouter, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
@@ -8,16 +11,13 @@ import {
   IRouterConfiguration,
   IRouterResourceTarget,
   IRouterResourceTargetProto
-} from "@src/interfaces";
-import { $Module } from "@src/model";
-import { Registry } from "@src/registry";
-import { RouteConfigSplitter } from "@src/resolution/functions";
-import { RouteConfigFactory } from "@src/route-config-factory";
-import { routerMetadata } from "@src/router-metadata";
-import { RouterMetadataConfiguration, RouterMetadataSettings } from "@src/router-metadata-configuration";
-import { Container } from "aurelia-dependency-injection";
-import { getLogger } from "aurelia-logging";
-import { AppRouter, RouteConfig, Router, RouterConfiguration } from "aurelia-router";
+} from "./interfaces";
+import { $Module } from "./model";
+import { Registry } from "./registry";
+import { RouteConfigSplitter } from "./resolution/functions";
+import { RouteConfigFactory } from "./route-config-factory";
+import { routerMetadata } from "./router-metadata";
+import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
 
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
 

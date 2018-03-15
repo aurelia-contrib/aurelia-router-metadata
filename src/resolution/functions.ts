@@ -1,8 +1,8 @@
-import { parseScript } from "@src/cherow/cherow";
-import { Program } from "@src/cherow/estree";
-import { IRouteConfig } from "@src/interfaces";
-import { $Constructor } from "@src/model";
-import { IBuilderContext, IFunction, IPropertyQuery } from "@src/resolution/interfaces";
+import { parseScript } from "../cherow/cherow";
+import { Program } from "../cherow/estree";
+import { IRouteConfig } from "../interfaces";
+import { $Constructor } from "../model";
+import { IBuilderContext, IFunction, IPropertyQuery } from "./interfaces";
 
 // tslint:disable:max-classes-per-file
 

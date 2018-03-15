@@ -5,12 +5,7 @@
     "noUnusedParameters": true,
     "strict": true,
     "module": "commonjs",
-    "target": "es5",
-    "baseUrl": "../",
-    "paths": {
-      "*": ["*"],
-      "@src/*": ["src/*"]
-    }
+    "target": "es5"
   },
   "include": ["../src", "../test"]
 }

@@ -3,9 +3,9 @@ import {
   IRouteConfig,
   IRouteConfigInstruction,
   IRouterResourceTarget
-} from "@src/interfaces";
-import { RouterMetadataSettings } from "@src/router-metadata-configuration";
-import { RouterResource } from "@src/router-resource";
+} from "./interfaces";
+import { RouterMetadataSettings } from "./router-metadata-configuration";
+import { RouterResource } from "./router-resource";
 
 /**
  * Decorator: Indicates that the decorated class should define a `RouteConfig` for itself

@@ -1,3 +1,5 @@
+import { Container } from "aurelia-dependency-injection";
+import { Router, RouterConfiguration } from "aurelia-router";
 import {
   ICompleteRouteConfig,
   IConfigureRouterInstruction,
@@ -5,13 +7,11 @@ import {
   IResourceLoader,
   IRouteConfig,
   IRouterConfiguration
-} from "@src/interfaces";
-import { Registry } from "@src/registry";
-import { ResourceLoader } from "@src/resource-loader";
-import { DefaultRouteConfigFactory, RouteConfigFactory } from "@src/route-config-factory";
-import { RouterResource } from "@src/router-resource";
-import { Container } from "aurelia-dependency-injection";
-import { Router, RouterConfiguration } from "aurelia-router";
+} from "./interfaces";
+import { Registry } from "./registry";
+import { ResourceLoader } from "./resource-loader";
+import { DefaultRouteConfigFactory, RouteConfigFactory } from "./route-config-factory";
+import { RouterResource } from "./router-resource";
 
 const noTransform = (configs: ICompleteRouteConfig[]): ICompleteRouteConfig[] => configs;
 const noFilter = (): boolean => true;

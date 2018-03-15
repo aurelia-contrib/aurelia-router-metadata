@@ -1,6 +1,6 @@
-import { IBuilder, IBuilderContext, IBuilderNode, IFunction, ISpecification } from "@src/resolution/interfaces";
-import { TrueSpecification } from "@src/resolution/specifications";
 import { Logger } from "aurelia-logging";
+import { IBuilder, IBuilderContext, IBuilderNode, IFunction, ISpecification } from "./interfaces";
+import { TrueSpecification } from "./specifications";
 
 // tslint:disable:max-classes-per-file
 

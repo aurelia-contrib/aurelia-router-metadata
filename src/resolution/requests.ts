@@ -8,10 +8,10 @@ import {
   ObjectExpression,
   Property,
   RegExpLiteral
-} from "@src/cherow/estree";
-import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "@src/interfaces";
-import { $Constructor, $Module } from "@src/model";
-import { BuilderError } from "@src/resolution/core";
+} from "../cherow/estree";
+import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "../interfaces";
+import { $Constructor, $Module } from "../model";
+import { BuilderError } from "./core";
 
 // tslint:disable:max-classes-per-file
 

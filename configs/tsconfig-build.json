@@ -5,13 +5,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "stripInternal": true,
-    "baseUrl": "../",
-    "paths": {
-      "*": ["*"],
-      "@src/*": ["src/*"]
-    }
+    "stripInternal": true
   },
-  "include": ["../src"],
-  "exclude": ["../src/cherow"]
+  "include": ["../src"]
 }

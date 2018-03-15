@@ -1,8 +1,8 @@
-import { CallExpression, FunctionDeclaration, Identifier, MemberExpression, Node } from "@src/cherow/estree";
-import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "@src/model";
-import { ISpecification } from "@src/resolution/interfaces";
-import { RouteConfigRequest } from "@src/resolution/requests";
-import { RouterResource } from "@src/router-resource";
+import { CallExpression, FunctionDeclaration, Identifier, MemberExpression, Node } from "../cherow/estree";
+import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "../model";
+import { RouterResource } from "../router-resource";
+import { ISpecification } from "./interfaces";
+import { RouteConfigRequest } from "./requests";
 
 // tslint:disable:max-classes-per-file
 
