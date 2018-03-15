@@ -377,7 +377,6 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./resolution
         });
         delete this[RouterResource.originalMapSymbol];
         const resource = this[RouterResource.routerResourceSymbol];
-        delete this[RouterResource.routerResourceSymbol];
         const splittedOriginalConfigs = new functions_1.RouteConfigSplitter().execute(ensureArray(originalConfigs));
         const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
         const remainingConfigs = [];
@@ -391,8 +390,10 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./resolution
         }
         // tslint:disable-next-line:no-parameter-reassignment
         originalConfigs = remainingConfigs;
+        const original = this[RouterResource.routerResourceSymbol].bind(this);
+        delete this[RouterResource.routerResourceSymbol];
         if (originalConfigs.length > 0) {
-            this[RouterResource.originalMapSymbol](originalConfigs);
+            original(originalConfigs);
         }
         return this;
     }
