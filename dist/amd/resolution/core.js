@@ -159,3 +159,4 @@ define(["require", "exports", "./specifications"], function (require, exports, s
     }
     exports.BuilderError = BuilderError;
 });
+//# sourceMappingURL=core.js.map

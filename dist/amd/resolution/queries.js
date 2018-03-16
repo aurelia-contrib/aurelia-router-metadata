@@ -101,3 +101,4 @@ define(["require", "exports", "../model", "../router-resource", "./core", "./map
     }
     exports.LiteralArgumentValueCallExpressionQuery = LiteralArgumentValueCallExpressionQuery;
 });
+//# sourceMappingURL=queries.js.map

@@ -84,3 +84,4 @@ export class SyntaxNodeSpecification {
         return /String/.test(Object.prototype.toString.call(node.type));
     }
 }
+//# sourceMappingURL=specifications.js.map

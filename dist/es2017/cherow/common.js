@@ -109,3 +109,4 @@ export function isPropertyWithPrivateFieldKey(_context, expr) {
         return false;
     return expr.property.type === 'PrivateName';
 }
+//# sourceMappingURL=common.js.map

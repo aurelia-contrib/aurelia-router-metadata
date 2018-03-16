@@ -4776,3 +4776,4 @@ define(["require", "exports", "./token", "./errors", "./unicode", "./common"], f
     }
     exports.Parser = Parser;
 });
+//# sourceMappingURL=parser.js.map

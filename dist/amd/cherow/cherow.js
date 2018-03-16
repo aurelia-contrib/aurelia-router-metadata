@@ -39,3 +39,4 @@ define(["require", "exports", "./parser"], function (require, exports, parser_1)
     };
     exports.version = '__VERSION__';
 });
+//# sourceMappingURL=cherow.js.map

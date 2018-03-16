@@ -129,3 +129,4 @@ System.register(["aurelia-pal", "./model", "./util"], function (exports_1, conte
         }
     };
 });
+//# sourceMappingURL=registry.js.map

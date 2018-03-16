@@ -95,3 +95,4 @@ exports.constructorRouteConfigMapper = commonRouteConfigMapper
 exports.objectRouteConfigMapper = commonRouteConfigMapper
     .clone()
     .addMapping("name", "name", MapStrategy.overwrite);
+//# sourceMappingURL=mapping.js.map

@@ -113,3 +113,4 @@ define(["require", "exports", "aurelia-pal", "./model", "./util"], function (req
     }
     exports.Registry = Registry;
 });
+//# sourceMappingURL=registry.js.map

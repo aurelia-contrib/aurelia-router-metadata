@@ -39,3 +39,4 @@ define(["require", "exports", "./router-resource"], function (require, exports, 
         return proto[key];
     }
 });
+//# sourceMappingURL=router-metadata.js.map

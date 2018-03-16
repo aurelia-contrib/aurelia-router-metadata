@@ -149,3 +149,4 @@ define(["require", "exports"], function (require, exports) {
         Chars[Chars["NonBMPMin"] = 65536] = "NonBMPMin";
     })(Chars = exports.Chars || (exports.Chars = {}));
 });
+//# sourceMappingURL=chars.js.map

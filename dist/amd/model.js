@@ -235,3 +235,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.$Property = $Property;
 });
+//# sourceMappingURL=model.js.map

@@ -306,3 +306,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.descKeyword = descKeyword;
 });
+//# sourceMappingURL=token.js.map

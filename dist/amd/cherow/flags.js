@@ -163,3 +163,4 @@ define(["require", "exports"], function (require, exports) {
         JSXElement[JSXElement["Fragment"] = 2] = "Fragment";
     })(JSXElement = exports.JSXElement || (exports.JSXElement = {}));
 });
+//# sourceMappingURL=flags.js.map

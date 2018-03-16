@@ -56,3 +56,4 @@ define(["require", "exports", "./resolution/builders", "./resolution/core", "./r
     }
     exports.DefaultRouteConfigFactory = DefaultRouteConfigFactory;
 });
+//# sourceMappingURL=route-config-factory.js.map

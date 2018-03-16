@@ -45,3 +45,4 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
         return this.context.resolve(new CompleteChildRouteConfigCollectionRequest(instruction));
     }
 }
+//# sourceMappingURL=route-config-factory.js.map

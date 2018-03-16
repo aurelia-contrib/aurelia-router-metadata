@@ -101,3 +101,4 @@ export class RouterMetadataConfiguration {
         return c.get(Registry);
     }
 }
+//# sourceMappingURL=router-metadata-configuration.js.map

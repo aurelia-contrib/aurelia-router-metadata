@@ -58,3 +58,4 @@ __export(require("./route-config-factory"));
 __export(require("./router-metadata-configuration"));
 __export(require("./router-metadata"));
 __export(require("./router-resource"));
+//# sourceMappingURL=aurelia-router-metadata.js.map

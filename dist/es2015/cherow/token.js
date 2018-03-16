@@ -300,3 +300,4 @@ const DescKeywordTable = Object.create(null, {
 export function descKeyword(value) {
     return (DescKeywordTable[value] | 0);
 }
+//# sourceMappingURL=token.js.map

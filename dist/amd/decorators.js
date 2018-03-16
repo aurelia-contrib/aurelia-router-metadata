@@ -50,3 +50,4 @@ define(["require", "exports", "./router-resource"], function (require, exports, 
     }
     exports.configureRouter = configureRouter;
 });
+//# sourceMappingURL=decorators.js.map

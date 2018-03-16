@@ -49,3 +49,4 @@ function configureRouter(routeConfigModuleIdsOrInstruction, overrideSettings) {
     };
 }
 exports.configureRouter = configureRouter;
+//# sourceMappingURL=decorators.js.map

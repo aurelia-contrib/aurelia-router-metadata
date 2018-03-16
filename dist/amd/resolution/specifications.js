@@ -92,3 +92,4 @@ define(["require", "exports", "../model", "../router-resource", "./requests"], f
     }
     exports.SyntaxNodeSpecification = SyntaxNodeSpecification;
 });
+//# sourceMappingURL=specifications.js.map

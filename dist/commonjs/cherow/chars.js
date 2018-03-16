@@ -147,3 +147,4 @@ var Chars;
     Chars[Chars["TrailSurrogateMax"] = 57343] = "TrailSurrogateMax";
     Chars[Chars["NonBMPMin"] = 65536] = "NonBMPMin";
 })(Chars = exports.Chars || (exports.Chars = {}));
+//# sourceMappingURL=chars.js.map

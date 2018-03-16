@@ -38,3 +38,4 @@ exports.parseModule = (source, options) => {
     return parse(source, 512 /* Strict */ | 1024 /* Module */ | 262144 /* TopLevel */, options);
 };
 exports.version = '__VERSION__';
+//# sourceMappingURL=cherow.js.map

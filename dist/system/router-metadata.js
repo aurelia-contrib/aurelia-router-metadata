@@ -49,3 +49,4 @@ System.register(["./router-resource"], function (exports_1, context_1) {
         }
     };
 });
+//# sourceMappingURL=router-metadata.js.map

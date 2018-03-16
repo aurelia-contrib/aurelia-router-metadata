@@ -265,3 +265,4 @@ export function createError(type, index, line, column, loc, ...params) {
     error.description = description;
     return error;
 }
+//# sourceMappingURL=errors.js.map

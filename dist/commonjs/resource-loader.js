@@ -41,3 +41,4 @@ class ResourceLoader {
     }
 }
 exports.ResourceLoader = ResourceLoader;
+//# sourceMappingURL=resource-loader.js.map

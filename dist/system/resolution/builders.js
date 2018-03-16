@@ -468,3 +468,4 @@ System.register(["aurelia-dependency-injection", "../registry", "../router-metad
         }
     };
 });
+//# sourceMappingURL=builders.js.map

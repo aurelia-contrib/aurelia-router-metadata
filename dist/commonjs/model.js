@@ -233,3 +233,4 @@ class $Property {
     }
 }
 exports.$Property = $Property;
+//# sourceMappingURL=model.js.map

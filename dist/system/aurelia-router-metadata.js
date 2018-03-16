@@ -108,3 +108,4 @@ System.register(["aurelia-dependency-injection", "aurelia-loader", "./registry",
         }
     };
 });
+//# sourceMappingURL=aurelia-router-metadata.js.map

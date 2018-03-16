@@ -468,3 +468,4 @@ System.register(["aurelia-logging", "aurelia-router", "./resolution/functions", 
         }
     };
 });
+//# sourceMappingURL=router-resource.js.map

@@ -105,3 +105,4 @@ class RouterMetadataConfiguration {
     }
 }
 exports.RouterMetadataConfiguration = RouterMetadataConfiguration;
+//# sourceMappingURL=router-metadata-configuration.js.map

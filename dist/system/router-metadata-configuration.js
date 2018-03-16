@@ -124,3 +124,4 @@ System.register(["aurelia-dependency-injection", "aurelia-router", "./registry",
         }
     };
 });
+//# sourceMappingURL=router-metadata-configuration.js.map

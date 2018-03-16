@@ -26,3 +26,4 @@ export class ResourceLoader {
         return $module;
     }
 }
+//# sourceMappingURL=resource-loader.js.map

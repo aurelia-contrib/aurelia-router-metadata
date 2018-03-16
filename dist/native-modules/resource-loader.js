@@ -38,3 +38,4 @@ export class ResourceLoader {
         });
     }
 }
+//# sourceMappingURL=resource-loader.js.map

@@ -53,3 +53,4 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-loader", 
     __export(router_metadata_2);
     __export(router_resource_2);
 });
+//# sourceMappingURL=aurelia-router-metadata.js.map

@@ -111,3 +111,4 @@ export class Registry {
         }
     }
 }
+//# sourceMappingURL=registry.js.map

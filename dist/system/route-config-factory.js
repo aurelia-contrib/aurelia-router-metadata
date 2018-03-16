@@ -84,3 +84,4 @@ System.register(["./resolution/builders", "./resolution/core", "./resolution/fun
         }
     };
 });
+//# sourceMappingURL=route-config-factory.js.map

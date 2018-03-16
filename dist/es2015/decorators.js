@@ -45,3 +45,4 @@ export function configureRouter(routeConfigModuleIdsOrInstruction, overrideSetti
         RouterResource.CONFIGURE_ROUTER(instruction);
     };
 }
+//# sourceMappingURL=decorators.js.map

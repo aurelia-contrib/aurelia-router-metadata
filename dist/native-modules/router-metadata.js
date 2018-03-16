@@ -36,3 +36,4 @@ function getMetadataObject(target) {
     }
     return proto[key];
 }
+//# sourceMappingURL=router-metadata.js.map

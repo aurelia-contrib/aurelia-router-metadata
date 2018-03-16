@@ -120,3 +120,4 @@ System.register(["../model", "../router-resource", "./core", "./mapping"], funct
         }
     };
 });
+//# sourceMappingURL=queries.js.map

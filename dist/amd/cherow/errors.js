@@ -270,3 +270,4 @@ define(["require", "exports"], function (require, exports) {
     }
     exports.createError = createError;
 });
+//# sourceMappingURL=errors.js.map

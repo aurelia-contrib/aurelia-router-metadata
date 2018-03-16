@@ -42,3 +42,4 @@ define(["require", "exports", "./router-metadata"], function (require, exports, 
     }
     exports.ResourceLoader = ResourceLoader;
 });
+//# sourceMappingURL=resource-loader.js.map

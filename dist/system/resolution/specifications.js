@@ -108,3 +108,4 @@ System.register(["../model", "../router-resource", "./requests"], function (expo
         }
     };
 });
+//# sourceMappingURL=specifications.js.map

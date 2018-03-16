@@ -445,3 +445,4 @@ define(["require", "exports", "aurelia-dependency-injection", "../registry", "..
     }
     exports.ObjectExpressionPropertyAnalyzer = ObjectExpressionPropertyAnalyzer;
 });
+//# sourceMappingURL=builders.js.map

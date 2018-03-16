@@ -61,3 +61,4 @@ class DefaultRouteConfigFactory extends RouteConfigFactory {
     }
 }
 exports.DefaultRouteConfigFactory = DefaultRouteConfigFactory;
+//# sourceMappingURL=route-config-factory.js.map

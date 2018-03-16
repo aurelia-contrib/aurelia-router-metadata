@@ -159,3 +159,4 @@ export var JSXElement;
     JSXElement[JSXElement["SelfClosing"] = 1] = "SelfClosing";
     JSXElement[JSXElement["Fragment"] = 2] = "Fragment";
 })(JSXElement || (JSXElement = {}));
+//# sourceMappingURL=flags.js.map

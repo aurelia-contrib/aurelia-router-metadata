@@ -446,3 +446,4 @@ function alignRouteConfigs(leftList, rightList) {
     }
     return couples;
 }
+//# sourceMappingURL=router-resource.js.map

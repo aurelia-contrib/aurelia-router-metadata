@@ -102,3 +102,4 @@ define(["require", "exports", "aurelia-dependency-injection", "aurelia-router", 
     }
     exports.RouterMetadataConfiguration = RouterMetadataConfiguration;
 });
+//# sourceMappingURL=router-metadata-configuration.js.map

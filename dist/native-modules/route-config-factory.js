@@ -57,3 +57,4 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
         });
     }
 }
+//# sourceMappingURL=route-config-factory.js.map

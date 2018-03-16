@@ -268,3 +268,4 @@ function createError(type, index, line, column, loc, ...params) {
     return error;
 }
 exports.createError = createError;
+//# sourceMappingURL=errors.js.map

@@ -225,3 +225,4 @@ export class $Property {
         this._descriptor = descriptor;
     }
 }
+//# sourceMappingURL=model.js.map

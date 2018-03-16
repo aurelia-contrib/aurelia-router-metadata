@@ -60,3 +60,4 @@ System.register(["./router-resource"], function (exports_1, context_1) {
         }
     };
 });
+//# sourceMappingURL=decorators.js.map

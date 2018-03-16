@@ -446,3 +446,4 @@ define(["require", "exports", "aurelia-logging", "aurelia-router", "./resolution
         return couples;
     }
 });
+//# sourceMappingURL=router-resource.js.map

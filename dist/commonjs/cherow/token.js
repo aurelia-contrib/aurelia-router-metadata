@@ -304,3 +304,4 @@ function descKeyword(value) {
     return (DescKeywordTable[value] | 0);
 }
 exports.descKeyword = descKeyword;
+//# sourceMappingURL=token.js.map

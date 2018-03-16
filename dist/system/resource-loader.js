@@ -52,3 +52,4 @@ System.register(["./router-metadata"], function (exports_1, context_1) {
         }
     };
 });
+//# sourceMappingURL=resource-loader.js.map

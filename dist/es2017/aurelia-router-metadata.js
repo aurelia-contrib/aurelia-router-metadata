@@ -52,3 +52,4 @@ export * from "./route-config-factory";
 export * from "./router-metadata-configuration";
 export * from "./router-metadata";
 export * from "./router-resource";
+//# sourceMappingURL=aurelia-router-metadata.js.map

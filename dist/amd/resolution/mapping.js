@@ -97,3 +97,4 @@ define(["require", "exports"], function (require, exports) {
         .clone()
         .addMapping("name", "name", MapStrategy.overwrite);
 });
+//# sourceMappingURL=mapping.js.map

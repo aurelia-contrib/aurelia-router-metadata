@@ -96,3 +96,4 @@ export class LiteralArgumentValueCallExpressionQuery {
         return args.map((arg) => arg.value);
     }
 }
+//# sourceMappingURL=queries.js.map
