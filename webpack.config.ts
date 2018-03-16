@@ -22,7 +22,7 @@ const config = (env: IEnv = {}): webpack.Configuration => {
       extensions: [".ts", ".js"],
       modules: ["src", "demos", "node_modules"],
       alias: {
-        bluebird: path.resolve(__dirname, "node_modules/bluebird/js/browser/bluebird.core"),
+        "bluebird": path.resolve(__dirname, "node_modules/bluebird/js/browser/bluebird.core"),
         "aurelia-router-metadata": path.resolve(__dirname, "src/aurelia-router-metadata.ts"),
         "@src": path.resolve(__dirname, "src")
       }

@@ -7,7 +7,7 @@ export interface IKarmaConfig extends karma.Config, IKarmaConfigOptions {
   noInfo?: boolean;
   coverage?: boolean;
   tsconfig?: string;
-  devtool?: string;
+  devtool?: webpack.Options.Devtool;
   set(config: IKarmaConfigOptions): void;
 }
 
