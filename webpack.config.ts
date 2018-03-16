@@ -8,10 +8,6 @@ import * as webpack from "webpack";
 
 const title = "Router Metadata Demo";
 
-export interface IConfiguration extends webpack.Configuration {
-  mode: "development" | "production";
-}
-
 interface IEnv {
   server?: boolean;
   production?: boolean;
@@ -19,7 +15,7 @@ interface IEnv {
 
 const devBaseUrl: string = "/";
 const prodBaseUrl: string = "/aurelia-router-metadata/";
-const config = (env: IEnv = {}): IConfiguration => {
+const config = (env: IEnv = {}): webpack.Configuration => {
   return {
     mode: "development",
     resolve: {
