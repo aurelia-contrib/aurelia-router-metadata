@@ -49,7 +49,7 @@ export class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
     for (const config of configCollection) {
       config.route = ensureArray(config.route);
       for (const route of config.route) {
-        result.push({ ...config, route, ...overrides });
+        result.push({ ...config, route, ...overrides, ...{ settings: { ...config.settings, ...overrides.settings } } });
       }
     }
 
