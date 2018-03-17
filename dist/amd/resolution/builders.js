@@ -39,7 +39,7 @@ define(["require", "exports", "aurelia-dependency-injection", "../registry", "..
             for (const config of configCollection) {
                 config.route = util_1.ensureArray(config.route);
                 for (const route of config.route) {
-                    result.push(Object.assign({}, config, { route }, overrides));
+                    result.push(Object.assign({}, config, { route }, overrides, { settings: Object.assign({}, config.settings, overrides.settings) }));
                 }
             }
             const settings = this.getSettings(request, context);

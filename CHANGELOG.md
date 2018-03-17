@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.10.1"></a>
+## [0.10.1](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.10.0...v0.10.1) (2018-03-17)
+
+
+### Bug Fixes
+
+* **builders:** fix issue where RouteConfig.settings would always be overridden by an empty object ([9cd4943](https://github.com/fkleuver/aurelia-router-metadata/commit/9cd4943))
+
+
+
 <a name="0.10.0"></a>
 # [0.10.0](https://github.com/fkleuver/aurelia-router-metadata/compare/v0.9.7...v0.10.0) (2018-03-16)
 

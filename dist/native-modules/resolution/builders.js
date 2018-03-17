@@ -35,7 +35,7 @@ export class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
         for (const config of configCollection) {
             config.route = ensureArray(config.route);
             for (const route of config.route) {
-                result.push(Object.assign({}, config, { route }, overrides));
+                result.push(Object.assign({}, config, { route }, overrides, { settings: Object.assign({}, config.settings, overrides.settings) }));
             }
         }
         const settings = this.getSettings(request, context);
