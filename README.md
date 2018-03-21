@@ -8,7 +8,7 @@ NEW SINCE 0.9: Static code analysis and smart autoconfiguration. See the demo ap
 
 This is enabled by default. It can be disabled in the settings (see below).
 
-View a [LIVE DEMO](https://fkleuver.github.io/aurelia-router-metadata/)
+View a [LIVE DEMO](https://aurelia-contrib.github.io/aurelia-router-metadata/)
 
 ## Installation
 Install the npm dependency via
@@ -150,7 +150,7 @@ Conceptually:
 </template>
 ```
 
-For a working example see the [live demo](https://fkleuver.github.io/aurelia-router-metadata/)
+For a working example see the [live demo](https://aurelia-contrib.github.io/aurelia-router-metadata/)
 
 ## Feedback
 

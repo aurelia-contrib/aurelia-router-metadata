@@ -9,9 +9,9 @@
     "decorator",
     "eager"
   ],
-  "homepage": "https://github.com/fkleuver/aurelia-router-metadata",
+  "homepage": "https://github.com/aurelia-contrib/aurelia-router-metadata",
   "bugs": {
-    "url": "https://github.com/fkleuver/aurelia-router-metadata/issues"
+    "url": "https://github.com/aurelia-contrib/aurelia-router-metadata/issues"
   },
   "license": "MIT",
   "author": "Fred Kleuver <fred@avurad.nl>",
@@ -19,7 +19,7 @@
   "typings": "dist/commonjs/aurelia-router-metadata.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fkleuver/aurelia-router-metadata"
+    "url": "https://github.com/aurelia-contrib/aurelia-router-metadata"
   },
   "scripts": {
     "lint": "cross-env ./node_modules/.bin/nps lint",
