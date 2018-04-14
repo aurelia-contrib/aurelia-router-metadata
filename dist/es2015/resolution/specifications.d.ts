@@ -1,4 +1,4 @@
-import { CallExpression, FunctionDeclaration, Node } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { ISpecification } from "./interfaces";
 /**
  * Specification that matches any request derived from the base RouteConfigRequest.
@@ -24,7 +24,7 @@ export declare class InverseSpecification implements ISpecification {
  * Specification that will match either a property- or symbol-keyed configureRouter method
  */
 export declare class ConfigureRouterFunctionDeclarationSpecification implements ISpecification {
-    isSatisfiedBy(input: FunctionDeclaration): boolean;
+    isSatisfiedBy(input: ESTree.FunctionDeclaration): boolean;
 }
 /**
  * Specification that will match any class that is part of the module model.
@@ -35,8 +35,8 @@ export declare class ModuleModelClassSpecification implements ISpecification {
 export declare class CallExpressionCalleePropertyNameSpecification implements ISpecification {
     calleePropertyName: string;
     constructor(calleePropertyName: string);
-    isSatisfiedBy(callExpression: CallExpression): boolean;
+    isSatisfiedBy(callExpression: ESTree.CallExpression): boolean;
 }
 export declare class SyntaxNodeSpecification implements ISpecification {
-    isSatisfiedBy(node: Node): boolean;
+    isSatisfiedBy(node: ESTree.Node): boolean;
 }

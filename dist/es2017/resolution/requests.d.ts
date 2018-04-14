@@ -1,4 +1,4 @@
-import { ArrayExpression, BigIntLiteral, CallExpression, Expression, Identifier, Literal, ObjectExpression, Property, RegExpLiteral } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "../interfaces";
 import { $Constructor, $Module } from "../model";
 /**
@@ -77,34 +77,34 @@ export declare class RegisteredConstructorRequest {
     constructor(target: IRouterResourceTarget);
 }
 export declare class AnalyzeCallExpressionArgumentRequest {
-    expression: Expression;
-    constructor(expression: Expression);
+    expression: ESTree.Expression;
+    constructor(expression: ESTree.Expression);
 }
 export declare class AnalyzeObjectExpressionRequest {
-    expression: ObjectExpression;
-    constructor(expression: ObjectExpression);
+    expression: ESTree.ObjectExpression;
+    constructor(expression: ESTree.ObjectExpression);
 }
 export declare class AnalyzePropertyRequest {
-    property: Property;
-    constructor(property: Property);
+    property: ESTree.Property;
+    constructor(property: ESTree.Property);
 }
 export declare class AnalyzeLiteralPropertyRequest {
-    key: Identifier;
-    value: Literal | BigIntLiteral | RegExpLiteral;
-    constructor(property: Property);
+    key: ESTree.Identifier;
+    value: ESTree.Literal | ESTree.BigIntLiteral | ESTree.RegExpLiteral;
+    constructor(property: ESTree.Property);
 }
 export declare class AnalyzeCallExpressionPropertyRequest {
-    key: Identifier;
-    value: CallExpression;
-    constructor(property: Property);
+    key: ESTree.Identifier;
+    value: ESTree.CallExpression;
+    constructor(property: ESTree.Property);
 }
 export declare class AnalyzeArrayExpressionPropertyRequest {
-    key: Identifier;
-    value: ArrayExpression;
-    constructor(property: Property);
+    key: ESTree.Identifier;
+    value: ESTree.ArrayExpression;
+    constructor(property: ESTree.Property);
 }
 export declare class AnalyzeObjectExpressionPropertyRequest {
-    key: Identifier;
-    value: ObjectExpression;
-    constructor(property: Property);
+    key: ESTree.Identifier;
+    value: ESTree.ObjectExpression;
+    constructor(property: ESTree.Property);
 }

@@ -1,4 +1,4 @@
-import { BlockStatement, CallExpression, ObjectExpression } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { $Constructor } from "../model";
 import { IPropertyQuery } from "./interfaces";
 /**
@@ -18,18 +18,18 @@ export declare class ConfigureRouterMethodQuery implements IPropertyQuery {
 export declare class BlockStatementCallExpressionCalleePropertyNameQuery implements IPropertyQuery {
     name: string;
     constructor(name: string);
-    selectProperties(blockStatement: BlockStatement): any;
+    selectProperties(blockStatement: ESTree.BlockStatement): any;
 }
 export declare class CallExpressionArgumentTypeQuery implements IPropertyQuery {
     typeNames: string[];
     constructor(typeNames: string[]);
-    selectProperties(callExpression: CallExpression): any;
+    selectProperties(callExpression: ESTree.CallExpression): any;
 }
 export declare class RouteConfigPropertyQuery implements IPropertyQuery {
     propertyNames: string[];
     constructor();
-    selectProperties(objectExpression: ObjectExpression): any[];
+    selectProperties(objectExpression: ESTree.ObjectExpression): any[];
 }
 export declare class LiteralArgumentValueCallExpressionQuery implements IPropertyQuery {
-    selectProperties(callExpression: CallExpression): any;
+    selectProperties(callExpression: ESTree.CallExpression): any;
 }

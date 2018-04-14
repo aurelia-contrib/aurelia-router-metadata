@@ -1,5 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { CallExpression, FunctionDeclaration } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { RouterMetadataSettings } from "../router-metadata-configuration";
 import { IBuilder, IBuilderContext, IPropertyQuery } from "./interfaces";
 import * as R from "./requests";
@@ -98,12 +98,12 @@ export declare class RegisteredConstructorProvider implements IBuilder {
 export declare class FunctionDeclarationAnalyzer implements IBuilder {
     query: IPropertyQuery;
     constructor(query: IPropertyQuery);
-    create(request: FunctionDeclaration, context: IBuilderContext): any;
+    create(request: ESTree.FunctionDeclaration, context: IBuilderContext): any;
 }
 export declare class CallExpressionAnalyzer implements IBuilder {
     argumentQuery: IPropertyQuery;
     constructor(argumentQuery: IPropertyQuery);
-    create(request: CallExpression, context: IBuilderContext): any;
+    create(request: ESTree.CallExpression, context: IBuilderContext): any;
 }
 export declare class CallExpressionArgumentAnalyzer implements IBuilder {
     create(request: R.AnalyzeCallExpressionArgumentRequest, context: IBuilderContext): any;
