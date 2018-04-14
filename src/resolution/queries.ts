@@ -1,14 +1,4 @@
-import {
-  BlockStatement,
-  CallExpression,
-  Expression,
-  Identifier,
-  Literal,
-  MemberExpression,
-  ObjectExpression,
-  Property,
-  SpreadElement
-} from "../cherow/estree";
+import { ESTree } from "cherow";
 import { $Constructor, $Property } from "../model";
 import { RouterResource } from "../router-resource";
 import { BuilderError, NoResult } from "./core";
@@ -57,19 +47,19 @@ export class BlockStatementCallExpressionCalleePropertyNameQuery implements IPro
     this.name = name;
   }
 
-  public selectProperties(blockStatement: BlockStatement): any {
+  public selectProperties(blockStatement: ESTree.BlockStatement): any {
     if (blockStatement.type !== "BlockStatement") {
       throw new BuilderError("Wrong type passed to query", blockStatement);
     }
 
-    const callExpressions: CallExpression[] = [];
+    const callExpressions: ESTree.CallExpression[] = [];
     for (const statement of blockStatement.body) {
       if (statement.type === "ExpressionStatement" && statement.expression.type === "CallExpression") {
-        const callExpression = statement.expression as CallExpression;
+        const callExpression = statement.expression as ESTree.CallExpression;
         if (callExpression.callee.type === "MemberExpression") {
-          const $callee = callExpression.callee as MemberExpression;
+          const $callee = callExpression.callee as ESTree.MemberExpression;
           if ($callee.property.type === "Identifier") {
-            const property = $callee.property as Identifier;
+            const property = $callee.property as ESTree.Identifier;
             if (property.name === this.name) {
               callExpressions.push(callExpression);
             }
@@ -88,12 +78,12 @@ export class CallExpressionArgumentTypeQuery implements IPropertyQuery {
     this.typeNames = typeNames;
   }
 
-  public selectProperties(callExpression: CallExpression): any {
+  public selectProperties(callExpression: ESTree.CallExpression): any {
     if (callExpression.type !== "CallExpression") {
       throw new BuilderError("Wrong type passed to query", callExpression);
     }
 
-    return callExpression.arguments.filter((arg: Expression | SpreadElement) =>
+    return callExpression.arguments.filter((arg: ESTree.Expression | ESTree.SpreadElement) =>
       this.typeNames.some((t: string) => arg.type === t)
     );
   }
@@ -105,15 +95,15 @@ export class RouteConfigPropertyQuery implements IPropertyQuery {
     this.propertyNames = objectRouteConfigMapper.mappings.map(m => m.targetName);
   }
 
-  public selectProperties(objectExpression: ObjectExpression): any[] {
+  public selectProperties(objectExpression: ESTree.ObjectExpression): any[] {
     if (objectExpression.type !== "ObjectExpression") {
       throw new BuilderError("Wrong type passed to query", objectExpression);
     }
 
-    const properties: Property[] = [];
+    const properties: ESTree.Property[] = [];
     for (const prop of objectExpression.properties) {
       if (prop.type === "Property" && prop.key.type === "Identifier") {
-        if (this.propertyNames.some((name: string) => name === (prop.key as Identifier).name)) {
+        if (this.propertyNames.some((name: string) => name === (prop.key as ESTree.Identifier).name)) {
           properties.push(prop);
         }
       }
@@ -124,15 +114,15 @@ export class RouteConfigPropertyQuery implements IPropertyQuery {
 }
 
 export class LiteralArgumentValueCallExpressionQuery implements IPropertyQuery {
-  public selectProperties(callExpression: CallExpression): any {
+  public selectProperties(callExpression: ESTree.CallExpression): any {
     if (callExpression.type !== "CallExpression") {
       throw new BuilderError("Wrong type passed to query", callExpression);
     }
 
     const args = callExpression.arguments.filter(
-      (arg: Expression | SpreadElement) => arg.type === "Literal"
-    ) as Literal[];
+      (arg: ESTree.Expression | ESTree.SpreadElement) => arg.type === "Literal"
+    ) as ESTree.Literal[];
 
-    return args.map((arg: Literal) => arg.value);
+    return args.map((arg: ESTree.Literal) => arg.value);
   }
 }

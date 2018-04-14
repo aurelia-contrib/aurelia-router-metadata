@@ -1,5 +1,4 @@
-import { parseScript } from "../cherow/cherow";
-import { Program } from "../cherow/estree";
+import { ESTree, parseScript } from "cherow";
 import { IRouteConfig } from "../interfaces";
 import { $Constructor } from "../model";
 import { IBuilderContext, IFunction, IPropertyQuery } from "./interfaces";
@@ -56,7 +55,7 @@ export class FunctionBodyParser implements IFunction {
         // symbol named functions become "functionName()" when calling .toString() on the value
         body = `function ${body}`;
       }
-      const program = parseScript(body) as Program;
+      const program = parseScript(body) as ESTree.Program;
       for (const statementOrModuleDeclaration of program.body) {
         if (statementOrModuleDeclaration.type === "FunctionDeclaration") {
           return statementOrModuleDeclaration;

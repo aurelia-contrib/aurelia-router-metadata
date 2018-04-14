@@ -1,14 +1,4 @@
-import {
-  ArrayExpression,
-  BigIntLiteral,
-  CallExpression,
-  Expression,
-  Identifier,
-  Literal,
-  ObjectExpression,
-  Property,
-  RegExpLiteral
-} from "../cherow/estree";
+import { ESTree } from "cherow";
 import { IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouterResourceTarget } from "../interfaces";
 import { $Constructor, $Module } from "../model";
 import { BuilderError } from "./core";
@@ -132,30 +122,30 @@ export class RegisteredConstructorRequest {
 }
 
 export class AnalyzeCallExpressionArgumentRequest {
-  public expression: Expression;
-  constructor(expression: Expression) {
+  public expression: ESTree.Expression;
+  constructor(expression: ESTree.Expression) {
     this.expression = expression;
   }
 }
 
 export class AnalyzeObjectExpressionRequest {
-  public expression: ObjectExpression;
-  constructor(expression: ObjectExpression) {
+  public expression: ESTree.ObjectExpression;
+  constructor(expression: ESTree.ObjectExpression) {
     this.expression = expression;
   }
 }
 
 export class AnalyzePropertyRequest {
-  public property: Property;
-  constructor(property: Property) {
+  public property: ESTree.Property;
+  constructor(property: ESTree.Property) {
     this.property = property;
   }
 }
 
 export class AnalyzeLiteralPropertyRequest {
-  public key: Identifier;
-  public value: Literal | BigIntLiteral | RegExpLiteral;
-  constructor(property: Property) {
+  public key: ESTree.Identifier;
+  public value: ESTree.Literal | ESTree.BigIntLiteral | ESTree.RegExpLiteral;
+  constructor(property: ESTree.Property) {
     if (!(property.key.type === "Identifier" && property.value && property.value.type === "Literal")) {
       throw new BuilderError("Wrong type passed to the request", property);
     }
@@ -165,9 +155,9 @@ export class AnalyzeLiteralPropertyRequest {
 }
 
 export class AnalyzeCallExpressionPropertyRequest {
-  public key: Identifier;
-  public value: CallExpression;
-  constructor(property: Property) {
+  public key: ESTree.Identifier;
+  public value: ESTree.CallExpression;
+  constructor(property: ESTree.Property) {
     if (!(property.key.type === "Identifier" && property.value && property.value.type === "CallExpression")) {
       throw new BuilderError("Wrong type passed to the request", property);
     }
@@ -177,9 +167,9 @@ export class AnalyzeCallExpressionPropertyRequest {
 }
 
 export class AnalyzeArrayExpressionPropertyRequest {
-  public key: Identifier;
-  public value: ArrayExpression;
-  constructor(property: Property) {
+  public key: ESTree.Identifier;
+  public value: ESTree.ArrayExpression;
+  constructor(property: ESTree.Property) {
     if (!(property.key.type === "Identifier" && property.value && property.value.type === "ArrayExpression")) {
       throw new BuilderError("Wrong type passed to the request", property);
     }
@@ -189,9 +179,9 @@ export class AnalyzeArrayExpressionPropertyRequest {
 }
 
 export class AnalyzeObjectExpressionPropertyRequest {
-  public key: Identifier;
-  public value: ObjectExpression;
-  constructor(property: Property) {
+  public key: ESTree.Identifier;
+  public value: ESTree.ObjectExpression;
+  constructor(property: ESTree.Property) {
     if (!(property.key.type === "Identifier" && property.value && property.value.type === "ObjectExpression")) {
       throw new BuilderError("Wrong type passed to the request", property);
     }

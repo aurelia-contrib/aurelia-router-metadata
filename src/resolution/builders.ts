@@ -1,5 +1,5 @@
 import { Container } from "aurelia-dependency-injection";
-import { CallExpression, FunctionDeclaration } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { ICompleteRouteConfig, IRouteConfig } from "../interfaces";
 import { $Constructor } from "../model";
 import { Registry } from "../registry";
@@ -315,7 +315,7 @@ export class FunctionDeclarationAnalyzer implements IBuilder {
     this.query = query;
   }
 
-  public create(request: FunctionDeclaration, context: IBuilderContext): any {
+  public create(request: ESTree.FunctionDeclaration, context: IBuilderContext): any {
     if (request.type !== "FunctionDeclaration" || request.body.type !== "BlockStatement") {
       return new NoResult();
     }
@@ -343,7 +343,7 @@ export class CallExpressionAnalyzer implements IBuilder {
     this.argumentQuery = argumentQuery;
   }
 
-  public create(request: CallExpression, context: IBuilderContext): any {
+  public create(request: ESTree.CallExpression, context: IBuilderContext): any {
     if (request.type !== "CallExpression") {
       return new NoResult();
     }

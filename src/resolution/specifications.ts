@@ -1,4 +1,4 @@
-import { CallExpression, FunctionDeclaration, Identifier, MemberExpression, Node } from "../cherow/estree";
+import { ESTree } from "cherow";
 import { $Application, $Constructor, $Export, $Module, $Property, $Prototype } from "../model";
 import { RouterResource } from "../router-resource";
 import { ISpecification } from "./interfaces";
@@ -42,7 +42,7 @@ export class InverseSpecification implements ISpecification {
  * Specification that will match either a property- or symbol-keyed configureRouter method
  */
 export class ConfigureRouterFunctionDeclarationSpecification implements ISpecification {
-  public isSatisfiedBy(input: FunctionDeclaration): boolean {
+  public isSatisfiedBy(input: ESTree.FunctionDeclaration): boolean {
     return (
       input.type === "FunctionDeclaration" &&
       input.id !== null &&
@@ -74,8 +74,8 @@ export class CallExpressionCalleePropertyNameSpecification implements ISpecifica
     this.calleePropertyName = calleePropertyName;
   }
 
-  public isSatisfiedBy(callExpression: CallExpression): boolean {
-    let expr: CallExpression = callExpression;
+  public isSatisfiedBy(callExpression: ESTree.CallExpression): boolean {
+    let expr: ESTree.CallExpression = callExpression;
     if (callExpression.type !== "CallExpression") {
       if ((callExpression as any).value && (callExpression as any).value.type === "CallExpression") {
         expr = (callExpression as any).value;
@@ -85,9 +85,9 @@ export class CallExpressionCalleePropertyNameSpecification implements ISpecifica
     }
 
     if (expr.callee.type === "MemberExpression") {
-      const $callee = expr.callee as MemberExpression;
+      const $callee = expr.callee as ESTree.MemberExpression;
       if ($callee.property.type === "Identifier") {
-        const property = $callee.property as Identifier;
+        const property = $callee.property as ESTree.Identifier;
         if (property.name === this.calleePropertyName) {
           return true;
         }
@@ -99,7 +99,7 @@ export class CallExpressionCalleePropertyNameSpecification implements ISpecifica
 }
 
 export class SyntaxNodeSpecification implements ISpecification {
-  public isSatisfiedBy(node: Node): boolean {
+  public isSatisfiedBy(node: ESTree.Node): boolean {
     return /String/.test(Object.prototype.toString.call(node.type));
   }
 }
