@@ -10,6 +10,7 @@
     "**/dist/**"
   ],
   "emmet.triggerExpansionOnTab": true,
+  "prettier.printWidth": 160,
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,

@@ -122,7 +122,7 @@
     "max-classes-per-file": [true, 3], // we generally recommend making one public class per file
     "max-file-line-count": true,
     "max-func-body-length": [true, 100, { "ignore-parameters-to-function-regex": "describe" }],
-    "max-line-length": [true, 140],
+    "max-line-length": [true, 160],
     "member-access": true,
     "member-ordering": [true, { "order": "fields-first" }],
     "missing-jsdoc": false, // fkleuver: we don't want to enforce documentation on every single file (due to aurelia conventions being fairly self-explanatory), furthermore, for internal projects code ought to be written in such a way that it documents itself, whilst applying common sense to document critical and/or complex parts of the application
