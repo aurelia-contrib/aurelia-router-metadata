@@ -14,7 +14,7 @@ import {
 } from "./interfaces";
 import { $Module } from "./model";
 import { Registry } from "./registry";
-import { RouteConfigSplitter } from "./resolution/functions";
+import { splitRouteConfig } from "./resolution/builders";
 import { RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
@@ -578,7 +578,7 @@ function map(this: any, originalConfigs: RouteConfig | RouteConfig[]): RouterCon
   delete this[RouterResource.originalMapSymbol];
   const resource = this[RouterResource.routerResourceSymbol] as RouterResource;
   delete this[RouterResource.routerResourceSymbol];
-  const splittedOriginalConfigs: RouteConfig[] = new RouteConfigSplitter().execute(ensureArray(originalConfigs)) as any;
+  const splittedOriginalConfigs = splitRouteConfig(ensureArray(originalConfigs));
   const couples = alignRouteConfigs(resource.childRoutes, splittedOriginalConfigs);
   const remainingConfigs: RouteConfig[] = [];
   for (const couple of couples) {

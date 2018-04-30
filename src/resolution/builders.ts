@@ -1,231 +1,164 @@
 import { Container } from "aurelia-dependency-injection";
-import { ESTree } from "cherow";
-import { ICompleteRouteConfig, IRouteConfig } from "../interfaces";
-import { $Constructor } from "../model";
+import * as cw from "cherow";
+import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouteConfig, IRouterResourceTarget } from "../interfaces";
+import { $Constructor, $Module, $Property } from "../model";
 import { Registry } from "../registry";
 import { routerMetadata } from "../router-metadata";
 import { RouterMetadataSettings } from "../router-metadata-configuration";
 import { RouterResource } from "../router-resource";
 import { ensureArray } from "../util";
-import { NoResult } from "./core";
-import { IBuilder, IBuilderContext, IPropertyQuery } from "./interfaces";
+import { Construct, Create, Execute, SelectProperties } from "./interfaces";
 import { constructorRouteConfigMapper, objectRouteConfigMapper } from "./mapping";
-import * as R from "./requests";
-
-// tslint:disable:max-classes-per-file
 
 /**
- * Base builder that provides a simple method to get the appropriate RouterMetadataSettings
- * for a given instruction
+ * Gets the appropriate RouterMetadataSettings for a given instruction
  */
-export abstract class RouteConfigBuilder implements IBuilder {
-  public abstract create(request: R.RouteConfigRequest, context: IBuilderContext): any;
-
-  protected getSettings(request: R.RouteConfigRequest, context: IBuilderContext): RouterMetadataSettings {
-    if (request.instruction.settings) {
-      return request.instruction.settings;
-    }
-
-    return context.resolve(new R.RouterMetadataSettingsRequest(request.instruction.target));
+function getSettings(instruction: ICreateRouteConfigInstruction): RouterMetadataSettings {
+  if (instruction.settings) {
+    return instruction.settings;
   }
+
+  return getRouterMetadataSettings(instruction.target);
 }
 
 /**
- * Builder that aggregates the results from child builders to create fully enriched RouteConfigs
+ * Aggregates the results from child builders to create fully enriched RouteConfigs
  * for a given instruction, from the perspective of the target module of a route.
  */
-export class CompleteRouteConfigCollectionBuilder extends RouteConfigBuilder {
-  public create(request: R.CompleteRouteConfigCollectionRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.CompleteRouteConfigCollectionRequest)) {
-      return new NoResult();
+export function buildCompleteRouteConfigCollection(
+  instruction: ICreateRouteConfigInstruction
+): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
+  const result: ICompleteRouteConfig[] = [];
+  const overrides = buildRouteConfigOverrides(instruction);
+  const configCollection = buildRouteConfigCollection(instruction);
+
+  for (const config of configCollection) {
+    config.route = ensureArray(config.route);
+    for (const route of config.route) {
+      result.push({ ...config, route, ...overrides, ...{ settings: { ...config.settings, ...overrides.settings } } });
     }
-
-    const instruction = request.instruction;
-
-    const result: ICompleteRouteConfig[] = [];
-    const overrides = context.resolve(new R.RouteConfigOverridesRequest(instruction));
-    const configCollection = context.resolve(new R.RouteConfigCollectionRequest(instruction));
-
-    for (const config of configCollection) {
-      config.route = ensureArray(config.route);
-      for (const route of config.route) {
-        result.push({ ...config, route, ...overrides, ...{ settings: { ...config.settings, ...overrides.settings } } });
-      }
-    }
-
-    const settings = this.getSettings(request, context);
-
-    return settings.transformRouteConfigs(result, request.instruction);
   }
+
+  const settings = getSettings(instruction);
+
+  return settings.transformRouteConfigs(result, instruction);
 }
 
 /**
- * Builder that retrieves the convention- and property based RouteConfig defaults
+ * Rtrieves the convention- and property based RouteConfig defaults
  * for a given instruction, which are used as a seed for building the actual RouteConfigs
  */
-export class RouteConfigDefaultsBuilder extends RouteConfigBuilder {
-  public create(request: R.RouteConfigDefaultsRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.RouteConfigDefaultsRequest)) {
-      return new NoResult();
-    }
+export function buildRouteConfigDefaults(instruction: ICreateRouteConfigInstruction): IRouteConfig {
+  const result: IRouteConfig = Object.create(Object.prototype);
+  const settings = getSettings(instruction);
 
-    const instruction = request.instruction;
+  objectRouteConfigMapper.map(result, settings.routeConfigDefaults);
 
-    const result: IRouteConfig = Object.create(Object.prototype);
-    const settings = this.getSettings(request, context);
+  const hyphenatedName = hyphenate(instruction.target.name);
+  result.route = hyphenatedName;
+  result.name = hyphenatedName;
+  result.title = toTitle(instruction.target.name);
 
-    objectRouteConfigMapper.map(result, settings.routeConfigDefaults);
+  constructorRouteConfigMapper.map(result, instruction.target);
+  objectRouteConfigMapper.map(result, instruction.target.baseRoute);
 
-    const hyphenatedName = hyphenate(instruction.target.name);
-    result.route = hyphenatedName;
-    result.name = hyphenatedName;
-    result.title = toTitle(instruction.target.name);
-
-    constructorRouteConfigMapper.map(result, instruction.target);
-    objectRouteConfigMapper.map(result, instruction.target.baseRoute);
-
-    return result;
-  }
+  return result;
 }
 
 /**
- * Builder that looks for any user-provided routes via the instruction or static properties
+ * Looks for any user-provided routes via the instruction or static properties
  * and merges them with the defaults returned from the DefaultsBuilder.
  * If no routes were specified, simply returns the defaults as a single RouteConfig.
  */
-export class RouteConfigCollectionBuilder extends RouteConfigBuilder {
-  public create(request: R.RouteConfigCollectionRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.RouteConfigCollectionRequest)) {
-      return new NoResult();
-    }
+export function buildRouteConfigCollection(instruction: ICreateRouteConfigInstruction): any {
+  const result: IRouteConfig[] = [];
 
-    const instruction = request.instruction;
-    const result: IRouteConfig[] = [];
-
-    const defaults = context.resolve(new R.RouteConfigDefaultsRequest(instruction));
-    const propertyConfigs = ensureArray(instruction.target.routes);
-    const instructionConfigs = ensureArray(instruction.routes);
-    const configs = [...propertyConfigs, ...instructionConfigs];
-    for (const config of configs) {
-      result.push({ ...defaults, ...config });
-    }
-    if (result.length === 0) {
-      result.push({ ...defaults });
-    }
-
-    return result;
+  const defaults = buildRouteConfigDefaults(instruction);
+  const propertyConfigs = ensureArray(instruction.target.routes);
+  const instructionConfigs = ensureArray(instruction.routes);
+  const configs = [...propertyConfigs, ...instructionConfigs];
+  for (const config of configs) {
+    result.push({ ...defaults, ...config });
   }
+  if (result.length === 0) {
+    result.push({ ...defaults });
+  }
+
+  return result;
 }
 
 /**
- * Builder that retrieves the RouteConfigOverrides from the settings as well as
+ * Retrieves the RouteConfigOverrides from the settings as well as
  * the moduleId from the instruction.
  */
-export class RouteConfigOverridesBuilder extends RouteConfigBuilder {
-  public create(request: R.RouteConfigOverridesRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.RouteConfigOverridesRequest)) {
-      return new NoResult();
-    }
+export function buildRouteConfigOverrides(instruction: ICreateRouteConfigInstruction): any {
+  const result: IRouteConfig = Object.create(Object.prototype);
+  const settings = getSettings(instruction);
 
-    const instruction = request.instruction;
+  objectRouteConfigMapper.map(result, settings.routeConfigOverrides);
+  result.moduleId = instruction.moduleId;
 
-    const result: IRouteConfig = Object.create(Object.prototype);
-    const settings = this.getSettings(request, context);
+  const ensureSettings = createObjectPropertyEnsurer<IRouteConfig>("settings");
 
-    objectRouteConfigMapper.map(result, settings.routeConfigOverrides);
-    result.moduleId = instruction.moduleId;
-
-    return result;
-  }
+  return ensureSettings(result);
 }
 
 /**
- * Builder that tries to return the most specific RouterMetadataSettings
- * for a given instruction.
+ * Returns the most specific RouterMetadataSettings for a given instruction.instruction.
  */
-export class RouterMetadataSettingsProvider implements IBuilder {
-  public create(request: any, context: IBuilderContext): any {
-    let container: Container | undefined;
-
-    if (request === RouterMetadataSettings) {
-      container = context.resolve(Container);
-    }
-
-    if (request instanceof R.RouterMetadataSettingsRequest) {
-      container = context.resolve(new R.ContainerRequest(request.target));
-    }
-
-    if (!container) {
-      return new NoResult();
-    }
-
-    return container.get(RouterMetadataSettings);
+export function getRouterMetadataSettings(request: Function): RouterMetadataSettings {
+  if (request === RouterMetadataSettings) {
+    return getContainer(Container).get(RouterMetadataSettings);
   }
+
+  const container = getContainer(request);
+
+  if (!container) {
+    throw new Error();
+  }
+
+  return container.get(RouterMetadataSettings);
 }
 
 /**
- * Builder that tries to return the most specific Container
- * for a given instruction.
+ * Returns the most specific Container for a given instruction.
  */
-export class ContainerProvider implements IBuilder {
-  public create(request: any, context: IBuilderContext): any {
-    if (request === Container) {
-      return Container.instance;
-    }
-
-    if (request instanceof R.ContainerRequest) {
-      const resource = context.resolve(new R.RouterResourceRequest(request.target)) as RouterResource;
-
-      return (resource && resource.container) || Container.instance;
-    }
-
-    return new NoResult();
+export function getContainer(request: any): Container {
+  if (request === Container) {
+    return Container.instance;
   }
+
+  const resource = getRouterResource(request);
+
+  return (resource && resource.container) || Container.instance;
 }
 
 /**
- * Builder that resolves the RouterResource for a given target.
+ * Resolves the RouterResource for a given target.
  */
-export class RouterResourceProvider implements IBuilder {
-  public create(request: R.RouterResourceRequest, _: IBuilderContext): any {
-    if (!(request instanceof R.RouterResourceRequest)) {
-      return new NoResult();
-    }
-
-    return routerMetadata.getOrCreateOwn(request.target);
-  }
+export function getRouterResource(target: IRouterResourceTarget): RouterResource {
+  return routerMetadata.getOrCreateOwn(target);
 }
 
 /**
- * Builder that simply forwards a request to the most specific Container available,
+ * Relays a request to the most specific Container available,
  * but will only do so if that container actually has a resolver.
- * Otherwise, will return NoResult.
+ * Otherwise, will throw
  */
-export class ContainerRelay implements IBuilder {
-  public container: Container | null;
-
-  constructor(container: Container | null = null) {
-    this.container = container;
+export function relayToContainer<T extends new (...args: any[]) => any>(request: T): InstanceType<T> {
+  const container = getContainer(Container);
+  if (!container) {
+    throw new Error();
+  }
+  if (!container.hasResolver(request)) {
+    throw new Error();
   }
 
-  public create(request: any, context: IBuilderContext): any {
-    const container = this.container || (context.resolve(Container) as Container);
-    if (!container) {
-      return new NoResult();
-    }
-    if (!container.hasResolver(request)) {
-      return new NoResult();
-    }
-
-    return container.get(request);
-  }
+  return container.get(request);
 }
 
 function hyphenate(value: string): string {
-  return (value.charAt(0).toLowerCase() + value.slice(1)).replace(
-    /([A-Z])/g,
-    (char: string) => `-${char.toLowerCase()}`
-  );
+  return (value.charAt(0).toLowerCase() + value.slice(1)).replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`);
 }
 
 function toTitle(value: string): string {
@@ -233,220 +166,163 @@ function toTitle(value: string): string {
 }
 
 /**
- * Builder that aggregates the results from child builders to create fully enriched RouteConfigs
+ * Aggregates the results from child builders to create fully enriched RouteConfigs
  * for a given instruction, from the perspective of the module that configures these routes.
  */
-export class CompleteChildRouteConfigCollectionBuilder extends RouteConfigBuilder {
-  public create(request: R.CompleteChildRouteConfigCollectionRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.CompleteChildRouteConfigCollectionRequest)) {
-      return new NoResult();
-    }
-
-    let $constructor = request.$module && request.$module.$defaultExport && request.$module.$defaultExport.$constructor;
-    if (!$constructor) {
-      $constructor = context.resolve(new R.RegisteredConstructorRequest(request.instruction.target)) as $Constructor;
-    }
-
-    return context.resolve(new R.ChildRouteConfigCollectionRequest($constructor));
+export function buildCompleteChildRouteConfigCollection(instruction: IConfigureRouterInstruction, $module?: $Module): any {
+  let $constructor = $module && $module.$defaultExport && $module.$defaultExport.$constructor;
+  if (!$constructor) {
+    $constructor = getRegisteredConstructor(instruction.target);
   }
+
+  const collection = buildChildRouteConfigCollection($constructor);
+
+  return splitRouteConfig(collection);
 }
 
 /**
- * Builder that looks for childRoutes in any decorator-provided information and inside the function
+ * Looks for childRoutes in any decorator-provided information and inside the function
  * body of "configureRouter()" (if there is any).
  */
-export class ChildRouteConfigCollectionBuilder implements IBuilder {
-  public create(request: R.ChildRouteConfigCollectionRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.ChildRouteConfigCollectionRequest)) {
-      return new NoResult();
+export function buildChildRouteConfigCollection($constructor: $Constructor): any {
+  const results: IRouteConfig[] = [];
+
+  const parseFunctionBody = createFunctionBodyParser(getConfigureRouterMethod);
+  const functionDeclaration = parseFunctionBody($constructor);
+  const selectFunctionDeclarations = createBlockStatementCallExpressionCalleePropertyNameQuery("map");
+  const analyzeFunctionDeclaration = createFunctionDeclarationAnalyzer(selectFunctionDeclarations);
+  const configCollection = analyzeFunctionDeclaration(functionDeclaration);
+  for (const config of configCollection) {
+    config.route = ensureArray(config.route);
+    if (config.route.length === 0) {
+      results.push({ ...config });
+    } else {
+      for (const route of config.route) {
+        results.push({ ...config, route });
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Retrieves the registered $Constructor instance associated to the provided target.
+ */
+export function getRegisteredConstructor(target: IRouterResourceTarget): $Constructor {
+  const resource = getRouterResource(target);
+  if (!resource) {
+    throw new Error();
+  }
+
+  if (resource.$module && resource.$module.$defaultExport) {
+    return resource.$module.$defaultExport.$constructor;
+  } else if (resource.moduleId) {
+    const registry = relayToContainer(Registry);
+    const $module = registry.getModule(resource.moduleId);
+    if ($module && $module.$defaultExport) {
+      return $module.$defaultExport.$constructor;
+    }
+  }
+
+  throw new Error();
+}
+
+/**
+ * Returns a function that forwards the results of running the provided query on the FunctionDeclaration's body
+ * as individual requests, and returns the concatenated results of those requests.
+ */
+export function createFunctionDeclarationAnalyzer(
+  selectProperties: SelectProperties<cw.BlockStatement, cw.CallExpression>
+): Create<cw.FunctionDeclaration, IRouteConfig[]> {
+  return request => {
+    if (request.type !== "FunctionDeclaration" || request.body.type !== "BlockStatement") {
+      throw new Error();
     }
 
     const results: IRouteConfig[] = [];
-    const configCollection = context.resolve(request.$constructor) as IRouteConfig[];
-    for (const config of configCollection) {
-      config.route = ensureArray(config.route);
-      if (config.route.length === 0) {
-        results.push({ ...config });
-      } else {
-        for (const route of config.route) {
-          results.push({ ...config, route });
-        }
-      }
-    }
-
-    return results;
-  }
-}
-
-/**
- * Builder that tries to retrieve the registered $Constructor instance associated to the provided
- * target.
- */
-export class RegisteredConstructorProvider implements IBuilder {
-  public create(request: R.RegisteredConstructorRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.RegisteredConstructorRequest)) {
-      return new NoResult();
-    }
-
-    const resource = context.resolve(new R.RouterResourceRequest(request.target)) as RouterResource;
-    if (resource) {
-      if (resource.$module && resource.$module.$defaultExport) {
-        return resource.$module.$defaultExport.$constructor;
-      } else if (resource.moduleId) {
-        const registry = context.resolve(Registry) as Registry;
-        const $module = registry.getModule(resource.moduleId);
-        if ($module && $module.$defaultExport) {
-          return $module.$defaultExport.$constructor;
-        }
-      }
-    }
-
-    return new NoResult();
-  }
-}
-
-/**
- * Builder that forwards the results of running the provided query on the FunctionDeclaration's body
- * as individual requests, and returns the concatenated results of those requests.
- */
-export class FunctionDeclarationAnalyzer implements IBuilder {
-  public query: IPropertyQuery;
-  constructor(query: IPropertyQuery) {
-    this.query = query;
-  }
-
-  public create(request: ESTree.FunctionDeclaration, context: IBuilderContext): any {
-    if (request.type !== "FunctionDeclaration" || request.body.type !== "BlockStatement") {
-      return new NoResult();
-    }
-
-    const results = [];
-    const properties = this.query.selectProperties(request.body);
+    const properties = selectProperties(request.body);
+    const selectCallExpressionArguments = createCallExpressionArgumentTypeQuery(["ArrayExpression", "ObjectExpression"]);
+    const analyzeCallExpression = createCallExpressionAnalyzer(selectCallExpressionArguments);
     for (const prop of properties) {
-      const result = context.resolve(prop);
-      if (Array.isArray(result)) {
-        for (const item of result) {
-          results.push(item);
-        }
-      } else {
-        results.push(result);
+      const result = analyzeCallExpression(prop);
+      for (const item of result) {
+        results.push(item);
       }
     }
 
     return results;
-  }
+  };
 }
 
-export class CallExpressionAnalyzer implements IBuilder {
-  public argumentQuery: IPropertyQuery;
-  constructor(argumentQuery: IPropertyQuery) {
-    this.argumentQuery = argumentQuery;
-  }
-
-  public create(request: ESTree.CallExpression, context: IBuilderContext): any {
+export function createCallExpressionAnalyzer(
+  selectArguments: SelectProperties<cw.CallExpression, cw.Expression | cw.SpreadElement>
+): Create<cw.CallExpression, IRouteConfig[]> {
+  return request => {
     if (request.type !== "CallExpression") {
-      return new NoResult();
+      throw new Error();
     }
-    const results: any[] = [];
-    const argsToProcess = this.argumentQuery.selectProperties(request);
+    const results: IRouteConfig[] = [];
+    const argsToProcess = selectArguments(request);
 
     for (const arg of argsToProcess) {
-      const result = context.resolve(new R.AnalyzeCallExpressionArgumentRequest(arg));
-      if (Array.isArray(result)) {
-        for (const item of result) {
-          results.push(item);
-        }
-      } else {
-        results.push(result);
+      const result = analyzeCallExpressionArgument(arg);
+      for (const item of result) {
+        results.push(item);
       }
     }
 
     return results;
-  }
+  };
 }
 
-export class CallExpressionArgumentAnalyzer implements IBuilder {
-  public create(request: R.AnalyzeCallExpressionArgumentRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.AnalyzeCallExpressionArgumentRequest)) {
-      return new NoResult();
-    }
-
-    const results: any[] = [];
-    const arg = request.expression;
-    switch (arg.type) {
-      case "ArrayExpression": {
-        for (const el of arg.elements) {
-          if (el && el.type === "ObjectExpression") {
-            results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(el)));
-          }
+export function analyzeCallExpressionArgument(arg: cw.Expression | cw.SpreadElement): IRouteConfig[] {
+  const propertyNames = objectRouteConfigMapper.mappings.map(m => m.targetName);
+  const selectRouteConfigProperties = createRouteConfigPropertyQuery(propertyNames);
+  const analyzeObjectExpression = createObjectExpressionAnalyzer(selectRouteConfigProperties);
+  const results: IRouteConfig[] = [];
+  switch (arg.type) {
+    case "ArrayExpression": {
+      for (const el of arg.elements) {
+        if (el && el.type === "ObjectExpression") {
+          results.push(analyzeObjectExpression(el));
         }
-        break;
       }
-      case "ObjectExpression": {
-        results.push(context.resolve(new R.AnalyzeObjectExpressionRequest(arg)));
-        break;
-      }
-      default: {
-        // ignore
-      }
+      break;
     }
-
-    return results;
+    case "ObjectExpression": {
+      results.push(analyzeObjectExpression(arg));
+      break;
+    }
+    default: {
+      // ignore
+    }
   }
+
+  return results;
 }
 
-export class PropertyAnalyzeRequestRelay implements IBuilder {
-  public create(request: R.AnalyzePropertyRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.AnalyzePropertyRequest)) {
-      return new NoResult();
-    }
-
-    if (request.property.value) {
-      switch (request.property.value.type) {
-        case "Literal": {
-          return context.resolve(new R.AnalyzeLiteralPropertyRequest(request.property));
-        }
-        case "CallExpression": {
-          return context.resolve(new R.AnalyzeCallExpressionPropertyRequest(request.property));
-        }
-        case "ArrayExpression": {
-          return context.resolve(new R.AnalyzeArrayExpressionPropertyRequest(request.property));
-        }
-        case "ObjectExpression": {
-          return context.resolve(new R.AnalyzeObjectExpressionPropertyRequest(request.property));
-        }
-        default: {
-          return new NoResult();
-        }
-      }
-    }
-
-    return new NoResult();
-  }
-}
-
-export class ObjectExpressionAnalyzer implements IBuilder {
-  public propertyQuery: IPropertyQuery;
-  constructor(propertyQuery: IPropertyQuery) {
-    this.propertyQuery = propertyQuery;
-  }
-
-  public create(request: R.AnalyzeObjectExpressionRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.AnalyzeObjectExpressionRequest)) {
-      return new NoResult();
-    }
-
-    const objectResult = Object.create(Object.prototype);
-    const properties = this.propertyQuery.selectProperties(request.expression);
+export function createObjectExpressionAnalyzer(selectProperties: SelectProperties<cw.ObjectExpression, cw.Property>): Create<cw.ObjectExpression, any> {
+  return expression => {
+    const objectResult: { [key: string]: any } = {};
+    const properties = selectProperties(expression);
     for (const prop of properties) {
       if (prop.type === "Property" && prop.value && prop.key.type === "Identifier") {
         switch (prop.value.type) {
           case "Literal":
+            objectResult[prop.key.name] = analyzeLiteralProperty(prop);
+            break;
           case "CallExpression":
+            const callExpressionArgumentTypeQuery = createCallExpressionArgumentTypeQuery(["ArrayExpression", "ObjectExpression"]);
+            const analyzeCallExpressionProperty = createCallExpressionPropertyAnalyzer(callExpressionArgumentTypeQuery);
+            objectResult[prop.key.name] = analyzeCallExpressionProperty(prop);
+            break;
           case "ArrayExpression":
+            objectResult[prop.key.name] = analyzeArrayExpressionProperty(prop);
+            break;
           case "ObjectExpression": {
-            const propertyResult = context.resolve(new R.AnalyzePropertyRequest(prop));
-            objectResult[prop.key.name] = propertyResult;
+            const analyzeObjectExpression = createObjectExpressionAnalyzer(selectProperties);
+            objectResult[prop.key.name] = analyzeObjectExpression(prop.value);
           }
           default: {
             // ignore
@@ -456,42 +332,31 @@ export class ObjectExpressionAnalyzer implements IBuilder {
     }
 
     return objectResult;
-  }
+  };
 }
 
-export class LiteralPropertyAnalyzer implements IBuilder {
-  public create(request: R.AnalyzeLiteralPropertyRequest): any {
-    if (!(request instanceof R.AnalyzeLiteralPropertyRequest)) {
-      return new NoResult();
-    }
-
-    return request.value.value;
+export function analyzeLiteralProperty(prop: cw.Property): string | number | boolean | RegExp | null {
+  if (prop.type === "Property" && prop.value && prop.key.type === "Identifier" && prop.value.type === "Literal") {
+    return prop.value.value;
   }
+  throw new Error();
 }
 
-export class CallExpressionPropertyAnalyzer implements IBuilder {
-  public query: IPropertyQuery;
-  constructor(query: IPropertyQuery) {
-    this.query = query;
-  }
-
-  public create(request: R.AnalyzeCallExpressionPropertyRequest): any {
-    if (!(request instanceof R.AnalyzeCallExpressionPropertyRequest)) {
-      return new NoResult();
+export function createCallExpressionPropertyAnalyzer(
+  selectProperties: SelectProperties<cw.CallExpression, cw.Expression | cw.SpreadElement>
+): Create<cw.Property, (cw.Expression | cw.SpreadElement)[]> {
+  return prop => {
+    if (prop.type === "Property" && prop.value && prop.key.type === "Identifier" && prop.value.type === "CallExpression") {
+      return selectProperties(prop.value);
     }
-
-    return this.query.selectProperties(request.value);
-  }
+    throw new Error();
+  };
 }
 
-export class ArrayExpressionPropertyAnalyzer implements IBuilder {
-  public create(request: R.AnalyzeArrayExpressionPropertyRequest): any {
-    if (!(request instanceof R.AnalyzeArrayExpressionPropertyRequest)) {
-      return new NoResult();
-    }
-
+export function analyzeArrayExpressionProperty(prop: cw.Property): any {
+  if (prop.type === "Property" && prop.value && prop.key.type === "Identifier" && prop.value.type === "ArrayExpression") {
     const results: any[] = [];
-    for (const el of request.value.elements) {
+    for (const el of prop.value.elements) {
       if (el && el.type === "Literal") {
         results.push(el.value);
       }
@@ -499,14 +364,167 @@ export class ArrayExpressionPropertyAnalyzer implements IBuilder {
 
     return results;
   }
+  throw new Error();
 }
 
-export class ObjectExpressionPropertyAnalyzer implements IBuilder {
-  public create(request: R.AnalyzeObjectExpressionPropertyRequest, context: IBuilderContext): any {
-    if (!(request instanceof R.AnalyzeObjectExpressionPropertyRequest)) {
-      return new NoResult();
+/**
+ * Returns a function that ensures the specified property name will always be an object.
+ */
+export function createObjectPropertyEnsurer<T extends { [key: string]: any }>(propertyName: string): Execute<T, T> {
+  return result => {
+    result[propertyName] = { ...result[propertyName] };
+
+    return result;
+  };
+}
+
+/**
+ * Returns a function that uses cherow to parse the body of the first function returned by the PropertyQuery,
+ * and then returns the FunctionDeclaration out of the parsed result.
+ */
+export function createFunctionBodyParser(selectProperties: SelectProperties<$Constructor, $Property>): Execute<$Constructor, cw.FunctionDeclaration> {
+  return result => {
+    for (const property of selectProperties(result)) {
+      let body = property.descriptor.value.toString();
+      // ensure we have a pattern "function functionName()" for the parser
+      if (/^function *\(/.test(body)) {
+        // regular named functions become "function()" when calling .toString() on the value
+        body = body.replace(/^function/, `function ${typeof property.key !== "symbol" ? property.key : "configureRouter"}`);
+      } else if (!/^function/.test(body)) {
+        // symbol named functions become "functionName()" when calling .toString() on the value
+        body = `function ${body}`;
+      }
+      const program = cw.parseScript(body) as cw.Program;
+      for (const statementOrModuleDeclaration of program.body) {
+        if (statementOrModuleDeclaration.type === "FunctionDeclaration") {
+          return statementOrModuleDeclaration;
+        }
+      }
     }
 
-    return context.resolve(new R.AnalyzeObjectExpressionRequest(request.value));
-  }
+    throw new Error();
+  };
 }
+
+export function splitRouteConfig(configs: IRouteConfig[]): IRouteConfig[] {
+  if (configs.length === 0) {
+    return configs;
+  }
+  const result: IRouteConfig[][] = [];
+  for (const config of configs) {
+    if (Object.prototype.hasOwnProperty.call(config, "route")) {
+      if (/String/.test(Object.prototype.toString.call(config.route))) {
+        result.push([config]);
+      } else if (Array.isArray(config.route)) {
+        if (config.route.length === 0) {
+          delete config.route;
+
+          result.push([config]);
+        } else {
+          result.push(config.route.map(r => ({ ...config, route: r })));
+        }
+      } else {
+        delete config.route;
+
+        result.push([config]);
+      }
+    } else {
+      result.push([config]);
+    }
+  }
+
+  return result.reduce((prev, cur) => prev.concat(cur));
+}
+
+/**
+ * Returns the "configureRouter" method from a class constructor or, if it's stored in a Symbol-keyed property
+ * (meaning it's wrapped by a RouterResource), will return that Symbol-keyed backup instead (since that's where
+ * we need the route information from)
+ */
+export const getConfigureRouterMethod: SelectProperties<$Constructor, $Property> = $constructor => {
+  const $prototype = $constructor.$export.$prototype;
+  const wrappedMethod = $prototype.$properties.filter((p: $Property) => p.key === RouterResource.originalConfigureRouterSymbol);
+  if (wrappedMethod.length) {
+    return wrappedMethod;
+  }
+
+  const plainMethod = $prototype.$properties.filter((p: $Property) => p.key === "configureRouter");
+  if (plainMethod.length) {
+    return plainMethod;
+  }
+
+  throw new Error();
+};
+
+/**
+ * Returns a list of CallExpressions from a BlockStatement where the name of the invoked method
+ * matches the provided name.
+ *
+ * Example: the name "map" would return all xxx.map() expressions from a function block.
+ */
+export const createBlockStatementCallExpressionCalleePropertyNameQuery: Construct<
+  string,
+  SelectProperties<cw.BlockStatement, cw.CallExpression>
+> = name => blockStatement => {
+  if (blockStatement.type !== "BlockStatement") {
+    throw new Error("Wrong type passed to query");
+  }
+
+  const callExpressions: cw.CallExpression[] = [];
+  for (const statement of blockStatement.body) {
+    if (statement.type === "ExpressionStatement" && statement.expression.type === "CallExpression") {
+      const callExpression = statement.expression as cw.CallExpression;
+      if (callExpression.callee.type === "MemberExpression") {
+        const $callee = callExpression.callee as cw.MemberExpression;
+        if ($callee.property.type === "Identifier") {
+          const property = $callee.property as cw.Identifier;
+          if (property.name === name) {
+            callExpressions.push(callExpression);
+          }
+        }
+      }
+    }
+  }
+
+  return callExpressions;
+};
+
+export const createCallExpressionArgumentTypeQuery: Construct<
+  string[],
+  SelectProperties<cw.CallExpression, cw.Expression | cw.SpreadElement>
+> = typeNames => callExpression => {
+  if (callExpression.type !== "CallExpression") {
+    throw new Error("Wrong type passed to query");
+  }
+
+  return callExpression.arguments.filter((arg: cw.Expression | cw.SpreadElement) => typeNames.some((t: string) => arg.type === t));
+};
+
+export const createRouteConfigPropertyQuery: Construct<string[], SelectProperties<cw.ObjectExpression, cw.Property>> = propertyNames => {
+  return objectExpression => {
+    if (objectExpression.type !== "ObjectExpression") {
+      throw new Error("Wrong type passed to query");
+    }
+
+    const properties: cw.Property[] = [];
+    for (const prop of objectExpression.properties) {
+      if (prop.type === "Property" && prop.key.type === "Identifier") {
+        if (propertyNames.some((name: string) => name === (prop.key as cw.Identifier).name)) {
+          properties.push(prop);
+        }
+      }
+    }
+
+    return properties;
+  };
+};
+
+export const getLiteralArgumentValues: SelectProperties<cw.CallExpression, string | number | boolean | null> = callExpression => {
+  if (callExpression.type !== "CallExpression") {
+    throw new Error("Wrong type passed to query");
+  }
+
+  const args = callExpression.arguments.filter((arg: cw.Expression | cw.SpreadElement) => arg.type === "Literal") as cw.Literal[];
+
+  return args.map((arg: cw.Literal) => arg.value);
+};

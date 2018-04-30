@@ -43,13 +43,8 @@ export function configure(fxconfig: any, configureSettings: (settings: RouterMet
 }
 
 export * from "./resolution/builders";
-export * from "./resolution/core";
-export * from "./resolution/functions";
 export * from "./resolution/interfaces";
 export * from "./resolution/mapping";
-export * from "./resolution/queries";
-export * from "./resolution/requests";
-export * from "./resolution/specifications";
 export * from "./decorators";
 export * from "./interfaces";
 export * from "./model";

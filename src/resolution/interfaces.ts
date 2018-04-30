@@ -1,23 +1,6 @@
-export interface IBuilder {
-  create(request: any, context: IBuilderContext): any;
-}
-
-export interface IBuilderNode extends IBuilder, Array<IBuilder> {
-  compose(builders: IBuilder[]): IBuilderNode;
-}
-
-export interface IBuilderContext {
-  resolve(request: any): any;
-}
-
-export interface ISpecification {
-  isSatisfiedBy(request: any): boolean;
-}
-
-export interface IFunction {
-  execute(result: any, context: IBuilderContext): any;
-}
-
-export interface IPropertyQuery {
-  selectProperties($object: any): any[];
-}
+export type Create<TRequest, TOutput> = (request: TRequest) => TOutput;
+export type Construct<TInput, TOutput> = (input: TInput) => TOutput;
+export type Resolve<TRequest, TOutput> = (request: TRequest) => TOutput;
+export type IsSatisfiedBy<TRequest> = (request: TRequest) => boolean;
+export type Execute<TResult, TOutput> = (result: TResult) => TOutput;
+export type SelectProperties<TObject, TProperty> = ($object: TObject) => TProperty[];
