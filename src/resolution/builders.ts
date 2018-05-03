@@ -1,6 +1,12 @@
 import { Container } from "aurelia-dependency-injection";
 import * as cw from "cherow";
-import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction, IRouteConfig, IRouterResourceTarget } from "../interfaces";
+import {
+  ICompleteRouteConfig,
+  IConfigureRouterInstruction as IConfigInstruction,
+  ICreateRouteConfigInstruction as ICreateInstruction,
+  IRouteConfig,
+  IRouterResourceTarget
+} from "../interfaces";
 import { $Constructor, $Module, $Property } from "../model";
 import { Registry } from "../registry";
 import { routerMetadata } from "../router-metadata";
@@ -8,34 +14,42 @@ import { RouterMetadataSettings } from "../router-metadata-configuration";
 import { RouterResource } from "../router-resource";
 import { ensureArray } from "../util";
 import { Construct, Create, Execute, SelectProperties } from "./interfaces";
-import { constructorRouteConfigMapper, objectRouteConfigMapper } from "./mapping";
+import { objectRouteConfigMapper } from "./mapping";
 
 /**
- * Gets the appropriate RouterMetadataSettings for a given instruction
+ * Creates fully enriched RouteConfigs for a given instruction, where the instruction's target
+ * is the route to be navigated **to**.
  */
-function getSettings(instruction: ICreateRouteConfigInstruction): RouterMetadataSettings {
-  if (instruction.settings) {
-    return instruction.settings;
-  }
-
-  return getRouterMetadataSettings(instruction.target);
-}
-
-/**
- * Aggregates the results from child builders to create fully enriched RouteConfigs
- * for a given instruction, from the perspective of the target module of a route.
- */
-export function buildCompleteRouteConfigCollection(
-  instruction: ICreateRouteConfigInstruction
+export function buildRouteConfigCollection(
+  instruction: ICreateInstruction
 ): ICompleteRouteConfig[] | Promise<ICompleteRouteConfig[]> | PromiseLike<ICompleteRouteConfig[]> {
   const result: ICompleteRouteConfig[] = [];
+  const defaults = getRouteConfigDefaults(instruction);
   const overrides = buildRouteConfigOverrides(instruction);
-  const configCollection = buildRouteConfigCollection(instruction);
+  const configs = getMetadataRoutes(instruction);
+  // if there are no configs on any static properties, use the convention-based defaults for the target
+  if (configs.length === 0) {
+    configs.push(defaults);
+  }
 
-  for (const config of configCollection) {
-    config.route = ensureArray(config.route);
-    for (const route of config.route) {
-      result.push({ ...config, route, ...overrides, ...{ settings: { ...config.settings, ...overrides.settings } } });
+  let i = configs.length;
+  while (i--) {
+    const config: ICompleteRouteConfig = {} as any;
+    mergeRouteConfig(config, defaults);
+    mergeRouteConfig(config, configs[i]);
+
+    if (Array.isArray(config.route)) {
+      let j = config.route.length;
+      while (j--) {
+        const multiConfig: ICompleteRouteConfig = {} as any;
+        mergeRouteConfig(multiConfig, config);
+        multiConfig.route = config.route[j];
+        mergeRouteConfig(multiConfig, overrides);
+        result.push(multiConfig);
+      }
+    } else {
+      mergeRouteConfig(config, overrides);
+      result.push(config);
     }
   }
 
@@ -44,101 +58,92 @@ export function buildCompleteRouteConfigCollection(
   return settings.transformRouteConfigs(result, instruction);
 }
 
-/**
- * Rtrieves the convention- and property based RouteConfig defaults
- * for a given instruction, which are used as a seed for building the actual RouteConfigs
- */
-export function buildRouteConfigDefaults(instruction: ICreateRouteConfigInstruction): IRouteConfig {
-  const result: IRouteConfig = Object.create(Object.prototype);
+const getRouteConfigDefaults = (instruction: ICreateInstruction) => {
+  const result: IRouteConfig = {};
   const settings = getSettings(instruction);
 
-  objectRouteConfigMapper.map(result, settings.routeConfigDefaults);
+  mergeRouteConfig(result, settings.routeConfigDefaults);
 
   const hyphenatedName = hyphenate(instruction.target.name);
   result.route = hyphenatedName;
   result.name = hyphenatedName;
   result.title = toTitle(instruction.target.name);
 
-  constructorRouteConfigMapper.map(result, instruction.target);
-  objectRouteConfigMapper.map(result, instruction.target.baseRoute);
+  mergeRouteConfig(result, instruction.target);
+  mergeRouteConfig(result, instruction.target.baseRoute);
 
   return result;
-}
+};
 
-/**
- * Looks for any user-provided routes via the instruction or static properties
- * and merges them with the defaults returned from the DefaultsBuilder.
- * If no routes were specified, simply returns the defaults as a single RouteConfig.
- */
-export function buildRouteConfigCollection(instruction: ICreateRouteConfigInstruction): any {
-  const result: IRouteConfig[] = [];
+const getRouterResource = (x: IRouterResourceTarget) => {
+  return routerMetadata.getOrCreateOwn(x);
+};
+const getContainerFromRouterResource = (x: RouterResource) => {
+  return (x && x.container) || Container.instance;
+};
+const getContainer = (x: Function | IRouterResourceTarget) => {
+  return x === Container ? Container.instance : getContainerFromRouterResource(getRouterResource(x));
+};
 
-  const defaults = buildRouteConfigDefaults(instruction);
-  const propertyConfigs = ensureArray(instruction.target.routes);
-  const instructionConfigs = ensureArray(instruction.routes);
-  const configs = [...propertyConfigs, ...instructionConfigs];
-  for (const config of configs) {
-    result.push({ ...defaults, ...config });
+const getSettings = (x: ICreateInstruction) => {
+  return x.settings ? x.settings : getContainer(x.target).get(RouterMetadataSettings);
+};
+const getMetadataRoutes = (x: ICreateInstruction) => {
+  return ensureArray<IRouteConfig>(x.routes).concat(ensureArray(x.target.routes));
+};
+const mergeRouteConfig = (target: IRouteConfig, source?: IRouteConfig) => {
+  if (!source) {
+    return;
   }
-  if (result.length === 0) {
-    result.push({ ...defaults });
+  const keys = Object.keys(source);
+  let i = keys.length;
+  while (i--) {
+    const key = keys[i];
+    switch (key) {
+      case "route":
+      case "moduleId":
+      case "redirect":
+      case "navigationStrategy":
+      case "viewPorts":
+      case "nav":
+      case "href":
+      case "generationUsesHref":
+      case "title":
+      case "navModel":
+      case "caseSensitive":
+      case "activationStrategy":
+      case "layoutView":
+      case "layoutViewModel":
+      case "layoutModel":
+      case "name":
+        target[key] = source[key];
+        break;
+      case "routeName":
+        target.name = source.routeName;
+        break;
+      case "settings":
+        if (!target.settings) {
+          target.settings = {};
+        }
+        Object.assign(target.settings, source.settings);
+        break;
+      default: // no default
+    }
   }
+};
 
-  return result;
-}
-
-/**
- * Retrieves the RouteConfigOverrides from the settings as well as
- * the moduleId from the instruction.
- */
-export function buildRouteConfigOverrides(instruction: ICreateRouteConfigInstruction): any {
-  const result: IRouteConfig = Object.create(Object.prototype);
+const buildRouteConfigOverrides = (instruction: ICreateInstruction) => {
+  const result: IRouteConfig = {};
   const settings = getSettings(instruction);
 
-  objectRouteConfigMapper.map(result, settings.routeConfigOverrides);
+  mergeRouteConfig(result, settings.routeConfigOverrides);
   result.moduleId = instruction.moduleId;
-
-  const ensureSettings = createObjectPropertyEnsurer<IRouteConfig>("settings");
-
-  return ensureSettings(result);
-}
-
-/**
- * Returns the most specific RouterMetadataSettings for a given instruction.instruction.
- */
-export function getRouterMetadataSettings(request: Function): RouterMetadataSettings {
-  if (request === RouterMetadataSettings) {
-    return getContainer(Container).get(RouterMetadataSettings);
+  if (!result.settings) {
+    result.settings = {};
   }
 
-  const container = getContainer(request);
-
-  if (!container) {
-    throw new Error();
-  }
-
-  return container.get(RouterMetadataSettings);
-}
-
-/**
- * Returns the most specific Container for a given instruction.
- */
-export function getContainer(request: any): Container {
-  if (request === Container) {
-    return Container.instance;
-  }
-
-  const resource = getRouterResource(request);
-
-  return (resource && resource.container) || Container.instance;
-}
-
-/**
- * Resolves the RouterResource for a given target.
- */
-export function getRouterResource(target: IRouterResourceTarget): RouterResource {
-  return routerMetadata.getOrCreateOwn(target);
-}
+  return result;
+};
 
 /**
  * Relays a request to the most specific Container available,
@@ -169,7 +174,7 @@ function toTitle(value: string): string {
  * Aggregates the results from child builders to create fully enriched RouteConfigs
  * for a given instruction, from the perspective of the module that configures these routes.
  */
-export function buildCompleteChildRouteConfigCollection(instruction: IConfigureRouterInstruction, $module?: $Module): any {
+export function buildCompleteChildRouteConfigCollection(instruction: IConfigInstruction, $module?: $Module): any {
   let $constructor = $module && $module.$defaultExport && $module.$defaultExport.$constructor;
   if (!$constructor) {
     $constructor = getRegisteredConstructor(instruction.target);

@@ -1,5 +1,5 @@
 import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "./interfaces";
-import { buildCompleteChildRouteConfigCollection, buildCompleteRouteConfigCollection } from "./resolution/builders";
+import { buildCompleteChildRouteConfigCollection, buildRouteConfigCollection } from "./resolution/builders";
 import { routerMetadata } from "./router-metadata";
 
 // tslint:disable:max-classes-per-file
@@ -33,7 +33,7 @@ export class DefaultRouteConfigFactory extends RouteConfigFactory {
     const resource = routerMetadata.getOrCreateOwn(instruction.target);
     await resource.load();
 
-    return buildCompleteRouteConfigCollection(instruction);
+    return buildRouteConfigCollection(instruction);
   }
 
   /**
