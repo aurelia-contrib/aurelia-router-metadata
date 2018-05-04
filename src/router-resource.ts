@@ -14,10 +14,10 @@ import {
 } from "./interfaces";
 import { $Module } from "./model";
 import { Registry } from "./registry";
-import { splitRouteConfig } from "./resolution/builders";
 import { RouteConfigFactory } from "./route-config-factory";
 import { routerMetadata } from "./router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "./router-metadata-configuration";
+import { splitRouteConfig } from "./util";
 
 type ConfigureRouter = (config: RouterConfiguration, router: Router) => Promise<void> | PromiseLike<void> | void;
 
@@ -348,7 +348,7 @@ export class RouterResource {
 
     let extractedChildRoutes: ICompleteRouteConfig[] | undefined;
     if (this.enableStaticAnalysis) {
-      extractedChildRoutes = await this.getConfigFactory().createChildRouteConfigs({ target: this.target });
+      extractedChildRoutes = await this.getConfigFactory().createChildRouteConfigs({ target: this.target } as any);
       for (const extracted of extractedChildRoutes) {
         if (extracted.moduleId) {
           if (this.routeConfigModuleIds.indexOf(extracted.moduleId) === -1) {

@@ -108,6 +108,10 @@ describe("DefaultRouteConfigFactory", () => {
     it("should extract RouteConfigs from the target's synchronous configureRouter() method", async () => {
       const expectedConfigs: any[] = [
         {
+          route: "foo-bar",
+          moduleId: "foo-bar"
+        },
+        {
           route: "",
           redirect: "foo-bar",
           nav: true
@@ -116,10 +120,6 @@ describe("DefaultRouteConfigFactory", () => {
           route: "baz-qux",
           redirect: "foo-bar",
           nav: true
-        },
-        {
-          route: "foo-bar",
-          moduleId: "foo-bar"
         }
       ];
       const actualConfigs = await sut.createChildRouteConfigs({ target: ConfigureRouterSync });
@@ -129,6 +129,10 @@ describe("DefaultRouteConfigFactory", () => {
     it("should extract RouteConfigs from the target's asynchronous configureRouter() method", async () => {
       const expectedConfigs: any[] = [
         {
+          route: "foo-bar",
+          moduleId: "foo-bar"
+        },
+        {
           route: "",
           redirect: "foo-bar",
           nav: true
@@ -137,10 +141,6 @@ describe("DefaultRouteConfigFactory", () => {
           route: "baz-qux",
           redirect: "foo-bar",
           nav: true
-        },
-        {
-          route: "foo-bar",
-          moduleId: "foo-bar"
         }
       ];
       const actualConfigs = await sut.createChildRouteConfigs({ target: ConfigureRouterSync });
