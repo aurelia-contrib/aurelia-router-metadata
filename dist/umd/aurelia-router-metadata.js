@@ -1,4 +1,8 @@
-define('aurelia-router-metadata', ['exports', 'aurelia-pal', 'aurelia-dependency-injection', 'aurelia-router', 'aurelia-logging', 'aurelia-loader'], function (exports, aureliaPal, aureliaDependencyInjection, aureliaRouter, aureliaLogging, aureliaLoader) { 'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('aurelia-pal'), require('aurelia-dependency-injection'), require('aurelia-router'), require('aurelia-logging'), require('aurelia-loader')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'aurelia-pal', 'aurelia-dependency-injection', 'aurelia-router', 'aurelia-logging', 'aurelia-loader'], factory) :
+  (factory((global['aurelia-router-metadata'] = {}),global.aureliaPal,global.aureliaDependencyInjection,global.aureliaRouter,global.aureliaLogging,global.aureliaLoader));
+}(this, (function (exports,aureliaPal,aureliaDependencyInjection,aureliaRouter,aureliaLogging,aureliaLoader) { 'use strict';
 
   // tslint:disable:max-classes-per-file
   class $Application {
@@ -8510,4 +8514,4 @@ define('aurelia-router-metadata', ['exports', 'aurelia-pal', 'aurelia-dependency
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+})));
