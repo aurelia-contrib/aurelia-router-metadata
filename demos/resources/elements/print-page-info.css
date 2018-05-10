@@ -1,9 +1,0 @@
-print-page-info {
-  display: block;
-}
-
-print-page-info>span {
-  display: block;
-  max-width: 23vw;
-  word-wrap: break-word;
-}
