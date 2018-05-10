@@ -259,7 +259,7 @@ const getRegisteredConstructor = (target: IRouterResourceTarget): $Constructor =
   throw new Error();
 };
 
-const getRouteConfigsFromMapCallExpression = (callExpression: cw.CallExpression) => {
+const getRouteConfigsFromMapCallExpression = (callExpression: cw.ESTree.CallExpression) => {
   const results: IRouteConfig[] = [];
 
   let i = callExpression.arguments.length;
@@ -287,7 +287,7 @@ const getRouteConfigsFromMapCallExpression = (callExpression: cw.CallExpression)
   return results;
 };
 
-const analyzeObjectExpression = (expression: cw.ObjectExpression) => {
+const analyzeObjectExpression = (expression: cw.ESTree.ObjectExpression) => {
   const objectResult: { [key: string]: any } = {};
   let i = expression.properties.length;
   while (i--) {

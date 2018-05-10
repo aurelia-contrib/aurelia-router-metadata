@@ -1,19 +1,13 @@
-// tslint:disable:no-implicit-dependencies
-// tslint:disable:import-name
 // tslint:disable:no-import-side-effect
-// tslint:disable:no-submodule-imports
-;
+// tslint:disable:import-name
 import { ICompleteRouteConfig, IConfigureRouterInstruction, ICreateRouteConfigInstruction } from "@src/interfaces";
 import { routerMetadata } from "@src/router-metadata";
 import { RouterMetadataConfiguration, RouterMetadataSettings } from "@src/router-metadata-configuration";
 import { Aurelia } from "aurelia-framework";
 import { PLATFORM } from "aurelia-pal";
 import { RouteConfig } from "aurelia-router";
-import * as Bluebird from "bluebird";
 import "pages/imports";
 import env from "./environment";
-
-Promise.config({ warnings: { wForgottenReturn: false } });
 
 export async function configure(au: Aurelia): Promise<void> {
   au.use.standardConfiguration().feature(PLATFORM.moduleName("resources/index"));
@@ -21,21 +15,22 @@ export async function configure(au: Aurelia): Promise<void> {
   au.use.plugin(PLATFORM.moduleName("aurelia-router-metadata"), (settings: RouterMetadataSettings) => {
     settings.transformRouteConfigs = transformRouteConfigs;
     settings.filterChildRoutes = filterChildRoutes;
-    if (/aurelia-router-metadata-sample/.test(PLATFORM.location.pathname)) {
-      settings.routerConfiguration.options.root = "/aurelia-router-metadata-sample/";
+    if (/aurelia-router-metadata/.test(PLATFORM.location.pathname)) {
+      settings.routerConfiguration.options.root = "/aurelia-router-metadata/";
     }
     settings.routerConfiguration.title = "aurelia-router-metadata";
   });
 
-  if (env.debug) {
+  if (PLATFORM.global.debug) {
     au.use.developmentLogging();
-  }
-
-  if (env.testing) {
     au.use.plugin(PLATFORM.moduleName("aurelia-testing"));
   }
+
   await au.start();
-  await au.setRoot(PLATFORM.moduleName("app"));
+
+  const host = document.querySelector("[aurelia-app]");
+
+  await au.setRoot(PLATFORM.moduleName("app"), host);
 
   function transformRouteConfigs(
     configs: ICompleteRouteConfig[],

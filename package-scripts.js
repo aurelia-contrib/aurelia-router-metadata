@@ -4,12 +4,20 @@ function config(name) {
   return `configs/tsconfig-${name}.json`;
 }
 
+function rollup(mod, minify) {
+  return package(`rollup --c --environment mod:${mod},${minify ? "minify" : ""}`);
+}
+
 function tsc(tsconfig) {
   return package(`tsc --project ${config(tsconfig)}`);
 }
 
+function setTsNodeProject() {
+  return `TS_NODE_PROJECT=\"${config("tsnode")}\"`;
+}
+
 function webpack(tool, arg) {
-  return crossEnv(`TS_NODE_PROJECT=\"${config("tsnode")}\" ${tool} --config webpack.config.ts ${arg}`);
+  return crossEnv(`${setTsNodeProject()} ${package(tool)} --config webpack.config.ts ${arg}`);
 }
 
 function package(script) {
@@ -18,7 +26,7 @@ function package(script) {
 
 function karma(single, watch, browsers, transpileOnly, noInfo, coverage, tsconfig, logLevel, devtool) {
   return package(
-    "karma start"
+    `${setTsNodeProject()} ${package("karma")} start`
       .concat(single !== null ? ` --single-run=${single}` : "")
       .concat(watch !== null ? ` --auto-watch=${watch}` : "")
       .concat(browsers !== null ? ` --browsers=${browsers}` : "")
@@ -64,7 +72,7 @@ function release(version, dry) {
      * Therefore, always remember to manually "unbump" the version number in package.json after doing a dry run!
      * If you forget this, you'll end up bumping the version twice which gives you one release without changes.
      */
-    version: `standard-version --first-release --commit-all${dry ? " --dry-run" : ""}`,
+    version: `${package("standard-version")} --first-release --commit-all${dry ? " --dry-run" : ""}`,
     build: series.nps("test", "build.dist"),
     git: {
       stage: "git add package.json dist",
@@ -77,7 +85,7 @@ function release(version, dry) {
 }
 
 module.exports = {
-   scripts: {
+  scripts: {
     lint: package(`tslint --project ${config("build")}`),
     test: {
       default: package("nps test.single"),
@@ -103,25 +111,83 @@ module.exports = {
         before: series.nps("lint", "build.dist.clean"),
         clean: rimraf("dist"),
         rollup: {
-          default: series.nps("build.dist.before", "build.dist.rollup.all"),
-          all: `${package("rollup")} -c`
+          default: series.nps("build.dist.before", "build.dist.rollup.all.default"),
+          minify: series.nps("build.dist.rollup.all.minify"),
+          all: {
+            default: concurrent.nps(
+              "build.dist.rollup.amd.default",
+              "build.dist.rollup.commonjs.default",
+              "build.dist.rollup.es2015.default",
+              "build.dist.rollup.es2017.default",
+              "build.dist.rollup.esnext.default",
+              "build.dist.rollup.nativeModules.default",
+              "build.dist.rollup.system.default",
+              "build.dist.rollup.umd.default"
+            ),
+            minify: concurrent.nps(
+              "build.dist.rollup.amd.minify",
+              "build.dist.rollup.commonjs.minify",
+              "build.dist.rollup.es2015.minify",
+              "build.dist.rollup.es2017.minify",
+              "build.dist.rollup.esnext.default",
+              "build.dist.rollup.nativeModules.minify",
+              "build.dist.rollup.system.minify",
+              "build.dist.rollup.umd.minify"
+            )
+          },
+          amd: {
+            default: rollup("amd"),
+            minify: rollup("amd", true)
+          },
+          commonjs: {
+            default: rollup("commonjs"),
+            minify: rollup("commonjs", true)
+          },
+          es2015: {
+            default: rollup("es2015"),
+            minify: rollup("es2015", true)
+          },
+          es2017: {
+            default: rollup("es2017"),
+            minify: rollup("es2017", true)
+          },
+          esnext: {
+            default: rollup("esnext"),
+            minify: rollup("esnext", true)
+          },
+          nativeModules: {
+            default: rollup("native-modules"),
+            minify: rollup("native-modules", true)
+          },
+          system: {
+            default: rollup("system"),
+            minify: rollup("system", true)
+          },
+          umd: {
+            default: rollup("umd"),
+            minify: rollup("umd", true)
+          }
         },
         tsc: {
           default: series.nps("build.dist.before", "build.dist.tsc.all"),
           all: concurrent.nps(
             "build.dist.tsc.amd",
             "build.dist.tsc.commonjs",
-            "build.dist.tsc.es2017",
             "build.dist.tsc.es2015",
+            "build.dist.tsc.es2017",
+            "build.dist.tsc.esnext",
             "build.dist.tsc.nativeModules",
-            "build.dist.tsc.system"
+            "build.dist.tsc.system",
+            "build.dist.tsc.umd"
           ),
           amd: tsc("build-amd"),
           commonjs: tsc("build-commonjs"),
-          es2017: tsc("build-es2017"),
           es2015: tsc("build-es2015"),
+          es2017: tsc("build-es2017"),
+          esnext: tsc("build-esnext"),
           nativeModules: tsc("build-native-modules"),
-          system: tsc("build-system")
+          system: tsc("build-system"),
+          umd: tsc("build-umd")
         }
       }
     },
@@ -157,11 +223,7 @@ module.exports = {
         "git push",
         "git checkout master"
       ),
-      setup: series(
-        "git checkout -b gh-pages",
-        "git push -u origin gh-pages",
-        "git checkout master"
-      )
+      setup: series("git checkout -b gh-pages", "git push -u origin gh-pages", "git checkout master")
     }
   }
 };

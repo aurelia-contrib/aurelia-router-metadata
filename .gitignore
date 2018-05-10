@@ -1,6 +1,5 @@
 /node_modules
 /scripts
 coverage
-test-temp
 yarn-error.log
 .rollupcache

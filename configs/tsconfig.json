@@ -49,7 +49,7 @@
     //"paths": {},
     "preserveConstEnums": true, //default: false
     //"preserveSymlinks": false,
-    //"pretty": false,
+    "pretty": true,
     //"removeComments": false,
     //"rootDir": "",
     //"rootDirs": [],

@@ -1,8 +1,17 @@
-[aurelia-app="main"] {
+html,
+body,
+[aurelia-app] {
   width: 100vw;
   height: 100vh;
   margin: 0;
+  border: 0;
   padding: 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+[aurelia-app] {
+  overflow-y: auto;
 
   display: flex;
   flex-flow: column nowrap;
